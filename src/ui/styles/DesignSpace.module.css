@@ -13,7 +13,6 @@
 	margin: 10px;
 	position: relative;
 	display: grid;
-	grid-template-columns: repeat(12, 1fr);		
 	z-index: -1;
 	overflow: clip;
 	list-style: none;

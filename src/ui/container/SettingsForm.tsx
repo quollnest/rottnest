@@ -84,13 +84,14 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 			
 
 		return (
-			<div className={styles.settingsForm} 
-				style={this.state.isHidden ? { display: 'none'} :
-					{ display: 'flex' }}>
+			<div style={{position:'relative'}}>
+			<div className={styles.settingsForm}>
+				<h2>Settings</h2>
 				<label>Project Name</label>
 				<input type="text" name="projectName"
 					value={this.state.project.projectName} 
 					onChange={(e) => {inputChangeFn(e, 'projectName')}}/>
+					<br />
 				<label>Author</label>
 				<input type="text" name="author"
 					value={this.state.project.author} 
@@ -109,16 +110,17 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 					value={this.state.project.description} 
 					onChange={(e) => {inputChangeFn(e, 'description')}}/>
 				
-				<div>
+				<div className={styles.buttonSegment}>
 					<button className={styles.settingsCancel}
-						onClick={this.cancel}>
+						onClick={(_) => sref.cancel()}>
 						Cancel
 					</button>
 					<button className={styles.settingsApply}
-						onClick={this.settingsApply}>
+						onClick={(_) => sref.settingsApply()}>
 						Apply
 					</button>
 				</div>
+			</div>
 			</div>
 		);
 	}

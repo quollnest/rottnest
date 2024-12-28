@@ -112,12 +112,16 @@ export class RegionDataList {
 
 			//Removes any region that has no more cells mapped
 			//from the array.
+			//TODO: Check to see if sort is necessary
+			dataToRemove.sort();			
+			dataToRemove.reverse();
 			for(const idx of dataToRemove) {
 				kRegions.splice(idx, 1);
 			}
 		}
 		
 		//Gets added
+		console.log(this.regions);
 		this.regions[pkey].push(data);
 	}
 }

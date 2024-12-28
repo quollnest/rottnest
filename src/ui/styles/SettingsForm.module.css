@@ -1,8 +1,36 @@
 
 .settingsForm {
-	position: absolute;
-	justify-content: center;
-	align-items: center;
+	padding: 4em;
+	display: block;
+	grid-template-columns: repeat(2, 1fr);
+	left: 10%;
+	top: 30%;
+	background-color: #25231f;
+	position:absolute;
+	z-index: 3;
+	width: 50%;
+	overflow-y:scroll;
+	overflow-x:hidden;
 }
 
+.settingsForm * {
+	display: block;
+	width: 100%;
+}
 
+.settingsForm button {
+	display: inline-flex;
+	width: 30%;
+	margin-top: 1em;
+	justify-content: center;
+}
+
+.settingsForm .settingsApply {
+	margin-left: auto;
+	justify-items: flex-end;
+}
+
+.buttonSegment {
+	display: flex;
+	margin-top: 1em;
+}
