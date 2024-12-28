@@ -5,7 +5,6 @@ import styles from './styles/ErrorList.module.css';
  * The error data will provide a
  * description, name, identifier and reference related
  * to the region that is an issue
- *
  */
 type ErrorData = {
 	ident: number

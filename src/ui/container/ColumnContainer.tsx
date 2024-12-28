@@ -45,7 +45,8 @@ export class ToolContainer extends React.Component<ToolContainerProps, {}> {
 				<Toolbox 
 					toolbox={ 
 						{ headerName: 
-							ContainerDefaults.toolbox.headerName 
+							ContainerDefaults
+						.toolbox.headerName 
 						} 
 					} 
 					container={this.props.container}/>
@@ -58,18 +59,24 @@ export class ToolContainer extends React.Component<ToolContainerProps, {}> {
 }
 
 
+type RegionContainerProps = {
+	container: RottnestContainer
+}
+
 /**
  * Region Container that is a column container
  * that contains both region list and errors
  *
  */
-export class RegionContainer extends React.Component<{}, {}> {
+export class RegionContainer extends React.Component<RegionContainerProps, {}> {
 
 	render() {
+		const container = this.props.container;
+		const regionList = container.getRegionList();
+
 		return (
 			<div className={regionStyle.regionContainer}>
-				<RegionList
-					{...ContainerDefaults.regionList} />
+				<RegionList regions={regionList} />
 				<ErrorList 
 					{...ContainerDefaults.errorList} />
 			</div>

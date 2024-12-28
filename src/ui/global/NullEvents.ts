@@ -1,13 +1,8 @@
-import RottnestProject from "../../model/Project"
+import RottnestContainer from "../container/RottnestContainer"
 
-const leftClick = (rott: RottnestProject) => {
+const leftClick = (_: RottnestContainer) => { }
 
-
-}
-
-/*const rightClick = () => {
-
-}*/
+const auxEvent = (_: RottnestContainer) => { }
 
 
-export default { leftClick }
+export default { leftClick, auxEvent }

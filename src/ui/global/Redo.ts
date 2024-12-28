@@ -1,13 +1,11 @@
-import RottnestProject from "../../model/Project"
-
-const leftClick = (rott: RottnestProject) => {
+import RottnestContainer from "../container/RottnestContainer"
 
 
+const leftClick = (rott: RottnestContainer) => {
+	rott.redoRegion();
 }
 
-/*const rightClick = () => {
-
-}*/
+const auxEvent = (_: RottnestContainer) => {}
 
 
-export default { leftClick }
+export default { leftClick, auxEvent }

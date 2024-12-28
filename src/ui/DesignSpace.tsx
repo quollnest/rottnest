@@ -16,6 +16,15 @@ type GridState = {
 	leftIsDown: boolean
 }
 
+/**
+ * CellInfo
+ * taggedKind is the kind of region that
+ * had been marked
+ *
+ * The updateCell is nullable, was reserved for
+ * something else
+ * TODO: Evaluate if updateCell still needs to exist
+ */
 type CellInfo = {
 	taggedKind: number
 	updateCell?: () => void
@@ -26,6 +35,7 @@ type CellInfo = {
  * created.
  */
 export type GridData = {
+	zoomValue: number
 	container: RottnestContainer
 	toolKind: number
 	width: number
@@ -75,7 +85,6 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 
 	onGridMove(e: React.MouseEvent<HTMLUListElement>) {
 		if(this.state.middleIsDown) {
-			console.log("Yo!");
 			const x = e.movementX;
 			const y = e.movementY;
 
@@ -90,7 +99,17 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		}
 	}
 
-	onGridUp(_: React.MouseEvent<HTMLUListElement>) {	
+	onGridUp(_: React.MouseEvent<HTMLUListElement>) {
+		//1. Needs to construct RegionData:
+		//2. Send the old RegionDataList to undo stack
+		//3. Add the RegionData to RegionDataList
+		//4. Set the new RegionDataList and refresh
+		//5. Add the region to RegionList component
+		
+		const container = this.props.container;
+		//Deduce the key value
+		container.applyRDBuffer();
+
 		let newGS = {...this.state};
 		newGS.middleIsDown = false;
 		newGS.leftIsDown = false;
@@ -109,14 +128,9 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 
 	render() {
 		const gref = this;
-		const renderableCells = 
-			this.state.cells.map((c, _) => <GridCell cell={c} 
-						leftDown={gref.state.leftIsDown}
-						toolKind={
-							gref.props.container.getToolIndex()}
-					     />);
-		
-
+		const container = this.props.container;
+		const zoomValue = this.props.zoomValue;
+		const gwidth = gref.props.width;
 		const mgdownEvent = (e: React.MouseEvent<HTMLUListElement>) => {
 			gref.onGridDown(e);
 		}
@@ -128,6 +142,25 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			gref.onGridUp(e);
 		}
 
+		const dataTagFn = (x: number, y: number) => {
+			container.getCurrentRDBuffer()
+				.insert({ x, y })	
+		}
+
+		const renderableCells = 
+			this.state.cells.map((c, idx) => <GridCell cell={c}
+				x={idx % gwidth}
+				y={Math.floor(idx / gwidth)}
+				leftDown={
+					gref.state.leftIsDown
+				}
+				toolKind={
+					gref.props.container.getToolIndex()
+				}
+				tagFn={dataTagFn}	
+			     />);
+
+
 		return (
 			<div className={styles.designSpaceContainer}>
 				<ul className={styles.designSpaceGrid} 
@@ -136,7 +169,10 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 					onMouseUp={mgupEvent}
 					style={ { 
 						left: gref.state.mousePosition[0],
-						top: gref.state.mousePosition[1] 
+						top: gref.state.mousePosition[1],
+						width: `${zoomValue}%`,
+						gridTemplateColumns: 
+							`repeat(${gwidth}, 1fr)`
 					}}>
 					{renderableCells}
 				</ul>

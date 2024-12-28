@@ -1,20 +1,14 @@
 import React from 'react';
 import styles from './styles/RegionList.module.css';
+import {RegionData, RegionDataList} from '../model/Project';
 
-/**
- * RegionListData, will contain
- * a list of regions that 
- *
- */
-type RegionListData = {
-	regions: Array<any>
-	
+type RegionListProps = {
+	regions: RegionDataList
 }
 
-
 type RegionItemData = {
-	region: any
-	selected: boolean
+	tag: string 
+	rdata: RegionData
 }
 
 /**
@@ -30,13 +24,15 @@ type RegionListState = {
  * is carried over via data
  *
  */
-class RegionItemRender extends React.Component<RegionItemRender, {}> {
+class RegionItemRender extends React.Component<RegionItemData, {}> {
 
 
 	render() {
+		const data = this.props;
 		return (
-			<>
-			</>
+			<div>
+				{data.tag}
+			</div>
 		);
 	}
 }
@@ -48,7 +44,7 @@ class RegionItemRender extends React.Component<RegionItemRender, {}> {
  * provide a quick reference
  *
  */
-class RegionList extends React.Component<RegionListData, RegionListState> {
+class RegionList extends React.Component<RegionListProps, RegionListState> {
 	
 	state: RegionListState = {
 
@@ -62,7 +58,7 @@ class RegionList extends React.Component<RegionListData, RegionListState> {
 	render() {
 		const headerName = 'Regions';
 		const regions = this.props.regions;
-		const renderRegions = regions.map(
+		const renderRegions = regions.flattenWithTags().map(
 			r => <RegionItemRender {...r} />)
 
 		return (

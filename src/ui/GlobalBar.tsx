@@ -24,9 +24,16 @@ import {
 } from '@ant-design/icons'
 
 import styles from './styles/GlobalBar.module.css';
+import RottnestContainer from './container/RottnestContainer.tsx';
 
 
+/**
+ * GlobalBarProps, has a reference to
+ * its container and a component map of values
+ * which are a little more dynamic
+ */
 type GlobalBarProps = {
+	container: RottnestContainer
 	componentMap: Map<number, [string, RottnestProject]>
 }
 
@@ -37,8 +44,8 @@ type GlobalBarProps = {
  * that each baritem object will have associated
  */
 type BarItemEvents = {
-	leftClick: (project: RottnestProject) => void
-	auxEvent: (project: RottnestProject) => void
+	leftClick: (project: RottnestContainer) => void
+	auxEvent: (project: RottnestContainer) => void
 }
 
 /**
@@ -56,6 +63,7 @@ type BarItemDescription = {
 }
 
 type BarItemData = {
+	containerRef: RottnestContainer
 	description: BarItemDescription
 	updatable?: [string, RottnestProject]
 }
@@ -71,8 +79,8 @@ type BarItemData = {
 class BarItem extends React.Component<BarItemData, {}> {
 
 	render() {
-
 		const data = this.props;
+		const container = data.containerRef;
 		const projTup = this.props.updatable;
 		const val = projTup ? projTup[0] : '';
 	
@@ -83,7 +91,7 @@ class BarItem extends React.Component<BarItemData, {}> {
 
 		return (
 			<li key={ident}
-				onClick={ (_) => { events.leftClick(null) } }
+				onClick={ (_) => { events.leftClick(container) } }
 				className={data.description.style}>
 				{ico} <div>{val ? val : name}</div>
 			</li>
@@ -162,7 +170,7 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			name: "", 
 			toolTip: "", 
 			image: "missing",
-			events: RedoEvent,
+			events: NullEvents,
 			style: styles.separator,
 			iconComponent: <></>
 		},
@@ -184,11 +192,11 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			style: styles.load,
 			iconComponent: 
 				<>
-					<UploadOutlined />
-					<input className={styles.hiddenFile} 
-						type="file" 
-						onChange={(_) => {LoadEvent.auxEvent}}>
-						</input>
+				<UploadOutlined />
+				<input className={styles.hiddenFile} 
+					type="file" 
+					onChange={(_) => {LoadEvent.auxEvent}}>
+					</input>
 				</>
 		},
 		{ 
@@ -213,9 +221,10 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 
 	render() {
 		const compMap = this.props.componentMap;
+		const container = this.props.container;
 
 		const renderableBarItems = this.barItems.map(
-			(bi: BarItemDescription) => <BarItem 
+			(bi: BarItemDescription) => <BarItem containerRef={container}
 				description={bi} updatable={compMap.get(bi.id)} 
 				/>	
 		);

@@ -1,6 +1,8 @@
-import RottnestProject from "../../model/Project"
 
-const leftClick = (rott: RottnestProject) => {
+import RottnestContainer from "../container/RottnestContainer"
+
+const leftClick = (rott: RottnestContainer) => {
+
 	const blob = new Blob(['{ "test" : "t"}'], { type: 'application/json' });
 	let uobj = URL.createObjectURL(blob, );
 	
@@ -12,4 +14,8 @@ const leftClick = (rott: RottnestProject) => {
 }
 
 
-export default { leftClick }
+const auxEvent = (_: RottnestContainer) => { }
+
+
+
+export default { leftClick, auxEvent }

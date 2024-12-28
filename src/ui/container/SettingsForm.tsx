@@ -27,10 +27,12 @@ type SettingsState = {
 	project: ProjectDetails
 }
 
-
+/**
+ * Settings form component, will be always present
+ * in the display but turned off and on when needed
+ */
 class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 	
-
 	rootContainer = this.props.rootContainer;
 
 	state: SettingsState = {
@@ -44,23 +46,12 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 		}
 	};
 
-	toggleShowForm() {
-		let newState = {...this.state};
-		newState.isHidden = !newState.isHidden;
-		this.setState(newState);
-	}
-
-	show() {
-		let newState = {...this.state};
-		newState.isHidden = true; 
-		this.setState(newState);
-	}
-
+	/**
+	 * Cancels the component and triggers a re-render
+	 * of the root container
+	 */
 	cancel() {
-	
-		let newState = {...this.state};
-		newState.isHidden = false; 
-		this.setState(newState);
+		this.rootContainer.cancelSettings();
 	}
 
 	/**
@@ -69,14 +60,13 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 	 * to flush the changes to other components
 	 */
 	settingsApply() {
-		
+		this.rootContainer.applySettings(this.state.project);
 	}
 
 	render() {
 		const sref = this;
 
-		const inputChangeFn = (e: 
-			React.FormEvent<HTMLInputElement>,
+		const inputChangeFn = (e: React.FormEvent<HTMLInputElement>,
 			key: keyof ProjectDetails) => {
 
 			let partial: Partial<ProjectDetails> = {
@@ -84,7 +74,9 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 			};
 
 			let newState: SettingsState = {
-				...this.state, ...partial};
+				...this.state, 
+				...partial
+			};
 
 			sref.setState(newState);
 		}
@@ -92,7 +84,9 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 			
 
 		return (
-			<div className={styles.settingsForm}>
+			<div className={styles.settingsForm} 
+				style={this.state.isHidden ? { display: 'none'} :
+					{ display: 'flex' }}>
 				<label>Project Name</label>
 				<input type="text" name="projectName"
 					value={this.state.project.projectName} 

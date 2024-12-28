@@ -15,15 +15,117 @@ export type ProjectDetails = {
 	description: string	
 }
 
-class RegionData {
+export type RegionCell = {
+	x: number
+	y: number
+}
 
+export class RegionData {
+	cells: Map<string, RegionCell> = new Map();
+	
+	insert(cell: RegionCell) {
+		//TODO: Dirty hack but I wanted sets
+		//	and it requires primitives until
+		//	JS/TS supports equality checking
+		//	override on custom types
+		const rcStr = `${cell.x} ${cell.y}`;
+			
+		this.cells.set(rcStr, cell);
+	}
+
+	keySet(): Set<string> {
+		return new Set(this.cells.keys());
+	}
+
+
+	cleanupRegionData(toRemove: Set<string>): number {
+		for(const k of toRemove) {
+			this.cells.delete(k);
+		}
+		return this.cells.size;
+	}
+}
+
+export type Regions = {
+	bus: Array<RegionData>
+	registers: Array<RegionData>
+	bellstates: Array<RegionData>
+	tfactories: Array<RegionData>
+	buffers: Array<RegionData>
 }
 
 
-class RottnestProject {
+
+export class RegionDataList {
+	regions: Regions = {
+		bus: [],
+		registers: [],
+		bellstates: [],
+		tfactories: [],
+		buffers: []
+	};
+
+	flattenWithTags(): Array<{tag: string, rdata: RegionData}> {
+		const regs = this.regions;
+		let flatArray = [];
+
+		flatArray.push(...regs.bus.map((v, i) => 
+			 { return {tag: `bus${i}`, rdata: v} }));	
+		flatArray.push(...regs.registers.map((v, i) => 
+			 { return {tag: `registers${i}`, rdata: v} }));
+		flatArray.push(...regs.bellstates.map((v, i) => 
+			 { return {tag: `bellstates${i}`, rdata: v} }));
+		flatArray.push(...regs.tfactories.map((v, i) => 
+			 { return {tag: `tfactories${i}`, rdata: v} }));
+		flatArray.push(...regs.buffers.map((v, i) => 
+			 { return {tag: `buffers${i}`, rdata: v} }));
+
+		return flatArray;
+	}
+
+	resolveIntersections(a: Set<string>, b: Set<string>): Set<string> {
+		return a.intersection(b);	
+	}
+
+
+	addData(data: RegionData, pkey: keyof Regions) {
+		//Check for intersections, produces a keySet
+		//That we will use to discover overlaps
+		//not just in the same type but other types.
+		const rset = data.keySet();
+			
+		for(const key in this.regions) {
+			const dataToRemove = [];
+			const kRegions = this.regions[key as keyof Regions];
+			for(const rk in kRegions) {
+				const eReg = kRegions[rk];
+
+				let toRemove = this.resolveIntersections(rset, 
+						eReg.keySet());
+				const r = eReg.cleanupRegionData(toRemove);
+
+				if(r <= 0) {
+					dataToRemove.push(Number(rk));
+				}
+
+			}
+
+			//Removes any region that has no more cells mapped
+			//from the array.
+			for(const idx of dataToRemove) {
+				kRegions.splice(idx, 1);
+			}
+		}
+		
+		//Gets added
+		this.regions[pkey].push(data);
+	}
+}
+
+
+export class RottnestProject {
 	name: string = "";
 	regions: Array<RegionData> = [];
 }
 
 
-export default RottnestProject;
