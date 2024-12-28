@@ -1,0 +1,9 @@
+
+.regionContainer {
+	background-color: #25231f;
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	border-left: 1px #35332f solid; 
+	min-width: 160px;
+}

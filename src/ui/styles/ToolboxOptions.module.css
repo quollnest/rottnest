@@ -1,0 +1,11 @@
+
+.toolboxOptions {
+	flex: 1;
+	border-top: 1px #35332f solid; 
+}
+
+.toolboxOptionsHeader {
+	text-align: center;
+	background-color: #232122;	
+	border-bottom: 1px #35332f solid; 
+}
