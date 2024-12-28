@@ -60,7 +60,7 @@ class RegionList extends React.Component<RegionListData, RegionListState> {
 	}
 
 	render() {
-
+		const headerName = 'Regions';
 		const regions = this.props.regions;
 		const renderRegions = regions.map(
 			r => <RegionItemRender {...r} />)
@@ -68,6 +68,8 @@ class RegionList extends React.Component<RegionListData, RegionListState> {
 		return (
 
 			<div className={styles.regionList}>
+				<header className={styles.regionListHeader}>
+					{headerName}</header>
 				{renderRegions}
 			</div>
 		)

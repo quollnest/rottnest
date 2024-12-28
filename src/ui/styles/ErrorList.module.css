@@ -1,0 +1,13 @@
+
+.errorList {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	border-top: 1px #35332f solid; 
+}
+
+.errorListHeader {
+	text-align: center;
+	background-color: #232122;	
+	border-bottom: 1px #35332f solid; 
+}

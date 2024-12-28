@@ -1,0 +1,40 @@
+
+.gridItem {
+	display: inline-grid;
+	border: 1px #35332f solid;
+	aspect-ratio: 1;
+	justify-content: center;
+	align-items: center;	
+}
+
+
+.Untagged {
+
+}
+
+
+.Register {
+	
+	border: 1px #e0e000 solid !important
+}
+
+.Bus {
+	background-color: #40c040;	
+	border: 1px #40c040 solid !important
+}
+
+.BellState {
+	
+	border: 1px #ff00ff solid !important
+}
+
+.TFactory {
+	
+	border: 1px #3820ff solid !important
+}
+
+.Buffer {
+	
+	border: 1px #e04040 solid !important
+}
+

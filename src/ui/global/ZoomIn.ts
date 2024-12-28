@@ -1,6 +1,7 @@
+import RottnestProject from "../../model/Project"
 
 
-const leftClick = () => {
+const leftClick = (rott: RottnestProject) => {
 
 
 }

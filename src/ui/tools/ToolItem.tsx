@@ -1,21 +1,8 @@
 import React from "react";
+import { ToolData } from './Tool';
 
-
-
-/**
- * ToolOperation interface
- * provides a contract that implementers have to 
- * provide which are for:
- * - DesignSpace leftclick, what leftclick does on design space
- * - DesignSpace rightclick, what rightclick does on design space
- * - ToolOptions data, function to perform for tool options
- *  
- */
-interface ToolOperation {
-	designSpaceLeft(): void
-	designSpaceRight(): void
-	toolOptions(): void
-}
+import styles from '../styles/ToolItem.module.css';
+import {CloseSquareFilled, SelectOutlined} from "@ant-design/icons";
 
 /**
  * ToolItemProps,
@@ -23,9 +10,9 @@ interface ToolOperation {
  * the container
  *
  */
-type ToolItemProps = {
+/*type ToolItemProps = {
 	isSelected: boolean
-}
+}*/
 
 /**
  * ToolItemState,
@@ -34,7 +21,18 @@ type ToolItemProps = {
  *
  * At the moment, nothing has been given
  */
-type ToolItemState = {}
+//type ToolItemState = {}
+
+const ToolColours = [
+	'rgb(255, 255, 255)',
+	'rgb(224, 64, 64',
+	'rgb(64, 192, 64)',
+	'rgb(56, 32, 255)',
+	'rgb(255, 0, 255)',
+	'rgb(224, 224, 0)',
+	'rgb(64, 224, 224)',
+	'rgb(160, 96, 196)',
+]
 
 /**
  * ToolItem is a data class with events
@@ -44,26 +42,31 @@ type ToolItemState = {}
  *
  *
  */
-export class ToolItem extends React.Component {
-
-	static ToolWidthDefault: number = 100;
-	static ToolHeightDefault: number = 30;
-	
-
-	width: number = ToolItem.ToolWidthDefault;	
-	height: number = ToolItem.ToolHeightDefault;
-
-	//opertions: ToolOperation;
-
-	/*constructor(oper: ToolOperation) {
-		this.opertions = oper;
-	}*/
+export class ToolItem extends React.Component<ToolData, {}> {
 
 	render() {
-		return (
-			<>
+		const tool = this.props.tool;
+		const key = this.props.tool.kind;
+		const parent = this.props.toolParent;
 
-			</>
+		const selected = this.props.isSelected;
+		const updateSelected = () => {
+			parent.updateSelected(key);
+		}
+
+		//TODO: Revisit this
+		let iconImg = tool.kindName == 'Selector' ? 
+			<SelectOutlined style={{color: ToolColours[tool.kind]}} /> :
+			<CloseSquareFilled style={{color: ToolColours[tool.kind]}} />;
+		
+		return (
+			<li key={key} className={ 
+				selected ? styles.toolSelected : styles.tool}
+					onClick={updateSelected}>
+				
+				{iconImg}
+				<span> </span>{tool.kindName}	
+			</li>
 		)
 	}
 

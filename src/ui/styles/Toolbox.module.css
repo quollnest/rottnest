@@ -1,0 +1,12 @@
+
+
+.toolbox {
+	flex: 1;
+	max-height: 400px;
+}
+
+.toolboxHeader {
+	text-align: center;
+	background-color: #232122;	
+	border-bottom: 1px #35332f solid; 
+}

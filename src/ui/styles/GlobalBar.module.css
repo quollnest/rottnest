@@ -1,0 +1,120 @@
+
+.globalBar {
+	display: flex;
+	background-color: #25231f;
+	list-style-type: none;
+	width: 100%;
+	border-bottom: 1px #35332f solid;
+}
+
+.hiddenFile {
+	position:absolute;
+	opacity:0;
+	float: right;
+	width: 30px;
+
+}
+
+.globalBar ul {
+	display: flex;
+	width: 100%;
+	padding-left: 0;
+}
+
+.globalBar li {
+	display: inline-flex;
+	padding: 0em;
+	flex: 1;
+	min-width: 60px;
+}
+
+.containerLogo {
+	flex: 1 !important;
+	border-right: 1px #35332f solid;
+	min-width: 80px !important;
+	justify-content: center;
+}
+
+.globalBar li:hover {
+	color: rgba(255, 255, 255, 1)
+}
+
+.help {
+	justify-content: center;
+}
+
+.redo {
+	justify-content: center;
+	flex: 0.5 !important;
+}
+
+.undo {
+	border-left: 1px #35332f solid;
+	justify-content: center;
+	flex: 0.5 !important;
+}
+.undo div {
+	font-size: x-small;
+}
+
+.redo div {
+	font-size: x-small;
+}
+
+.separator {
+	flex: 4 !important;
+	border-left: 1px #35332f solid;
+}
+
+.save {	
+	border-left: 1px #35332f solid;
+	justify-content: center;
+	flex: 0.5 !important;
+}
+
+.load {
+	justify-content: center;
+	flex: 0.5 !important;
+}
+
+.load div {
+	font-size: x-small;
+}
+.save div {
+	font-size: x-small;
+}
+
+.settings {
+	border-left: 1px #35332f solid;
+	justify-content: flex-end;
+	flex: 0.5 !important;
+}
+
+.settings div {
+	font-size: x-small;
+}
+
+.help div {
+	font-size: x-small;
+}
+
+.help {
+	flex: 0.5 !important;
+}
+
+.zoomValue {
+	flex: 0.2 !important;
+	justify-content: center;
+}
+
+.zoomOut {
+	flex: 0.2 !important;
+	justify-content: center;
+}
+
+.zoomIn {
+	flex: 0.2 !important;
+	justify-content: center;
+}
+
+

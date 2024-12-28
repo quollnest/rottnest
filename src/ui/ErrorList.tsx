@@ -94,6 +94,8 @@ class ErrorList extends React.Component<ErrorListing, ErrorListData> {
 	 * the default styling will be applied
 	 */
 	render() {
+		const headerName = 'Errors';
+
 		const errors = this.props.errors.map(
 			e => <ErrorItem errorData={e} 
 					selected={e.ident === 
@@ -104,6 +106,8 @@ class ErrorList extends React.Component<ErrorListing, ErrorListData> {
 		);
 		return (
 			<div className={styles.errorList}>
+				<header className={styles.errorListHeader}>
+					{headerName}</header>
 			<ul>
 				{errors}
 			</ul>

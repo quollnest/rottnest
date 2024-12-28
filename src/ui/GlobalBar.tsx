@@ -1,35 +1,63 @@
-import React from 'react';
+import React, {ReactElement} from 'react';
 
-import Help from './global/Help.ts';
-import Load from './global/Load.ts';
-import Save from './global/Save.ts';
-import Undo from './global/Undo.ts';
-import Redo from './global/Redo.ts';
-import ZoomIn from './global/ZoomIn.ts';
-import ZoomOut from './global/ZoomOut.ts';
-import Settings from './global/Settings.ts';
+import RottnestProject from '../model/Project.ts';
+
+import HelpEvent from './global/Help.ts';
+import LoadEvent from './global/Load.ts';
+import SaveEvent from './global/Save.ts';
+import UndoEvent from './global/Undo.ts';
+import RedoEvent from './global/Redo.ts';
+import ZoomInEvent from './global/ZoomIn.ts';
+import ZoomOutEvent from './global/ZoomOut.ts';
+import SettingsEvent from './global/Settings.ts';
+import NullEvents from './global/NullEvents.ts';
+
+import {  
+	SaveOutlined,
+	UploadOutlined,
+	ZoomInOutlined,
+	ZoomOutOutlined,
+	UndoOutlined,
+	RedoOutlined,
+	SettingOutlined,
+	FlagOutlined,
+} from '@ant-design/icons'
 
 import styles from './styles/GlobalBar.module.css';
+
+
+type GlobalBarProps = {
+	componentMap: Map<number, [string, RottnestProject]>
+}
+
+
 
 /**
  * BarItemEvents, these are callbacks
  * that each baritem object will have associated
  */
 type BarItemEvents = {
-	leftClick: () => void
+	leftClick: (project: RottnestProject) => void
+	auxEvent: (project: RottnestProject) => void
 }
 
 /**
  * BarItemData holds identifier, name
  * toolTip information and image reference
  */
-type BarItemData = {
+type BarItemDescription = {
 	id: number
 	name: string
 	toolTip: string
 	image: string
 	style?: string
 	events: BarItemEvents
+	iconComponent: ReactElement
+}
+
+type BarItemData = {
+	description: BarItemDescription
+	updatable?: [string, RottnestProject]
 }
 
 
@@ -41,18 +69,23 @@ type BarItemData = {
  * Image may be included (still deciding if it is a png or not)
  */
 class BarItem extends React.Component<BarItemData, {}> {
-	
 
 	render() {
-		const data = this.props; 
-		const events = data.events;
+
+		const data = this.props;
+		const projTup = this.props.updatable;
+		const val = projTup ? projTup[0] : '';
+	
+		const events = data.description.events;
+		const ico = this.props.description.iconComponent;
+		const name = this.props.description.name
+		const ident = this.props.description.id;
 
 		return (
-			<li key={this.props.id}
-				onClick={events.leftClick}
-				className={data.style}
-			>
-				{this.props.name[0]}
+			<li key={ident}
+				onClick={ (_) => { events.leftClick(null) } }
+				className={data.description.style}>
+				{ico} <div>{val ? val : name}</div>
 			</li>
 		)
 	}
@@ -66,84 +99,132 @@ class BarItem extends React.Component<BarItemData, {}> {
  * BarItems
  *
  */
-class GlobalBar extends React.Component<{}, {}> {
+class GlobalBar extends React.Component<GlobalBarProps, {}> {
 		
-	barItems: Array<BarItemData> = [
+	barItems: Array<BarItemDescription> = [
 		{ 
-			id: 0,
-			name: "ZoomIn", 
-			toolTip: "Zoom In", 
-			image: "MagnifyPlus",
-			events: ZoomIn,
-			style: styles.zoomIn
+			id: 200,
+			name: "", 
+			toolTip: "Logo", 
+			image: "",
+			events: NullEvents,
+			style: styles.containerLogo,
+			iconComponent: <div>Test Build</div>
 		},
 		{ 
+			id: 0,
+			name: "", 
+			toolTip: "Zoom In", 
+			image: "MagnifyPlus",
+			events: ZoomInEvent,
+			style: styles.zoomIn,
+			iconComponent: <ZoomInOutlined />
+		},
+		{ 
+			id: 100, 
+			name: "", 
+			toolTip: "Zoom Value", 
+			image: "",
+			events: NullEvents,
+			style: styles.zoomValue,
+			iconComponent: <></>,
+		},
+
+		{ 
 			id: 1, 
-			name: "ZoomOut", 
+			name: "", 
 			toolTip: "Zoom Out", 
 			image: "MagnifyNegative",
-			events: ZoomOut,
-			style: styles.zoomOut
+			events: ZoomOutEvent,
+			style: styles.zoomOut,
+			iconComponent: <ZoomOutOutlined />
 		},
 		{ 
 			id: 2, 
 			name: "Undo", 
 			toolTip: "Undo", 
 			image: "UndoArrow",
-			events: Undo,
-			style: styles.undo
+			events: UndoEvent,
+			style: styles.undo,
+			iconComponent: <UndoOutlined />
 		},
 		{ 
 			id: 3, 
 			name: "Redo", 
 			toolTip: "Redo", 
 			image: "RedoArrow",
-			events: Redo,
-			style: styles.redo
+			events: RedoEvent,
+			style: styles.redo,
+			iconComponent: <RedoOutlined />
+		},
+		{ 
+			id: 10, 
+			name: "", 
+			toolTip: "", 
+			image: "missing",
+			events: RedoEvent,
+			style: styles.separator,
+			iconComponent: <></>
 		},
 		{ 
 			id: 4, 
-			name: "Settings", 
-			toolTip: "Access Settings", 
-			image: "SettingsImage",
-			events: Settings,
-			style: styles.settings
-		},
-		{ 
-			id: 5, 
 			name: "Save", 
 			toolTip: "Save Project", 
 			image: "SaveImage",
-			events: Save,
-			style: styles.save
+			events: SaveEvent,
+			style: styles.save,
+			iconComponent: <SaveOutlined />
 		},
 		{ 
-			id: 6, 
+			id: 5, 
 			name: "Load", 
 			toolTip: "Load", 
 			image: "LoadImage",
-			events: Load,
-			style: styles.load
+			events: LoadEvent,
+			style: styles.load,
+			iconComponent: 
+				<>
+					<UploadOutlined />
+					<input className={styles.hiddenFile} 
+						type="file" 
+						onChange={(_) => {LoadEvent.auxEvent}}>
+						</input>
+				</>
+		},
+		{ 
+			id: 6, 
+			name: "Settings", 
+			toolTip: "Access Settings", 
+			image: "SettingsImage",
+			events: SettingsEvent,
+			style: styles.settings,
+			iconComponent: <SettingOutlined />
 		},
 		{ 
 			id: 7, 
 			name: "Help", 
 			toolTip: "Access Help", 
 			image: "HelpImage",
-			events: Help,
-			style: styles.help
+			events: HelpEvent,
+			style: styles.help,
+			iconComponent: <FlagOutlined />
 		},
 	];
 
 	render() {
+		const compMap = this.props.componentMap;
 
 		const renderableBarItems = this.barItems.map(
-			(bi: BarItemData) => <BarItem {...bi} />	
+			(bi: BarItemDescription) => <BarItem 
+				description={bi} updatable={compMap.get(bi.id)} 
+				/>	
 		);
 
 		return (
 			<div className={styles.globalBar}>
-				{renderableBarItems}	
+				<ul>
+				{renderableBarItems}
+				</ul>
 			</div>
 		)
 
