@@ -1,9 +1,9 @@
 import React, {ReactElement} from 'react';
 
-import RottnestProject from '../model/Project.ts';
+import { RottnestProject } from '../model/Project.ts';
 
 import HelpEvent from './global/Help.ts';
-import LoadEvent from './global/Load.ts';
+import LoadEvent, { hiddenInputProc } from './global/Load.ts';
 import SaveEvent from './global/Save.ts';
 import UndoEvent from './global/Undo.ts';
 import RedoEvent from './global/Redo.ts';
@@ -91,7 +91,8 @@ class BarItem extends React.Component<BarItemData, {}> {
 
 		return (
 			<li key={ident}
-				onClick={ (_) => { events.leftClick(container) } }
+				onClick={ (_) => { 
+					events.leftClick(container) } }
 				className={data.description.style}>
 				{ico} <div>{val ? val : name}</div>
 			</li>
@@ -195,7 +196,10 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 				<UploadOutlined />
 				<input className={styles.hiddenFile} 
 					type="file" 
-					onChange={(_) => {LoadEvent.auxEvent}}>
+					onChange={(e) => {
+						hiddenInputProc(e, 
+						this.props
+						.container)}}>
 					</input>
 				</>
 		},
@@ -224,8 +228,10 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 		const container = this.props.container;
 
 		const renderableBarItems = this.barItems.map(
-			(bi: BarItemDescription) => <BarItem containerRef={container}
-				description={bi} updatable={compMap.get(bi.id)} 
+			(bi: BarItemDescription) => 
+				<BarItem containerRef={container}
+				description={bi} 
+				updatable={compMap.get(bi.id)} 
 				/>	
 		);
 

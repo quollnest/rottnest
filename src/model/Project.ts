@@ -44,6 +44,22 @@ export class RegionData {
 		}
 		return this.cells.size;
 	}
+
+	cloneData(): RegionData {
+		let newCells: Map<string, RegionCell> = new Map();
+		const regData = new RegionData();
+		for(let [key, value] of this.cells) {
+			//console.log(key);
+			const rcell = value; 
+			if(rcell) {
+				newCells.set(key, 
+				     { x: rcell.x, y: rcell.y } );
+			}
+		}
+		regData.cells = newCells;
+
+		return regData;
+	}
 }
 
 export type Regions = {
@@ -65,6 +81,57 @@ export class RegionDataList {
 		buffers: []
 	};
 
+	getTagFromCoords(x: number, y: number): number {
+		
+		const rcStr = `${x} ${y}`;
+		const fRes = [
+			this.regions.buffers.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.bus.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.tfactories.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.bellstates.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.registers.filter((c) => 
+				c.cells.get(rcStr) != null),
+		];
+
+		let idx = fRes.findIndex((r) => r.length > 0);
+		
+
+		return idx+1;
+	}
+
+	cloneRegions(): Regions {
+		let regions: Regions = {
+			bus: [],
+			registers: [],
+			bellstates: [],
+			tfactories: [],
+			buffers: []
+		}
+		
+		regions.bus = this.regions.bus
+			.map((rd) => rd.cloneData());
+		regions.registers = this.regions.registers
+			.map((rd) => rd.cloneData());
+		regions.bellstates = this.regions.bellstates
+			.map((rd) => rd.cloneData());
+		regions.tfactories = this.regions.tfactories
+			.map((rd) => rd.cloneData());
+		regions.buffers = this.regions.buffers
+			.map((rd) => rd.cloneData());
+		
+		return regions;
+	}
+
+	cloneList(): RegionDataList {
+		let dlist = new RegionDataList();
+		dlist.regions = this.cloneRegions();
+		return dlist;
+	}
+
 	flattenWithTags(): Array<{tag: string, rdata: RegionData}> {
 		const regs = this.regions;
 		let flatArray = [];
@@ -83,7 +150,9 @@ export class RegionDataList {
 		return flatArray;
 	}
 
-	resolveIntersections(a: Set<string>, b: Set<string>): Set<string> {
+	resolveIntersections(a: Set<string>, b: Set<string>): 
+		Set<string> {
+
 		return a.intersection(b);	
 	}
 
@@ -96,13 +165,17 @@ export class RegionDataList {
 			
 		for(const key in this.regions) {
 			const dataToRemove = [];
-			const kRegions = this.regions[key as keyof Regions];
+			const kRegions = this.regions[
+				key as keyof Regions];
+			
 			for(const rk in kRegions) {
 				const eReg = kRegions[rk];
 
-				let toRemove = this.resolveIntersections(rset, 
-						eReg.keySet());
-				const r = eReg.cleanupRegionData(toRemove);
+				let toRemove = this
+					.resolveIntersections(rset, 
+					eReg.keySet());
+				const r = eReg.cleanupRegionData(
+					toRemove);
 
 				if(r <= 0) {
 					dataToRemove.push(Number(rk));
@@ -110,9 +183,11 @@ export class RegionDataList {
 
 			}
 
-			//Removes any region that has no more cells mapped
+			//Removes any region that has 
+			//  no more cells mapped
 			//from the array.
 			//TODO: Check to see if sort is necessary
+			
 			dataToRemove.sort();			
 			dataToRemove.reverse();
 			for(const idx of dataToRemove) {
@@ -121,7 +196,7 @@ export class RegionDataList {
 		}
 		
 		//Gets added
-		console.log(this.regions);
+		//console.log(this.regions);
 		this.regions[pkey].push(data);
 	}
 }
@@ -132,4 +207,9 @@ export class RottnestProject {
 	regions: Array<RegionData> = [];
 }
 
+
+export type ProjectDump = {
+	project: ProjectDetails
+	regions: RegionDataList
+}
 

@@ -80,6 +80,7 @@ type CellState = {
 export type CellProps = {
 	leftDown: boolean
 	toolKind: number
+	
 	x: number
 	y: number
 	cell: {
@@ -105,8 +106,10 @@ export class GridCell extends React.Component<CellProps, CellState> {
 	 * Monitors the mouse movement after the left mouse button
 	 * has been clicked
 	 */
-	cellMouseMove(_: React.MouseEvent<HTMLDivElement>, tkind: number,
-		     leftDown: boolean) {
+	cellMouseMove(_: React.MouseEvent<HTMLDivElement>, 
+			tkind: number,
+		     	leftDown: boolean) {
+
 		const taggingFn = this.props.tagFn;
 		const x = this.props.x;
 		const y = this.props.y;
@@ -130,8 +133,19 @@ export class GridCell extends React.Component<CellProps, CellState> {
 		const cref = this;
 		const toolKind = cref.props.toolKind;
 		const leftDown = cref.props.leftDown;
-		const cdata = this.state.data;
 		
+		const diffCell = this.props.cell;
+		const cdata = this.state.data;
+
+		//TODO: Fix React Warning about setting state
+		//	during transition.
+		if(cdata.taggedKind != diffCell
+		   	.taggedKind && !leftDown) {
+			this.setState({
+				data: new CellData(diffCell.taggedKind)
+			});
+		}
+
 		const mmove = (e: React.MouseEvent<HTMLDivElement>) => {
 			cref.cellMouseMove(e, toolKind, leftDown)
 		}

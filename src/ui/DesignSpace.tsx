@@ -131,14 +131,17 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		const container = this.props.container;
 		const zoomValue = this.props.zoomValue;
 		const gwidth = gref.props.width;
-		const mgdownEvent = (e: React.MouseEvent<HTMLUListElement>) => {
+		const mgdownEvent = (e: 
+			React.MouseEvent<HTMLUListElement>) => {
 			gref.onGridDown(e);
 		}
-		const mgmoveEvent = (e: React.MouseEvent<HTMLUListElement>) => {
+		const mgmoveEvent = (e: 
+			React.MouseEvent<HTMLUListElement>) => {
 
 			gref.onGridMove(e);
 		}
-		const mgupEvent = (e: React.MouseEvent<HTMLUListElement>) => {
+		const mgupEvent = (e: 
+			React.MouseEvent<HTMLUListElement>) => {
 			gref.onGridUp(e);
 		}
 
@@ -147,16 +150,29 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 				.insert({ x, y })	
 		}
 
+
 		const renderableCells = 
-			this.state.cells.map((c, idx) => <GridCell cell={c}
+			this.state.cells.map((c, idx) => 
+				<GridCell cell={
+					{
+						taggedKind: container
+						.getRegionList()
+						.getTagFromCoords(
+						idx % gwidth,
+						Math.floor(idx / 
+							   gwidth))
+					}
+				}
 				x={idx % gwidth}
 				y={Math.floor(idx / gwidth)}
 				leftDown={
 					gref.state.leftIsDown
 				}
 				toolKind={
-					gref.props.container.getToolIndex()
+					gref.props.container
+					.getToolIndex()
 				}
+				
 				tagFn={dataTagFn}	
 			     />);
 
@@ -168,11 +184,16 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 					onMouseMove={mgmoveEvent}
 					onMouseUp={mgupEvent}
 					style={ { 
-						left: gref.state.mousePosition[0],
-						top: gref.state.mousePosition[1],
-						width: `${zoomValue}%`,
+						left: gref
+						.state
+						.mousePosition[0],
+						top: gref
+						.state
+						.mousePosition[1],
+						width: 
+						`${zoomValue}%`,
 						gridTemplateColumns: 
-							`repeat(${gwidth}, 1fr)`
+						`repeat(${gwidth},1fr)`
 					}}>
 					{renderableCells}
 				</ul>

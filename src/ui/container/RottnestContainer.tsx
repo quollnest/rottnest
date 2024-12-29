@@ -1,7 +1,9 @@
 import React from 'react';
 import GlobalBar from '../GlobalBar';
 import RottnestService from '../../service/RottnestService';
-import {RottnestProject, ProjectDetails, RegionData, RegionDataList, Regions} 
+import {RottnestProject, ProjectDetails, RegionData, 
+	RegionDataList, Regions,
+	ProjectDump} 
 	from '../../model/Project';
 import WorkspaceContainer from './RowContainer';
 import SettingsForm from './SettingsForm';
@@ -64,7 +66,8 @@ class RegionsSnapshotStack {
 		return null;
 	}
 
-	undoAction(current: RegionDataList): RegionDataList | null | undefined {
+	undoAction(current: RegionDataList): RegionDataList 
+		| null | undefined {
 		//Only valid case
 		if(this.regionListStack.length > 0) {
 			let res = this.regionListStack.shift();
@@ -75,7 +78,8 @@ class RegionsSnapshotStack {
 	}
 
 
-	redoAction(current: RegionDataList): RegionDataList | null | undefined {
+	redoAction(current: RegionDataList): RegionDataList 
+		| null | undefined {
 				
 		if(this.redoListStack.length > 0) {
 			let res = this.redoListStack.shift();
@@ -118,6 +122,7 @@ type RottnestProperties = {}
  * rendering and data
  */
 type RottnestState = {
+	projectDetails: ProjectDetails
 	settingsActive: boolean
 	zoomValue: number
 	regionList: RegionDataList
@@ -132,6 +137,13 @@ type RottnestState = {
 class RottnestContainer extends React.Component<RottnestProperties, RottnestState> {
 
 	state: RottnestState = {
+		projectDetails: {
+			projectName: 'Project1', 
+			author: 'User',
+			width: RottnestDefault.designSpace.width,
+			height: RottnestDefault.designSpace.height,
+			description: 'Quick Description'	
+		},
 		settingsActive: false,
 		zoomValue: 100,
 		regionList: new RegionDataList()
@@ -147,6 +159,49 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		designSpaceData: {...RottnestDefault.designSpace},
 		project: new RottnestProject(),
 		selectedIndex: 0,
+	}
+
+	parseLoadedFile(content: string | ArrayBuffer | null) {
+		//TODO: I hate the comparison here
+		//but I am using bad APIs, revisit this later
+		//	:( 
+		//	Broke my rule about violating the type
+		//	system
+		if(content && typeof content == 'string') {
+			const jsonRep = JSON.parse(content);
+			if(jsonRep) {
+				const partialDump: 
+					Partial<ProjectDump> 
+					= jsonRep;
+				const dump: ProjectDump =
+				{
+					project: 
+						partialDump.project 
+						!= null ?
+						jsonRep.project :
+						this.state
+						.projectDetails,
+					regions:
+						partialDump.regions
+						!= null ?
+						jsonRep.regions :
+						this.state
+						.regionList
+				}
+				this.state.projectDetails =
+					dump.project;
+				this.state.regionList.regions = 
+					dump.regions.regions;
+				
+
+				this.triggerUpdate();
+			}
+			
+		}
+	}
+
+	getProjectDetails() {
+		return this.state.projectDetails;
 	}
 
 	getCurrentRDBuffer(): RegionData {
@@ -182,7 +237,9 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		this.currentRDBuffer = new RegionData();
 		const rkey = this.toolToRegionKey();
 		if(rkey) {
-			this.state.regionList.addData(oldBuffer, rkey)
+			this.onRegion();
+			this.state.regionList
+				.addData(oldBuffer, rkey)
 			this.triggerUpdate();
 		}
 	}
@@ -206,11 +263,12 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 			this.state.regionList = res;
 			this.triggerUpdate()
 		}
+		
 	}
 
 	onRegion() {
 		this.regionStack.onAction(
-			this.state.regionList
+			this.state.regionList.cloneList()
 		);
 	}
 
@@ -219,7 +277,8 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 * event, this event is triggered by GlobalBar
 	 */
 	saveProject() {
-		RottnestService.SaveToLocalStorage('rottnest', this.data.project);	
+		RottnestService.SaveToLocalStorage('rottnest', 
+					this.data.project);	
 	}
 
 
@@ -273,9 +332,11 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 * to the save buffer
 	 */
 	applySettings(project: ProjectDetails) {
-		//TODO: Implement a write buffer that will be used during
+		//TODO: Implement a write 
+		//buffer that will be used during
 		//save
-
+		this.state.projectDetails = project;	
+		this.state.settingsActive = false;
 		this.triggerUpdate();
 	}
 
@@ -325,8 +386,14 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 				<WorkspaceContainer 
 					designSpace={
 						{
-							width: 20,
-							height: 20,
+							width: 
+							this.state
+							.projectDetails
+								.width,
+							height: 
+							this.state
+							.projectDetails
+								.height,
 						}
 					}
 					zoomValue={zoomValue}

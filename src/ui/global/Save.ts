@@ -1,10 +1,26 @@
 
 import RottnestContainer from "../container/RottnestContainer"
 
-const leftClick = (rott: RottnestContainer) => {
+import { ProjectDump } from '../../model/Project';
 
-	const blob = new Blob(['{ "test" : "t"}'], { type: 'application/json' });
-	let uobj = URL.createObjectURL(blob, );
+/**
+ * This triggers a save of the project, which will:
+ * 	* ProjectDetails
+ * 	* RegionDataList
+ */
+const leftClick = (rott: RottnestContainer) => {
+	
+	let details = rott.getProjectDetails();
+	let regionList = rott.getRegionList();
+
+	const project: ProjectDump = {
+		project: details,
+		regions: regionList
+	};
+
+	const blob = new Blob([JSON.stringify(project)], 
+			      { type: 'application/json' });
+	let uobj = URL.createObjectURL(blob);
 	
 	let adown = document.createElement("a");
 	adown.href = uobj;

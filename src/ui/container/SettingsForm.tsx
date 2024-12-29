@@ -35,13 +35,14 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 	
 	rootContainer = this.props.rootContainer;
 
+	//TODO: Fix the setting props on the width and height
 	state: SettingsState = {
 		isHidden: this.props.isHidden,
 		project: {
 			projectName: 'Project1', 
 			author: 'User',
-			width: 1,
-			height: 1,
+			width: 20,
+			height: 20,
 			description: 'Quick Description'	
 		}
 	};
@@ -66,7 +67,8 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 	render() {
 		const sref = this;
 
-		const inputChangeFn = (e: React.FormEvent<HTMLInputElement>,
+		const inputChangeFn = (
+			e: React.FormEvent<HTMLInputElement>,
 			key: keyof ProjectDetails) => {
 
 			let partial: Partial<ProjectDetails> = {
@@ -91,40 +93,56 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 				<h2>Settings</h2>
 				<label>Project Name</label>
 				<input type="text" name="projectName"
-					value={this.state.project.projectName} 
-					onChange={(e) => {inputChangeFn(e, 
-							'projectName')}}/>
+					value={this.state
+						.project.projectName} 
+					onChange={(e) => {
+						inputChangeFn(e, 
+						'projectName')}}/>
 					<br />
 				<label>Author</label>
 				<input type="text" name="author"
-					value={this.state.project.author} 
-					onChange={(e) => {inputChangeFn(e, 
-							'author')}}/>
+					value={this.state
+						.project.author} 
+					onChange={(e) => 
+						{inputChangeFn(e, 
+						'author')}}/>
 				<label>Width & Height</label>
 				<input type="text" name="width"
+					className={styles.inputMult}
 					value={this.state.project.width} 
-					onChange={(e) => {inputChangeFn(e, 
-							'width')}}/> x
+					onChange={(e) => 
+						{inputChangeFn(e, 
+							'width')}}/>x 
 				<input type="text" name="height"
-					value={this.state.project.height} 
-					onChange={(e) => {inputChangeFn(e, 
+					className={styles.inputMult}	
+					value={this.state
+						.project.height} 
+					onChange={(e) => 
+						{inputChangeFn(e, 
 							'height')}}/>
 
 				
 				<label>Short Description</label>
 				<input type="text" name="description"
-					value={this.state.project.description} 
-					onChange={(e) => {inputChangeFn(e, 
-							'description')}}/>
+					value={this.state
+						.project.description} 
+					onChange={(e) => 
+						{inputChangeFn(e, 
+						'description')}}/>
 				
 				<div className={styles.buttonSegment}>
-					<button className={styles.settingsCancel}
-						onClick={(_) => sref.cancel()}>
+					<button className={styles
+						.settingsCancel}
+						onClick={(_) => 
+							sref.cancel()}>
 						Cancel
 					</button>
-					<button className={styles.settingsApply}
+					<button className={styles
+						.settingsApply}
 						onClick={(_) => 
-							sref.settingsApply()}>
+							sref
+							.settingsApply()
+						}>
 						Apply
 					</button>
 				</div>
