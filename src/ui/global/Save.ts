@@ -1,7 +1,7 @@
 
 import RottnestContainer from "../container/RottnestContainer"
 
-import { ProjectDump, RegionCell, RegionDataList } 
+import { ProjectDump } 
 	from '../../model/Project';
 
 

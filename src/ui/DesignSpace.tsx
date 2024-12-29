@@ -1,5 +1,5 @@
 import React from 'react';
-import { GridCell, CellProps } from './grid/GridItem.tsx'
+import { GridCell } from './grid/GridItem.tsx'
 
 import styles from './styles/DesignSpace.module.css'
 import RottnestContainer from './container/RottnestContainer.tsx';
@@ -152,7 +152,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 
 
 		const renderableCells = 
-			this.state.cells.map((c, idx) => 
+			this.state.cells.map((_, idx) => 
 				<GridCell cell={
 					{
 						taggedKind: container

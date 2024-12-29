@@ -1,6 +1,4 @@
-import RottnestContainer from "../container/RottnestContainer";
-import RottnestProject from "../model/Project";
-import RottnestSettings from "../model/Settings";
+import { RottnestProject }from "../model/Project";
 
 /**
  * Saves the current project object and writes it
@@ -29,23 +27,19 @@ const LoadFromLocalStorage = (key: string): RottnestProject | null => {
 /**
  * Saves settings that the user has made and
  * writes it to local storage
- */
+ 
 const SaveSettingsToLocalStorage = (project: RottnestSettings) => {
 
 }
 
-/**
- *
- */
+ 
 const LoadSettingsFromLocalStorage = (key: string): 
 	RottnestSettings | null => {
 
 	return null;
 }
-
+*/
 export default { 
 	SaveToLocalStorage,
 	LoadFromLocalStorage,
-	SaveSettingsToLocalStorage,
-	LoadSettingsFromLocalStorage
 };

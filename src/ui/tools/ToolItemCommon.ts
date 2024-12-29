@@ -21,25 +21,23 @@ export class ToolItemSettings {
  */
 export class ToolItemCommon {
 	
-	private static settings: ToolItemSettings = new ToolItemSettings();
+	private static settings: ToolItemSettings = 
+		new ToolItemSettings();
 
 	private constructor() { }
 
-	private static loadSettingsFromLocalStorage(): (null | ToolItemSettings) {
+	private static loadSettingsFromLocalStorage(): 
+		(null | ToolItemSettings) {
 		return null;
 	}
 
 	public static getSettings(): ToolItemSettings {
-		const tic = ToolItemCommon.loadSettingsFromLocalStorage();
+		const tic = ToolItemCommon
+		.loadSettingsFromLocalStorage();
 		if(tic) {
 			ToolItemCommon.settings = tic;
 		}	
 		return ToolItemCommon.settings;	
 	}
 
-	public static writeSettings(key: string, value: any): boolean {
-		
-
-		return false;
-	}
 }
