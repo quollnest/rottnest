@@ -9,12 +9,12 @@
 
 
 .Untagged {
-
+	border: 1px #35332f solid !important;
 }
 
 
-.Register {
-	
+.Register {	
+	background-color: #e0e000;	
 	border: 1px #e0e000 solid !important
 }
 
@@ -23,18 +23,21 @@
 	border: 1px #40c040 solid !important
 }
 
-.BellState {
-	
+.BellState {	
+	background-color: #ff00ff;	
 	border: 1px #ff00ff solid !important
 }
 
-.TFactory {
-	
+.TFactory {	
+	background-color: #3820ff;	
 	border: 1px #3820ff solid !important
 }
 
-.Buffer {
-	
+.Buffer {	
+	background-color: #e04040;	
 	border: 1px #e04040 solid !important
 }
 
+.Detag {	
+	border: 1px #ffffff solid !important
+}

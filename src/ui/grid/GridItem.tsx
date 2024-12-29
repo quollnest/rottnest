@@ -13,6 +13,7 @@ type StyleMap = {
 	BellState: string	
 	TFactory: string
 	Buffer: string
+	Detag: string
 }
 
 const GridStylesMap: StyleMap = {
@@ -22,6 +23,7 @@ const GridStylesMap: StyleMap = {
 	BellState: styles.BellState,
 	TFactory: styles.TFactory,
 	Buffer: styles.Buffer,
+	Detag: styles.Detag,
 }
 
 
@@ -56,6 +58,8 @@ class CellData {
 				return "BellState"
 			case 5:
 				return "Register"
+			case 6:
+				return "Detag"
 			default:
 				return "Untagged"
 		}
