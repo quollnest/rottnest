@@ -1,7 +1,9 @@
 
 import RottnestContainer from "../container/RottnestContainer"
 
-import { ProjectDump } from '../../model/Project';
+import { ProjectDump, RegionCell, RegionDataList } 
+	from '../../model/Project';
+
 
 /**
  * This triggers a save of the project, which will:
@@ -12,10 +14,10 @@ const leftClick = (rott: RottnestContainer) => {
 	
 	let details = rott.getProjectDetails();
 	let regionList = rott.getRegionList();
-
+	console.log(regionList);
 	const project: ProjectDump = {
 		project: details,
-		regions: regionList
+		regions: regionList.flatten()
 	};
 
 	const blob = new Blob([JSON.stringify(project)], 

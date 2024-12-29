@@ -62,6 +62,10 @@ type BarItemDescription = {
 	iconComponent: ReactElement
 }
 
+/**
+ * BarItemData properties that is given
+ * from the design space
+ */
 type BarItemData = {
 	containerRef: RottnestContainer
 	description: BarItemDescription
@@ -106,7 +110,6 @@ class BarItem extends React.Component<BarItemData, {}> {
  *
  * Different styling information will be associated with
  * BarItems
- *
  */
 class GlobalBar extends React.Component<GlobalBarProps, {}> {
 		
@@ -138,7 +141,6 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			style: styles.zoomValue,
 			iconComponent: <></>,
 		},
-
 		{ 
 			id: 1, 
 			name: "", 

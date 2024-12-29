@@ -8,6 +8,7 @@ import {BusToolOperations} from './tools/BusRegionToolItem.ts';
 import {TFactoryToolOperations} from './tools/FactoryRegionToolItem.ts';
 import {BellStateToolOperations} from './tools/BellStateToolItem.ts';
 import {SelectorToolOperations} from './tools/SelectorToolItem.ts';
+import {UnselectToolOperations} from './tools/UnselectToolItem.ts';
 import RottnestContainer from './container/RottnestContainer.tsx';
 
 
@@ -59,7 +60,7 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 			events: SelectorToolOperations,
 			description: "Use the selector"
 		},
-				{
+		{
 			kind : 1,
 			kindName: 'Buffer',
 			imageUrl: 'buffer_img.svg',
@@ -95,7 +96,13 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 			description: "Mark registers in your design"
 
 		},
-
+		{
+			kind : 6,
+			kindName: 'Unselect',
+			imageUrl: 'unselector_img.svg',
+			events: UnselectToolOperations,
+			description: "Use the unselect tool"
+		},
 	]
 
 	
@@ -109,19 +116,19 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 		});
 	}
 
-	render() {
-		
+	render() {	
 		const parent = this;
 		const headerName = this.props.toolbox.headerName;
 		const toolItems = this.tools.map(
-			(tool: Tool, idx: number) => <ToolItem tool={tool} 
-				isSelected={this.state.selectedToolIndex === idx} 
-				toolParent={parent}
-				/>);
-
+			(tool: Tool, idx: number) => <ToolItem 
+			tool={tool} 
+				isSelected={this.state
+					.selectedToolIndex === idx} 
+				toolParent={parent} />);
 		return (
 			<div className={styles.toolbox}>
-				<header className={styles.toolboxHeader}>
+				<header className={styles
+					.toolboxHeader}>
 					{headerName}</header>
 				{toolItems}
 			</div>

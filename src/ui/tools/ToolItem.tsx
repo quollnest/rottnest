@@ -2,7 +2,8 @@ import React from "react";
 import { ToolData } from './Tool';
 
 import styles from '../styles/ToolItem.module.css';
-import {CloseSquareFilled, SelectOutlined} from "@ant-design/icons";
+import {CloseSquareFilled, CloseSquareOutlined, 
+	SelectOutlined} from "@ant-design/icons";
 
 /**
  * ToolItemProps,
@@ -30,6 +31,7 @@ const ToolColours = [
 	'rgb(56, 32, 255)',
 	'rgb(255, 0, 255)',
 	'rgb(224, 224, 0)',
+	'rgb(255, 255, 255)',
 	'rgb(64, 224, 224)',
 	'rgb(160, 96, 196)',
 ]
@@ -56,12 +58,18 @@ export class ToolItem extends React.Component<ToolData, {}> {
 
 		//TODO: Revisit this
 		let iconImg = tool.kindName == 'Selector' ? 
-			<SelectOutlined style={{color: ToolColours[tool.kind]}} /> :
-			<CloseSquareFilled style={{color: ToolColours[tool.kind]}} />;
+			<SelectOutlined style={{color: 
+				ToolColours[tool.kind]}} /> :
+				tool.kindName == 'Unselect' ?
+			<CloseSquareOutlined style={{color:
+				ToolColours[tool.kind]}} /> :
+			<CloseSquareFilled style={{color: 
+				ToolColours[tool.kind]}} />;
 		
 		return (
 			<li key={key} className={ 
-				selected ? styles.toolSelected : styles.tool}
+				selected ? styles.toolSelected : 
+					styles.tool}
 					onClick={updateSelected}>
 				
 				{iconImg}

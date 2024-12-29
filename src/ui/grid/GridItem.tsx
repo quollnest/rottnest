@@ -94,7 +94,6 @@ export type CellProps = {
 /**
  * Current GridCell object that forms part
  * of a large grid of object
- *
  */
 export class GridCell extends React.Component<CellProps, CellState> {
 	

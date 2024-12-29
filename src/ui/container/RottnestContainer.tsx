@@ -190,8 +190,9 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 				}
 				this.state.projectDetails =
 					dump.project;
-				this.state.regionList.regions = 
-					dump.regions.regions;
+				this.state.regionList = 
+					RegionDataList.fromFlatten(
+						dump.regions);
 				
 
 				this.triggerUpdate();
@@ -235,12 +236,25 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	applyRDBuffer() {
 		const oldBuffer = this.currentRDBuffer;
 		this.currentRDBuffer = new RegionData();
-		const rkey = this.toolToRegionKey();
-		if(rkey) {
+		if(this.getToolIndex() === 6) {
+			//Clean up
+			//TODO: We need to have callbacks for this
+			//I have littered the code with
+			//too much rubbish
+
 			this.onRegion();
 			this.state.regionList
-				.addData(oldBuffer, rkey)
+				.cleanupIntersections(oldBuffer);
 			this.triggerUpdate();
+		} else {
+			const rkey = this.toolToRegionKey();
+			if(rkey) {
+				this.onRegion();
+				
+				this.state.regionList
+					.addData(oldBuffer, rkey)
+				this.triggerUpdate();
+			}
 		}
 	}
 
