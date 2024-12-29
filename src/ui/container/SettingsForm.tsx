@@ -38,11 +38,11 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 	state: SettingsState = {
 		isHidden: this.props.isHidden,
 		project: {
-			projectName: '', 
-			author: '',
+			projectName: 'Project1', 
+			author: 'User',
 			width: 1,
 			height: 1,
-			description: ''	
+			description: 'Quick Description'	
 		}
 	};
 
@@ -75,8 +75,9 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 
 			let newState: SettingsState = {
 				...this.state, 
-				...partial
 			};
+			newState.project = {...newState.project,
+				...partial}
 
 			sref.setState(newState);
 		}
@@ -84,31 +85,37 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 			
 
 		return (
-			<div style={{position:'relative'}}>
+			<div className={styles.parentContainer} 
+				style={{position:'relative'}}>
 			<div className={styles.settingsForm}>
 				<h2>Settings</h2>
 				<label>Project Name</label>
 				<input type="text" name="projectName"
 					value={this.state.project.projectName} 
-					onChange={(e) => {inputChangeFn(e, 'projectName')}}/>
+					onChange={(e) => {inputChangeFn(e, 
+							'projectName')}}/>
 					<br />
 				<label>Author</label>
 				<input type="text" name="author"
 					value={this.state.project.author} 
-					onChange={(e) => {inputChangeFn(e, 'author')}}/>
+					onChange={(e) => {inputChangeFn(e, 
+							'author')}}/>
 				<label>Width & Height</label>
 				<input type="text" name="width"
 					value={this.state.project.width} 
-					onChange={(e) => {inputChangeFn(e, 'width')}}/> x
+					onChange={(e) => {inputChangeFn(e, 
+							'width')}}/> x
 				<input type="text" name="height"
 					value={this.state.project.height} 
-					onChange={(e) => {inputChangeFn(e, 'height')}}/>
+					onChange={(e) => {inputChangeFn(e, 
+							'height')}}/>
 
 				
 				<label>Short Description</label>
 				<input type="text" name="description"
 					value={this.state.project.description} 
-					onChange={(e) => {inputChangeFn(e, 'description')}}/>
+					onChange={(e) => {inputChangeFn(e, 
+							'description')}}/>
 				
 				<div className={styles.buttonSegment}>
 					<button className={styles.settingsCancel}
@@ -116,7 +123,8 @@ class SettingsForm extends React.Component<SettingsProps, SettingsState> {
 						Cancel
 					</button>
 					<button className={styles.settingsApply}
-						onClick={(_) => sref.settingsApply()}>
+						onClick={(_) => 
+							sref.settingsApply()}>
 						Apply
 					</button>
 				</div>

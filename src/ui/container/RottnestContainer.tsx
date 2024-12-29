@@ -1,4 +1,4 @@
-import React, {ReactElement} from 'react';
+import React from 'react';
 import GlobalBar from '../GlobalBar';
 import RottnestService from '../../service/RottnestService';
 import {RottnestProject, ProjectDetails, RegionData, RegionDataList, Regions} 
@@ -7,7 +7,6 @@ import WorkspaceContainer from './RowContainer';
 import SettingsForm from './SettingsForm';
 
 import styles from '../styles/RottnestContainer.module.css';
-import RegionList from '../RegionList';
 
 
 const RottnestDefault = {
@@ -276,6 +275,8 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	applySettings(project: ProjectDetails) {
 		//TODO: Implement a write buffer that will be used during
 		//save
+
+		this.triggerUpdate();
 	}
 
 	/**
@@ -309,7 +310,8 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		const zoomValue = this.state.zoomValue;
 		
 		const settings = this.state.settingsActive ? 
-			<SettingsForm isHidden={false} rootContainer={rottContainer} /> 
+			<SettingsForm isHidden={false} 
+				rootContainer={rottContainer} /> 
 				: <></>;
 		
 		updateables.set(100, [`${zoomValue}%`, rottContainer]);

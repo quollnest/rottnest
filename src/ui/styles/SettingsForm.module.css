@@ -1,21 +1,32 @@
 
 .settingsForm {
+	box-shadow: 0px 5px 20px #111111;
 	padding: 4em;
+	padding-top: 0.5em;
 	display: block;
 	grid-template-columns: repeat(2, 1fr);
 	left: 10%;
-	top: 30%;
-	background-color: #25231f;
+	background-color: #313130;
 	position:absolute;
 	z-index: 3;
-	width: 50%;
+	width: 30%;
 	overflow-y:scroll;
 	overflow-x:hidden;
+	border-radius: 1em;
+}
+
+.parentContainer {
+	top: 5%;
+
 }
 
 .settingsForm * {
 	display: block;
 	width: 100%;
+}
+
+.settingsForm label {
+	padding-top: 0.5em;
 }
 
 .settingsForm button {
@@ -28,6 +39,10 @@
 .settingsForm .settingsApply {
 	margin-left: auto;
 	justify-items: flex-end;
+}
+
+.settingsCancel {
+	background-color: #dd2727;
 }
 
 .buttonSegment {
