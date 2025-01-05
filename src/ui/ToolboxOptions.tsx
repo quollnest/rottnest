@@ -1,5 +1,8 @@
 import React from 'react';
 import styles from './styles/ToolboxOptions.module.css';
+import RottnestContainer from './container/RottnestContainer';
+
+
 
 
 /**
@@ -9,8 +12,8 @@ import styles from './styles/ToolboxOptions.module.css';
  *
  */
 type ToolboxOptionsProps = {
+	container: RottnestContainer
 	headerName: string
-	toolKind: number
 }
 
 
@@ -23,6 +26,33 @@ type ToolboxOptionsProps = {
  */
 type ToolboxOptionsState = {
 	selectedToolIndex: number
+	paintMode: boolean
+}
+
+/**
+ * 
+ */
+type PaintModeProps = {
+	paintMode: boolean
+	pmodeUpdate: (updat: boolean) => void
+}
+
+class PaintModeTool extends React.Component<PaintModeProps, {}> {
+	render() {
+
+		const pmode = this.props.paintMode;
+		const upfn = this.props.pmodeUpdate;
+
+		return (
+			<>
+			<input className={styles.paintMode}
+				name="paintmode" type="checkbox" 
+				checked={pmode} 
+				onChange={() => upfn(!pmode)} />
+			<label >Enable Paint Mode (Experimental)</label>
+			</>
+		)
+	}
 }
 
 /**
@@ -34,20 +64,39 @@ type ToolboxOptionsState = {
  * container of any side effect changes
  * that a new selection may trigger
  */
-class ToolboxOptions extends React.Component<ToolboxOptionsProps, ToolboxOptionsState> {
+class ToolboxOptions extends React.Component<ToolboxOptionsProps, 
+	ToolboxOptionsState> {
 	
 	state: ToolboxOptionsState = {
 		selectedToolIndex: 0,
+		paintMode: false,
+
 	}
 
 	render() {
-
+	
 		const headerName = 'Options';
+
+		const container = this.props.container;
+		const toolIndex = container.getToolIndex();
+		
+		const updateFn = (updat: boolean) => {
+
+			const nstate = {...this.state};
+			nstate.paintMode = updat;
+			this.setState(nstate);
+		}
+
+		const optionRender = toolIndex >= 1 && toolIndex <= 5 ?
+			<PaintModeTool paintMode={this.state.paintMode} 
+				pmodeUpdate={updateFn} /> : <></> 
+
 
 		return (
 			<div className={styles.toolboxOptions}>
 				<header className={styles.toolboxOptionsHeader}>
 					{headerName}</header>
+				{optionRender}
 			</div>
 		)
 	}

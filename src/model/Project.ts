@@ -55,6 +55,10 @@ export class RegionData {
 		this.cells.set(rcStr, cell);
 	}
 
+	empty(): number {
+		return this.cells.size;
+	}
+
 	keySet(): Set<string> {
 		return new Set(this.cells.keys());
 	}

@@ -15,29 +15,46 @@
 
 .Register {	
 	background-color: #e0e000;	
-	border: 1px #e0e000 solid !important
 }
 
 .Bus {
 	background-color: #40c040;	
-	border: 1px #40c040 solid !important
 }
 
 .BellState {	
 	background-color: #ff00ff;	
-	border: 1px #ff00ff solid !important
 }
 
 .TFactory {	
 	background-color: #3820ff;	
-	border: 1px #3820ff solid !important
 }
 
 .Buffer {	
 	background-color: #e04040;	
+}
+
+.DetagSelected {	
+	border: 1px #ffffff solid !important
+}
+
+.RegisterSelected {	
+	border: 1px #e0e000 solid !important
+}
+
+.BusSelected {
+	border: 1px #40c040 solid !important
+}
+
+.BellStateSelected {	
+	border: 1px #ff00ff solid !important
+}
+
+.TFactorySelected {	
+	border: 1px #3820ff solid !important
+}
+
+.BufferSelected {	
 	border: 1px #e04040 solid !important
 }
 
-.Detag {	
-	border: 1px #ffffff solid !important
-}
+

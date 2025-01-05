@@ -114,6 +114,7 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 			selectedToolIndex: idx,
 			container: this.state.container
 		});
+		this.state.container.triggerUpdate();
 	}
 
 	render() {	

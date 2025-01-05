@@ -3,6 +3,7 @@
 .toolbox {
 	flex: 1;
 	max-height: 400px;
+	list-style: none;
 }
 
 .toolboxHeader {

@@ -39,13 +39,17 @@ class CellData {
 	constructor(tagNum: number) {
 		this.taggedKind = tagNum;
 	}
-	
+
+	toStyleKey() : keyof StyleMap {
+		return CellData.GetStyleKey(this.taggedKind)
+	}
+
 	/**
 	 * Retrieves the style key for the
 	 * GridStyleMap
 	 */
-	toStyleKey(): keyof StyleMap {
-		switch(this.taggedKind) {
+	static GetStyleKey(kind: number): keyof StyleMap {
+		switch(kind) {
 			case 0:
 				return "Untagged"
 			case 1:
@@ -80,16 +84,16 @@ type CellState = {
  * Passes down properties related to the current
  * cell along with update functionality for where
  * the celldata is actually stored
+ * TODO: Clean up the type
  */
 export type CellProps = {
 	leftDown: boolean
 	toolKind: number
-	
+	isSelected: boolean
+	paintMode: boolean
 	x: number
 	y: number
-	cell: {
-		taggedKind: number
-	}
+	cell: { taggedKind: number }
 	tagFn?: (x: number, y: number) => void
 }
 
@@ -116,38 +120,46 @@ export class GridCell extends React.Component<CellProps, CellState> {
 		const taggingFn = this.props.tagFn;
 		const x = this.props.x;
 		const y = this.props.y;
+
 		if(leftDown) {	
 			let newGCState = {...this.state};
-			
 			//Detects a change
 			if(newGCState.data.taggedKind != tkind) {
-				if(taggingFn) {
-					taggingFn(x, y);	
+				if(taggingFn) {	
+					taggingFn(x, y);
 				}
-				newGCState.data.taggedKind = tkind;
+				if(this.props.paintMode) {
+					newGCState.data.taggedKind = tkind;
+				}
 				this.setState(newGCState);
 			}
-
 		}
 	}
 
 	render() {
 
 		const cref = this;
+		const taggedKind = cref.props.cell.taggedKind;
 		const toolKind = cref.props.toolKind;
 		const leftDown = cref.props.leftDown;
 		
-		const diffCell = this.props.cell;
-		const cdata = this.state.data;
+		const isSelected = cref.props.isSelected;
+		
+		const nCell = new CellData(taggedKind);
 
 		//TODO: Fix React Warning about setting state
-		//	during transition.
-		if(cdata.taggedKind != diffCell
-		   	.taggedKind && !leftDown) {
+		//	during transition.	
+		/*if(cdata.taggedKind != diffCell
+			.taggedKind && !leftDown) {
 			this.setState({
 				data: new CellData(diffCell.taggedKind)
 			});
-		}
+		}*/
+	
+		const selectedStyle = isSelected ?
+			`${CellData.GetStyleKey(toolKind)}Selected` :
+			'';
+
 
 		const mmove = (e: React.MouseEvent<HTMLDivElement>) => {
 			cref.cellMouseMove(e, toolKind, leftDown)
@@ -155,7 +167,9 @@ export class GridCell extends React.Component<CellProps, CellState> {
 		
 		return (
 			<div className={`${styles.gridItem} 
-				${GridStylesMap[cdata.toStyleKey()]}` }
+				${GridStylesMap[nCell.toStyleKey()]} 
+				${styles[selectedStyle] !== undefined ? 
+					styles[selectedStyle] : ''}` }
 				onMouseMove={mmove}>
 				 
 			</div>

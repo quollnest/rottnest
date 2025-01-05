@@ -11,26 +11,11 @@ import SettingsForm from './SettingsForm';
 import styles from '../styles/RottnestContainer.module.css';
 
 
-const RottnestDefault = {
-	toolbox: { 
-		headerName: "Toolbox"
-	},
-	regionList: {
-		regions: []
-	},
-	designSpace: {
-		width: 20,
-		height: 20,
-	},
-	errorList: {
-		errors: []
-	}
-
-}
 
 /**
  * This allows for undo and redo functionality
  * within the container system
+ * TODO: Move to another file
  */
 class RegionsSnapshotStack {
 	
@@ -96,6 +81,11 @@ class RegionsSnapshotStack {
 
 }
 
+const RottnestContainerDefaults = {
+	
+
+}
+
 /**
  * Data that is required for the container,
  * events and functionality to operate on.
@@ -116,6 +106,25 @@ type RottnestData = {
  * At the moment, nothing interesting
  */
 type RottnestProperties = {}
+
+/**
+ * 
+ */
+type RottnestAppState = {
+	settingsActive: boolean
+	helpActive: boolean
+	colourblindActive: boolean
+	zoomValue: number
+}
+
+
+type RottnestWorkData = {
+	undoStack: RegionsSnapshotStack
+	currentRDBuffer: RegionData
+}
+
+
+
 
 /**
  * Maintains state information related to
@@ -377,7 +386,7 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		}
 	}
 
-
+	
 	render() {
 		const rottContainer = this;
 		const updateables = new Map();

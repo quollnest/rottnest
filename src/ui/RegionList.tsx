@@ -66,7 +66,9 @@ class RegionList extends React.Component<RegionListProps, RegionListState> {
 			<div className={styles.regionList}>
 				<header className={styles.regionListHeader}>
 					{headerName}</header>
+				<ul>
 				{renderRegions}
+				</ul>
 			</div>
 		)
 	}

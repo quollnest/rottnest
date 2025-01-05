@@ -39,7 +39,11 @@ type ToolContainerProps = {
  */
 export class ToolContainer extends React.Component<ToolContainerProps, {}> {
 
+
 	render() {
+
+		const container = this.props.container;
+
 		return (
 			<div className={toolStyle.toolContainer}>
 				<Toolbox 
@@ -50,8 +54,10 @@ export class ToolContainer extends React.Component<ToolContainerProps, {}> {
 						} 
 					} 
 					container={this.props.container}/>
-				<ToolboxOptions 
-					{ ...ContainerDefaults.options} />
+				<ToolboxOptions  
+						headerName={"Options"}
+						container={container}
+					/>
 			</div>
 		)
 	}
