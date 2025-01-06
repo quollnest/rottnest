@@ -13,17 +13,73 @@ export type ProjectDetails = {
 	description: string	
 }
 
+export type CellKindData = {
+	Bus: Array<keyof CellKindData>	
+	Register: Array<keyof CellKindData>
+	BellState: Array<keyof CellKindData>	
+	TFactory: Array<keyof CellKindData>
+	Buffer: Array<keyof CellKindData>
+	Untagged: Array<keyof CellKindData>
+}
+
+const CellKindMap: CellKindData = {
+	Bus: ['Register', 'Buffer', 'Bus'], 
+	Register: ['Register'],
+	BellState: ['Bus'],	
+	TFactory: ['Bus', 'Buffer'],
+	Buffer: ['Bus', 'Register'],
+	Untagged: [], 
+}
+
+const CellOutputDir = ["None", "Up", "Right", "Left"];  
+
+
+type RegionDimensions = {
+	width: number
+	height: number
+}
+
+/**
+ * This output segment provides data to
+ * help check cells in each direction and what would
+ * be suitable
+ */
+type RegionOutputSegment = {
+	cells: Array<RegionCell>
+	dirToChecks: Array<number>
+	kind: string 
+	edgeCase: boolean
+}
+
+/**
+ * RegionCell that has coordinates and direction
+ * of connectivity
+ */
 export type RegionCell = {
 	x: number
 	y: number
+	cdir?: number
+	cnKind?: number
+	manualSet?: boolean
+
 }
+
+/**
+ * A flattened version used by RegionData
+ */
 export type FlatRegionData = {
 	cells: Array<[string, RegionCell]>
 }
 
+
+/**
+ * RegionData, this is the base type that holds
+ * the sequence of cells within here
+ */
 export class RegionData {
 	cells: Map<string, RegionCell> = new Map();
 	
+
 	static fromFlatten(data: FlatRegionData): RegionData {
 		const rdata = new RegionData();
 		
@@ -53,6 +109,111 @@ export class RegionData {
 		const rcStr = `${cell.x} ${cell.y}`;
 			
 		this.cells.set(rcStr, cell);
+	}
+
+	hasCoord(x: number, y: number) {
+		
+		//TODO: Should have this done once instead of multiple
+		//	times
+		const coordKey = `${x} ${y}`;
+		return this.cells.get(coordKey) != null;
+	}
+
+
+
+	/**
+	 * This gets a RegionOutputSegment, primarily, it focuses on
+	 * 	* Top of Region
+	 * 	* Edge case if 1xN segment
+	 * 1. Iterates through all cells in the map
+	 * 2. While iterating it maintains:
+	 * 	List of the smallest Y valud
+	 * 	Smallest Y valud
+	 * 3. If a new smallest Y is discovered, the list is cleared
+	 *
+	 * TODO: Refine this solution, it is slow
+	 *
+	 */
+	getOutputCells(kind: keyof Regions): RegionOutputSegment {
+		
+		let seenX: Array<number> = [];		
+		let seenY: Array<number> = [];
+		let minY = +Infinity;
+		
+		let cells: Array<RegionCell> = [];
+		let dirToChecks: Array<number> = [];
+		let edgeCase = false;
+		//1. Find small Y
+
+		for(const[_, cell] of this.cells) {
+			if(minY > cell.y) {
+				minY = cell.y;
+			}
+		}
+
+		//2. Collect all cells for the smallest Y
+		for(const [_, cell] of this.cells) {
+			const x = cell.x;
+			const y = cell.y;
+
+			if(!seenX.includes(x)) {
+				seenX.push(x);
+			}
+			if(!seenY.includes(y)) {
+				seenY.push(y);
+			}
+
+			cells.push(cell);
+		}
+
+		//3a. Check edge case, if Nx1
+		if(seenX.length > 1 && seenY.length === 1) {
+			dirToChecks.push(1);
+		}
+		
+		//3b. Check edge, if 1xN
+		else if(seenX.length === 1 && seenY.length > 1) {
+			//3.a Find all Y
+			let minX = seenX.sort()[0];
+			cells = [];
+			for(const [_, cell] of this.cells) {
+				const x = cell.x;
+				
+				if(x === minX) {
+					cells.push(cell);
+				}
+				
+			}
+			dirToChecks.push(2);
+			dirToChecks.push(3);
+			edgeCase = true;
+		}
+
+		//TODO: What about 1x1?
+		return {
+			cells,
+			dirToChecks,
+			kind,
+			edgeCase
+		}
+	}
+
+	/**
+	 * TODO: Uses the map given to find the corners
+	 * of the region and compute its 4 corners to resolve
+	 * a rectangle
+	 */
+	getCorners() {
+		return [];
+	}
+
+	/**
+	 *
+	 * TODO: Checks to see if the region data is now invalid
+	 * This involves checking to see if it is still rectangular
+	 */
+	isInvalid() {
+		return false;
 	}
 
 	empty(): number {
@@ -88,6 +249,9 @@ export class RegionData {
 	}
 }
 
+/**
+ *
+ */
 export type Regions = {
 	bus: Array<RegionData>
 	registers: Array<RegionData>
@@ -118,6 +282,159 @@ export class RegionDataList {
 		tfactories: [],
 		buffers: []
 	};
+
+	/**
+	 * Attempts to form connectivity between outSegment with regionData
+	 * It it is within the directions specified and the 
+	 */
+	attemptToConnect(outSegment: RegionOutputSegment, regionData: RegionData,
+				kind: string) {
+		let offsets = [];
+		let encKind = this.getConnectKindIndex(outSegment.kind, 
+						       kind);
+		let cellsConnected = false;
+		//1. Gets the current set of directions we need to check
+		//	we need to then get the current offsets
+		for(let o of outSegment.dirToChecks) {
+			if(CellOutputDir[o] === 'Up') {
+				offsets.push([0, -1, 1]);
+			}
+			if(CellOutputDir[o] === 'Left') {
+
+				offsets.push([-1, 0, 3]);
+			}
+			if(CellOutputDir[o] === 'Right') {
+
+				offsets.push([1, 0, 2]);
+			}
+		}
+		
+		//2. Using the offsets and the cells, we compare against
+		//	the region cells
+		for(let offsetCoordsKey in offsets) {
+
+			let [offx, offy, dirIdx] = offsets[offsetCoordsKey];
+			let matchAll = true;	
+			for(let cll of outSegment.cells) {
+				
+				const ox = cll.x + offx; 
+				const oy = cll.y + offy;
+				
+				
+				if(!regionData.hasCoord(ox, oy)) {
+					matchAll = false;
+					break;
+				} 
+
+			}
+			//Mark all cells in outputSegment which reference
+			//	the original
+			if(matchAll) {
+				
+				for(let cll of outSegment.cells) {
+					cll.cdir = dirIdx;
+					cll.manualSet = false;
+					cll.cnKind = encKind;
+
+
+				}
+
+				cellsConnected = true;
+			}
+		}
+
+		return cellsConnected;
+
+	}
+
+	/**
+	 * Check to see if it is even viable, if it is isn't,
+	 * we don't check, if it is then we attempt to connect
+	 *
+	 * TODO: Check to see if this works
+	 */
+	canConnectToKind(kind: string, otherKind: string): boolean {
+		
+		const srcKindSet = CellKindMap[kind as keyof CellKindData];
+		return otherKind in srcKindSet;
+	}
+
+	/**
+	 * Gets the connect kind index for encoding/recording it into the cells
+	 * so it can be saved with this information
+	 */
+	getConnectKindIndex(kind: string, otherKind: string): number {
+		
+		const srcKindSet = CellKindMap[kind as keyof CellKindData];
+		return srcKindSet.indexOf(otherKind as keyof CellKindData);
+	}
+
+	/**
+	 * Provides an auto-bind for the connectivity
+	 * 
+	 * If it can find it, it will generate it
+	 * Otherwise it will leave it as untagged
+	 *
+	 * TODO: A bit of a slow solution but it should provide
+	 * a solution unless manualSet has been specified
+	 */
+	resolveConnectionsForRegionByIndex(kind: keyof Regions, idx: number) {
+		let regionCol = this.regions[kind][idx];
+
+		if(regionCol) {
+			
+			let outSegment = regionCol.getOutputCells(kind);
+
+			for(const regkey in this.regions) {
+				const regionsOfKind = this.regions[
+					regkey as keyof Regions];
+
+				if(this.canConnectToKind(outSegment.kind, regkey)) {
+
+					for(const rk in regionsOfKind) {
+						const regionData = regionsOfKind[rk];
+
+						if(this.attemptToConnect(outSegment, 
+									regionData,
+									regkey)) {
+
+							//We are finished, return
+
+							return;
+						}
+
+
+					}
+				}
+
+
+
+			}
+			
+
+		}
+
+	}
+
+	/**
+	 * Attempts to resolve for all regions
+	 * Will be used as a temporary measure
+	 *
+	 * TODO: Improve this solution and the interation
+	 * that the user may have with this function and component
+	 */
+	resolveConnectionsForAll() {
+		for(const rkeystr in this.regions) {
+			const regKey = rkeystr as keyof Regions;
+			const regionsOfKind = this.regions[regKey];
+
+			for(let idx = 0; idx < regionsOfKind.length; idx++) {
+				this.resolveConnectionsForRegionByIndex(regKey, idx)
+			}
+
+		}
+
+	}
 
 	getTagFromCoords(x: number, y: number): number {
 		

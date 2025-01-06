@@ -16,6 +16,9 @@ type StyleMap = {
 	Detag: string
 }
 
+
+
+
 const GridStylesMap: StyleMap = {
 	Bus: styles.Bus,
 	Untagged: styles.Untagged,
@@ -26,6 +29,25 @@ const GridStylesMap: StyleMap = {
 	Detag: styles.Detag,
 }
 
+type CellKindData = {
+	Bus: Array<keyof CellKindData>	
+	Register: Array<keyof CellKindData>
+	BellState: Array<keyof CellKindData>	
+	TFactory: Array<keyof CellKindData>
+	Buffer: Array<keyof CellKindData>
+	Untagged: Array<keyof CellKindData>
+}
+
+const CellKindMap: CellKindData = {
+	Bus: ['Register', 'Buffer'], 
+	Register: ['Register'],
+	BellState: ['Bus'],	
+	TFactory: ['Bus', 'Buffer'],
+	Buffer: ['Bus', 'Register'],
+	Untagged: [], 
+}
+
+const CellOutputDir = ["None", "Up", "Right", "Left"];  
 
 /**
  * CellData object that has a tag
@@ -35,7 +57,8 @@ const GridStylesMap: StyleMap = {
  */
 class CellData {
 	taggedKind: number = 0;
-	
+	neighbourDir: number = 0;
+
 	constructor(tagNum: number) {
 		this.taggedKind = tagNum;
 	}
@@ -68,6 +91,10 @@ class CellData {
 				return "Untagged"
 		}
 	}
+
+
+
+
 }
 
 /**
