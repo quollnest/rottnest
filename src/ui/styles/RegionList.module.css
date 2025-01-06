@@ -3,10 +3,23 @@
 	flex: 1;
 	flex-direction: column;
 	max-height: 400px;
+	padding-left: 0;
+}
+
+.regionListing {
+	padding-left: 0.5em;
 }
 
 .regionListHeader {
 	text-align: center;
 	background-color: #232122;	
 	border-bottom: 1px #35332f solid; 
+}
+
+
+
+.regionItem {
+	display: block;
+
+	list-style: none;
 }

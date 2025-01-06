@@ -35,29 +35,32 @@ type ToolContainerProps = {
 /**
  * Region Container that is a column container
  * that contains both region list and errors
- *
  */
-export class ToolContainer extends React.Component<ToolContainerProps, {}> {
-
-
+export class ToolContainer extends 
+	React.Component<ToolContainerProps, {}> {	
 	render() {
-
 		const container = this.props.container;
-
 		return (
-			<div className={toolStyle.toolContainer}>
+			<div className={toolStyle.toolContainer}
+				onMouseMove={
+					(_) => {
+						container
+						.resetDSMove();
+					}
+				}>
 				<Toolbox 
 					toolbox={ 
 						{ headerName: 
-							ContainerDefaults
+						ContainerDefaults
 						.toolbox.headerName 
 						} 
 					} 
-					container={this.props.container}/>
+					container={this
+						.props.container}/>
 				<ToolboxOptions  
-						headerName={"Options"}
-						container={container}
-					/>
+					headerName={"Options"}
+					container={container}
+				/>
 			</div>
 		)
 	}
@@ -72,19 +75,26 @@ type RegionContainerProps = {
 /**
  * Region Container that is a column container
  * that contains both region list and errors
- *
  */
-export class RegionContainer extends React.Component<RegionContainerProps, {}> {
+export class RegionContainer 
+	extends React.Component<RegionContainerProps, {}> {
 
 	render() {
 		const container = this.props.container;
 		const regionList = container.getRegionList();
 
 		return (
-			<div className={regionStyle.regionContainer}>
+			<div className={regionStyle.regionContainer}
+				onMouseMove={
+					(_) => {
+						container
+						.resetDSMove();
+					}
+				}>
 				<RegionList regions={regionList} />
 				<ErrorList 
-					{...ContainerDefaults.errorList} />
+					{...ContainerDefaults
+						.errorList} />
 			</div>
 		)
 	}

@@ -11,10 +11,8 @@ import RottnestContainer from './RottnestContainer';
  * Warning: We have coupled this component
  * 	to the root container.
  */
-type SettingsProps = {
-	isHidden: boolean
+type NewSettingsProps = {
 	rootContainer: RottnestContainer
-	projectDetails: ProjectDetails
 };
 
 
@@ -23,7 +21,7 @@ type SettingsProps = {
  * of the project unless otherwise refreshed
  * by the root container.
  */
-type SettingsState = {
+type NewSettingsState = {
 	project: ProjectDetails
 }
 
@@ -31,17 +29,17 @@ type SettingsState = {
  * Settings form component, will be always present
  * in the display but turned off and on when needed
  */
-class SettingsForm extends React.Component<SettingsProps, 
-	SettingsState> {
+class NewProjectForm extends React.Component<NewSettingsProps, 
+	NewSettingsState> {
 	
 	rootContainer = this.props.rootContainer;
 
 	//TODO: Fix the setting props on the width and height
-	state: SettingsState = {
+	state: NewSettingsState = {
 		project: {
 			projectName: 'Project1', 
 			author: 'User',
-			width: 20,
+			width: 10,
 			height: 20,
 			description: 'Quick Description'	
 		}
@@ -51,8 +49,8 @@ class SettingsForm extends React.Component<SettingsProps,
 	 * Cancels the component and triggers a re-render
 	 * of the root container
 	 */
-	cancel() {
-		this.rootContainer.cancelSettings();
+	projectCancel() {
+		this.rootContainer.cancelNewProject();
 	}
 
 	/**
@@ -60,27 +58,35 @@ class SettingsForm extends React.Component<SettingsProps,
 	 * root container will likely consider if it needs
 	 * to flush the changes to other components
 	 */
-	settingsApply() {
+	projectApply() {
 		this.rootContainer
-			.applySettings(this.state.project);
+			.applyNewProject(this
+					 .state
+					 .project);
 	}
 
 
 	render() {
 		const sref = this;
-		const hidden = this.props.isHidden;
 		const inputChangeFn = (
-			e: React.FormEvent<HTMLInputElement>,
-				key: keyof ProjectDetails) => {
+			e: 
+			React
+			.FormEvent<HTMLInputElement>,
+			key: 
+			keyof ProjectDetails) => {
 
-			let partial: Partial<ProjectDetails> = {
-				[key]: e.currentTarget.value
+			let partial: 
+			Partial<ProjectDetails> = {
+				[key]: 
+				e.currentTarget.value
 			};
 
-			let newState: SettingsState = {
+			let newState: 
+				NewSettingsState = {
 				...this.state, 
 			};
-			newState.project = {...newState.project,
+			newState.project 
+			= {...newState.project,
 				...partial}
 
 			sref.setState(newState);
@@ -90,14 +96,11 @@ class SettingsForm extends React.Component<SettingsProps,
 
 		return (
 			<div className={styles.parentContainer} 
-				style={{position:'relative',
-				visibility: hidden ?
-					"hidden" : "visible"
-				}}>
+				style={{position:'relative'}}>
 			<form className={styles.settingsForm}
 				onSubmit={(e) => 
 					e.preventDefault()}>
-				<h2>Settings</h2>
+				<h2>New Project</h2>
 				<label>Project Name</label>
 				<input type="text" name="projectName"
 					value={this.state
@@ -146,8 +149,8 @@ class SettingsForm extends React.Component<SettingsProps,
 					<button className={styles
 						.settingsCancel}
 						onClick={(_) => 
-							sref
-							.cancel()}
+						sref
+						.projectCancel()}
 						type="button">
 						Cancel
 					</button>
@@ -155,7 +158,7 @@ class SettingsForm extends React.Component<SettingsProps,
 						.settingsApply}
 						onClick={(_) => 
 						sref
-						.settingsApply()
+						.projectApply()
 						} type="submit">
 						Apply
 					</button>
@@ -166,4 +169,4 @@ class SettingsForm extends React.Component<SettingsProps,
 	}
 }
 
-export default SettingsForm;
+export default NewProjectForm;

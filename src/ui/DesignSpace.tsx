@@ -84,9 +84,12 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		startCell: { x: 0, y: 0 },
 		endCell: { x: 0, y: 0 },
 		paintMode: false
+
 	}
 
-	static FillCells(width: number, height: number): Array<CellInfo> {
+	static FillCells(width: number, height: number): 
+		Array<CellInfo> {
+		
 		const total = width * height;
 		const things = []
 		for(let i = 0; i < total; i++) {
@@ -106,6 +109,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			this.state.cells[i].isSelected = false;
 		}
 	}
+	
 
 	onGridDown(e: React.MouseEvent<HTMLUListElement>) {
 		if(e.button === 1) {
@@ -125,7 +129,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			
 		} else {
 			this.onLeftDown(e)
-		}
+			}
 	}
 
 	onGridMove(e: React.MouseEvent<HTMLUListElement>) {
@@ -163,12 +167,16 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			this.onSelectFinish();
 			//this.setState(newGS);
 		} else if(this.state.middleIsDown) {
-			const newGS = {...this.state};
-			newGS.leftIsDown = false;
-			newGS.middleIsDown = false;
-			this.setState(newGS);
+			this.onMiddleUp();
 		}
 		
+	}
+
+	onMiddleUp() {
+		const newGS = {...this.state};
+		newGS.leftIsDown = false;
+		newGS.middleIsDown = false;
+		this.setState(newGS);
 	}
 
 	
@@ -228,7 +236,8 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		newGS.middleIsDown = false;
 		newGS.leftIsDown = false;
 		newGS.startSelected = false;
-		newGS.selectionRect = { x1: 0, x2: 0, y1: 0, y2: 0 };
+		newGS.selectionRect = { x1: 0, x2: 0, y1: 0, 
+			y2: 0 };
 		newGS.startCell = { x: 0, y: 0 };
 		newGS.endCell = { x: 0, y: 0 };
 		this.resetSelection();
@@ -247,12 +256,16 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	}
 
 	getSelectionData() {
-		let x1 = this.state.leftIsDown ? this.state.selectionRect.x1 : 0;
-		let x2 = this.state.leftIsDown ? this.state.selectionRect.x2 : 0;
+		let x1 = this.state.leftIsDown ? 
+			this.state.selectionRect.x1 : 0;
+		let x2 = this.state.leftIsDown ? 
+			this.state.selectionRect.x2 : 0;
 		let y1 = this.state.leftIsDown ? 
-			window.scrollY + this.state.selectionRect.y1 : 0;
+			window.scrollY + 
+			this.state.selectionRect.y1 : 0;
 		let y2 = this.state.leftIsDown ? 
-			window.scrollY + this.state.selectionRect.y2 : 0;
+			window.scrollY + 
+			this.state.selectionRect.y2 : 0;
 
 		if(x1 > x2) {
 			let tmp = x1;
@@ -272,10 +285,14 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 
 	getCoordsFromSelectionData() {
 
-		let x1 = this.state.leftIsDown ? this.state.startCell.x : 0;
-		let x2 = this.state.leftIsDown ? this.state.endCell.x : 0;
-		let y1 = this.state.leftIsDown ? this.state.startCell.y : 0;
-		let y2 = this.state.leftIsDown ? this.state.endCell.y : 0;
+		let x1 = this.state.leftIsDown ? 
+			this.state.startCell.x : 0;
+		let x2 = this.state.leftIsDown ? 
+			this.state.endCell.x : 0;
+		let y1 = this.state.leftIsDown ? 
+			this.state.startCell.y : 0;
+		let y2 = this.state.leftIsDown ? 
+			this.state.endCell.y : 0;
 
 		if(x1 > x2) {
 			let tmp = x1;
@@ -292,31 +309,41 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		return { x1, x2, y1, y2 }
 	}
 
+	onWheelTrigger(e: React.WheelEvent<HTMLUListElement>) {
+		const container = this.props.container;
+		if(e.deltaY < 0) {
+			container.zoomIn(25);
+		} else if(e.deltaY > 0) {
+			container.zoomIn(-25);
+		}
+
+	}
+
 	selectCells(): Map<string, RegionCellAggr> {
 
 		const box = this.getCoordsFromSelectionData();
 		const width = this.props.width;
 		let items: Map<string, RegionCellAggr> = new Map();
-		if(box.x1 - box.x2 != 0 || box.y1 - box.y2 != 0) { 
-		if(this.state.leftIsDown) {
+		if((box.x1 - box.x2 != 0 || box.y1 - box.y2 != 0)
+		  && this.state.leftIsDown) { 
 			for(let y = box.y1; y <= box.y2; y++) {
-				for(let x = box.x1; x <= box.x2; x++) {
+				for(let x = box.x1; x <= box.x2; 
+				    x++) {
 
 					items.set(`x${x} y${y}`,
-						{
-						cinfo: 
-						this.state
-						.cells[(y * width) 
-							+ x],
-						regData: {
-								x: x,
-								y: y
-							},	
-						isSelected: true
-						});
+					{
+					cinfo: 
+					this.state
+					.cells[(y * width) 
+						+ x],
+					regData: {
+							x: x,
+							y: y
+						},	
+					isSelected: true
+					});
 				}
 			}
-		}
 		}
 
 		return items;
@@ -335,12 +362,21 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		this.state.endCell.y = y;
 	}
 
+	redoCells(width: number, height: number) {
+		const newState = {...this.state};
+		newState.cells = DesignSpace.FillCells(width, 
+						       height);
+		this.setState(newState);
+	}
+
 	render() {
 		const gref = this;
 		const container = this.props.container;
 		const zoomValue = this.props.zoomValue;
 		const gwidth = gref.props.width;
 		const paintMode = this.state.paintMode;
+
+		container.registerDesignSpace(gref);
 
 		const mgdownEvent = (e: 
 			React.MouseEvent<HTMLUListElement>) => {
@@ -356,6 +392,11 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			gref.onGridUp(e);
 		}
 
+		const onWheelie = (e:
+			React.WheelEvent<HTMLUListElement>) => {
+			gref.onWheelTrigger(e);
+		}
+
 		const dataTagFn = (x: number, y: number) => {
 			gref.potentialStartMark(x, y);
 			gref.potentialEndMark(x, y);
@@ -364,17 +405,18 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 					.insert({ x, y })
 			}	
 		}
+	
+	let selectMap = this.selectCells();
 
-		let selectMap = this.selectCells();
-
-		
+		//TODO: We may want to maintain
+		//this list of pre-rendered cells
 		const renderableCells = 
 			this.state.cells.map((_, idx) => {
 				const x = idx % gwidth;
 				const y = Math.floor(idx / gwidth);
 				//console.log(c);
 				return (
-				<GridCell cell={
+					<GridCell key={idx} cell={
 					{
 						taggedKind: container
 						.getRegionList()
@@ -386,8 +428,9 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 				}
 				paintMode={this.state.paintMode}
 				isSelected={
-					selectMap.get(`x${x} y${y}`) != null	
-				}	
+					selectMap.get(`x${x} y${y}`) 
+					!= null	
+				}
 				x={x}
 				y={y}
 				leftDown={
@@ -411,12 +454,14 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 				.designSpaceContainer}>
 
 				<SelectionVisual  
-					coordsRef={svprops} container={gref}/>
+					coordsRef={svprops} 
+					container={gref}/>
 
 				<ul draggable={false} className={
 						styles
 						.designSpaceGrid
-					} 
+					}
+					onWheel={onWheelie}
 					onMouseDown={mgdownEvent}
 					onMouseMove={mgmoveEvent}
 					onMouseUp={mgupEvent}

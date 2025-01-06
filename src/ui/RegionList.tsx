@@ -12,8 +12,7 @@ type RegionItemData = {
 }
 
 /**
- * Maintains state data fro the region list 
- * 
+ * Maintains state data fro the region list  
  */
 type RegionListState = {
 	selectedIndex: number
@@ -22,7 +21,6 @@ type RegionListState = {
 /**
  * Information around how it is rendered
  * is carried over via data
- *
  */
 class RegionItemRender extends React.Component<RegionItemData, {}> {
 
@@ -30,9 +28,9 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
 	render() {
 		const data = this.props;
 		return (
-			<div>
+			<li key={data.tag} className={styles.regionItem}>
 				{data.tag}
-			</div>
+			</li>
 		);
 	}
 }
@@ -44,7 +42,8 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
  * provide a quick reference
  *
  */
-class RegionList extends React.Component<RegionListProps, RegionListState> {
+class RegionList extends React.Component<RegionListProps, 
+	RegionListState> {
 	
 	state: RegionListState = {
 
@@ -59,14 +58,16 @@ class RegionList extends React.Component<RegionListProps, RegionListState> {
 		const headerName = 'Regions';
 		const regions = this.props.regions;
 		const renderRegions = regions.flattenWithTags().map(
-			r => <RegionItemRender {...r} />)
+			(r, idx) => <RegionItemRender {...r} key={idx} />)
 
 		return (
 
 			<div className={styles.regionList}>
-				<header className={styles.regionListHeader}>
+				<header className={styles
+					.regionListHeader}>
 					{headerName}</header>
-				<ul>
+				<ul className={styles.
+					regionListing}>
 				{renderRegions}
 				</ul>
 			</div>

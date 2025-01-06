@@ -109,7 +109,10 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 	updateSelected(idx: number) {
 		//TODO: Still need to set the current events for
 		//the design space
-		this.state.container.data.selectedIndex = idx;
+		this.state.container.
+			state.appStateData
+			.componentData.selectedTool = idx;
+		
 		this.setState({
 			selectedToolIndex: idx,
 			container: this.state.container
@@ -122,7 +125,7 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 		const headerName = this.props.toolbox.headerName;
 		const toolItems = this.tools.map(
 			(tool: Tool, idx: number) => <ToolItem 
-			tool={tool} 
+			tool={tool} key={idx} 
 				isSelected={this.state
 					.selectedToolIndex === idx} 
 				toolParent={parent} />);

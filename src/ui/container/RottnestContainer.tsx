@@ -9,6 +9,8 @@ import WorkspaceContainer from './RowContainer';
 import SettingsForm from './SettingsForm';
 
 import styles from '../styles/RottnestContainer.module.css';
+import {DesignSpace} from '../DesignSpace';
+import NewProjectForm from './NewProjectForm';
 
 
 
@@ -81,11 +83,6 @@ class RegionsSnapshotStack {
 
 }
 
-const RottnestContainerDefaults = {
-	
-
-}
-
 /**
  * Data that is required for the container,
  * events and functionality to operate on.
@@ -93,14 +90,14 @@ const RottnestContainerDefaults = {
  * TODO: Update the data parts to allow for
  * more strict typing
  */
-type RottnestData = {
+/*type RottnestData = {
 	toolboxData: any
 	regionListData: any
 	errorListData: any
 	designSpaceData: any 
 	selectedIndex: number
 	project: RottnestProject
-}
+}*/
 
 /**
  * At the moment, nothing interesting
@@ -112,9 +109,15 @@ type RottnestProperties = {}
  */
 type RottnestAppState = {
 	settingsActive: boolean
+	newProjectActive: boolean
 	helpActive: boolean
 	colourblindActive: boolean
 	zoomValue: number
+	componentData: {
+		selectedTool: number
+		selectedRegion: number
+	}
+
 }
 
 
@@ -132,9 +135,13 @@ type RottnestWorkData = {
  */
 type RottnestState = {
 	projectDetails: ProjectDetails
-	settingsActive: boolean
-	zoomValue: number
+	appStateData: RottnestAppState
 	regionList: RegionDataList
+}
+
+type ComponentMonitor = {
+	designSpace: DesignSpace | null
+	settingsForm: SettingsForm | null
 }
 
 /**
@@ -149,25 +156,68 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		projectDetails: {
 			projectName: 'Project1', 
 			author: 'User',
-			width: RottnestDefault.designSpace.width,
-			height: RottnestDefault.designSpace.height,
+			width: 20,
+			height: 20,
 			description: 'Quick Description'	
 		},
-		settingsActive: false,
-		zoomValue: 100,
-		regionList: new RegionDataList()
+		regionList: new RegionDataList(),
+
+		appStateData: {
+			settingsActive: false,
+			newProjectActive: false,
+			zoomValue: 100,
+			colourblindActive: false,
+			helpActive: false,
+			componentData: {
+				selectedTool: 0,
+				selectedRegion: 0
+			}
+		}
 	};
+
+
+
+	monitorComponent: ComponentMonitor = {
+		designSpace: null,
+		settingsForm: null
+	}
 
 	regionStack: RegionsSnapshotStack = new RegionsSnapshotStack();
 	currentRDBuffer: RegionData = new RegionData();
+	
+	resetData() {
+		this.state.regionList = new RegionDataList();
+		this.state.appStateData = {
+			settingsActive: false,
+			newProjectActive: false,
+			zoomValue: 100,
+			colourblindActive: false,
+			helpActive: false,
+			componentData: {
+				selectedTool: 0,
+				selectedRegion: 0
+			}
+		};
+		this.regionStack = new RegionsSnapshotStack();
+		this.currentRDBuffer = new RegionData();
 
-	data: RottnestData = {
+	}
+
+	/*data: RottnestData = {
 		toolboxData: {...RottnestDefault.toolbox},
 		regionListData: {...RottnestDefault.regionList},
 		errorListData: {...RottnestDefault.errorList},
 		designSpaceData: {...RottnestDefault.designSpace},
 		project: new RottnestProject(),
 		selectedIndex: 0,
+	}*/
+
+	registerDesignSpace(designSpace: DesignSpace) {
+	       this.monitorComponent.designSpace = designSpace;
+	}
+
+	registerSettingsForm(settingsForm: SettingsForm) {
+	       this.monitorComponent.settingsForm = settingsForm;
 	}
 
 	parseLoadedFile(content: string | ArrayBuffer | null) {
@@ -301,7 +351,7 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 */
 	saveProject() {
 		RottnestService.SaveToLocalStorage('rottnest', 
-					this.data.project);	
+					this.state.projectDetails);	
 	}
 
 
@@ -318,7 +368,8 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 * has been selected
 	 */
 	getToolIndex() {
-		return this.data.selectedIndex;
+		return this.state.appStateData.componentData
+			.selectedTool;
 	}
 
 	/**
@@ -327,7 +378,14 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 *
 	 */
 	showSettings() {
-		this.state.settingsActive = true;
+
+		this.state.appStateData.settingsActive = true;
+		this.triggerUpdate();
+	}
+	
+	showNewProject() {
+
+		this.state.appStateData.newProjectActive = true;
 		this.triggerUpdate();
 	}
 
@@ -346,7 +404,13 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 *
 	 */
 	cancelSettings() {
-		this.state.settingsActive = false;
+		this.state.appStateData.settingsActive = false;
+		this.triggerUpdate();
+	}
+
+	cancelNewProject() {
+		this.state.appStateData.newProjectActive = false;
+		this.resetData();
 		this.triggerUpdate();
 	}
 
@@ -355,12 +419,32 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 * to the save buffer
 	 */
 	applySettings(project: ProjectDetails) {
-		//TODO: Implement a write 
-		//buffer that will be used during
-		//save
 		this.state.projectDetails = project;	
-		this.state.settingsActive = false;
-		this.triggerUpdate();
+		this.state.appStateData.settingsActive = false;
+
+		const newState = {...this.state};
+		const dspace = this.monitorComponent.designSpace;
+		if(dspace) {
+			dspace.redoCells(newState.projectDetails.width,
+				newState.projectDetails.height);
+		}
+		this.setState(newState);
+
+	}
+
+	applyNewProject(project: ProjectDetails) {
+		this.resetData();
+		this.state.projectDetails = project;	
+		this.state.appStateData.settingsActive = false;
+		this.state.appStateData.newProjectActive = false;
+		
+		const newState = {...this.state};
+		const dspace = this.monitorComponent.designSpace;
+		if(dspace) {
+			dspace.redoCells(newState.projectDetails.width,
+				newState.projectDetails.height);
+		}
+		this.setState(newState);
 	}
 
 	/**
@@ -369,8 +453,8 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 */
 	zoomIn(perc: number) {
 		
-		if((this.state.zoomValue + perc) <= 250) {
-			this.state.zoomValue += perc;	
+		if((this.state.appStateData.zoomValue + perc) <= 250) {
+			this.state.appStateData.zoomValue += perc;	
 			this.triggerUpdate();
 		}
 	}
@@ -380,43 +464,58 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 * TODO: Bug with zoom-ing and breaking the grid gap
 	 */
 	zoomOut(perc: number) {
-		if((this.state.zoomValue - perc) > 0) {
-			this.state.zoomValue -= perc;		
+		if((this.state.appStateData.zoomValue - perc) > 0) {
+			this.state.appStateData.zoomValue -= perc;		
 			this.triggerUpdate();
 		}
 	}
 
+	resetDSMove() {
+		const dspace = this.monitorComponent.designSpace;
+		if(dspace) {
+			dspace.onMiddleUp();
+		}
+	}
 	
 	render() {
 		const rottContainer = this;
 		const updateables = new Map();
 		const toolKind = 0;
-		const zoomValue = this.state.zoomValue;
+		const zoomValue = this.state.appStateData.zoomValue;
 		
-		const settings = this.state.settingsActive ? 
-			<SettingsForm isHidden={false} 
-				rootContainer={rottContainer} /> 
-				: <></>;
+		const settingsisActive = !this.state.appStateData.settingsActive;
+		const newProjectActive = this.state.appStateData.newProjectActive;
+
+
+		const newProjectElement = newProjectActive ? 
+			<NewProjectForm rootContainer={rottContainer}
+				/> :
+			<></>
 		
 		updateables.set(100, [`${zoomValue}%`, rottContainer]);
 
 		return (
 			<div className={styles.rottnest}>
-				{settings}
+				<SettingsForm rootContainer={rottContainer}
+					isHidden={settingsisActive} 
+					projectDetails={this.state.projectDetails}
+					/>
+				{newProjectElement}
+
 				<GlobalBar componentMap={updateables}
-					container={rottContainer} />
+				container={rottContainer} />
 
 				<WorkspaceContainer 
 					designSpace={
 						{
-							width: 
-							this.state
-							.projectDetails
-								.width,
-							height: 
-							this.state
-							.projectDetails
-								.height,
+						width: 
+						this.state
+						.projectDetails
+							.width,
+						height: 
+						this.state
+						.projectDetails
+							.height,
 						}
 					}
 					zoomValue={zoomValue}

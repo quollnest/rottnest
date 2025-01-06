@@ -1,11 +1,11 @@
-import { RottnestProject }from "../model/Project";
+import { ProjectDetails, RottnestProject }from "../model/Project";
 
 /**
  * Saves the current project object and writes it
  * to localstorage
  *
  */
-const SaveToLocalStorage = (key: string, project: RottnestProject) => {
+const SaveToLocalStorage = (key: string, project: ProjectDetails) => {
 	let strRes = JSON.stringify(project);
 	localStorage.setItem(key, strRes);
 }
@@ -14,7 +14,9 @@ const SaveToLocalStorage = (key: string, project: RottnestProject) => {
 /**
  * Loads data from localstorage
  */
-const LoadFromLocalStorage = (key: string): RottnestProject | null => {
+const LoadFromLocalStorage = (key: string): ProjectDetails 
+	| null => {
+	
 	let res = localStorage.getItem(key);
 	if(res != null) {
 		return JSON.parse(res);

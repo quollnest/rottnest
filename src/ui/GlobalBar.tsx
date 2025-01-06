@@ -10,6 +10,7 @@ import RedoEvent from './global/Redo.ts';
 import ZoomInEvent from './global/ZoomIn.ts';
 import ZoomOutEvent from './global/ZoomOut.ts';
 import SettingsEvent from './global/Settings.ts';
+import NewProjectEvent from './global/NewProject.ts';
 import NullEvents from './global/NullEvents.ts';
 
 import {  
@@ -21,6 +22,7 @@ import {
 	RedoOutlined,
 	SettingOutlined,
 	FlagOutlined,
+	PlusSquareOutlined
 } from '@ant-design/icons'
 
 import styles from './styles/GlobalBar.module.css';
@@ -206,6 +208,15 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 				</>
 		},
 		{ 
+			id: 8, 
+			name: "New", 
+			toolTip: "New Project", 
+			image: "NewProjectImage",
+			events: NewProjectEvent,
+			style: styles.newProject,
+			iconComponent: <PlusSquareOutlined />
+		},
+		{ 
 			id: 6, 
 			name: "Settings", 
 			toolTip: "Access Settings", 
@@ -230,15 +241,22 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 		const container = this.props.container;
 
 		const renderableBarItems = this.barItems.map(
-			(bi: BarItemDescription) => 
-				<BarItem containerRef={container}
+			(bi: BarItemDescription, idx: number) => 
+				<BarItem key={idx} 
+				containerRef={container}
 				description={bi} 
 				updatable={compMap.get(bi.id)} 
 				/>	
 		);
 
 		return (
-			<div className={styles.globalBar}>
+			<div className={styles.globalBar}
+				onMouseMove={
+					(_) => {
+						container
+						.resetDSMove();
+					}
+				}>
 				<ul>
 				{renderableBarItems}
 				</ul>

@@ -85,12 +85,21 @@
 }
 
 .settings {
-	border-left: 1px #35332f solid;
 	justify-content: flex-end;
 	flex: 0.5 !important;
 }
 
 .settings div {
+	font-size: x-small;
+}
+
+.newProject{
+	border-left: 1px #35332f solid;
+	justify-content: center;
+	flex: 0.5 !important;
+}
+
+.newProject div {
 	font-size: x-small;
 }
 
