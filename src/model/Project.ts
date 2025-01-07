@@ -3,7 +3,6 @@
  * Project Details,
  * contains simple information about the project/architecture
  * This will be used by the settings form/project setup
- *
  */
 export type ProjectDetails = {
 	projectName: string
@@ -14,21 +13,27 @@ export type ProjectDetails = {
 }
 
 export type CellKindData = {
-	Bus: Array<keyof CellKindData>	
-	Register: Array<keyof CellKindData>
-	BellState: Array<keyof CellKindData>	
-	TFactory: Array<keyof CellKindData>
-	Buffer: Array<keyof CellKindData>
-	Untagged: Array<keyof CellKindData>
+	bus: Array<keyof CellKindData>	
+	registers: Array<keyof CellKindData>
+	bellstates: Array<keyof CellKindData>	
+	tfactories: Array<keyof CellKindData>
+	buffers: Array<keyof CellKindData>
+	untagged: Array<keyof CellKindData>
 }
 
+/**
+ * This a cell map kind that implies a kind
+ * of directionality between types
+ *
+ * This should be leveraged within the algorithm
+ */
 const CellKindMap: CellKindData = {
-	Bus: ['Register', 'Buffer', 'Bus'], 
-	Register: ['Register'],
-	BellState: ['Bus'],	
-	TFactory: ['Bus', 'Buffer'],
-	Buffer: ['Bus', 'Register'],
-	Untagged: [], 
+	bus: ['registers', 'buffers', 'bus'], 
+	registers: ['registers'],
+	bellstates: ['bus'],	
+	tfactories: ['bus', 'buffers'],
+	buffers: ['bus', 'registers'],
+	untagged: [], 
 }
 
 const CellOutputDir = ["None", "Up", "Right", "Left"];  
@@ -144,7 +149,6 @@ export class RegionData {
 		let dirToChecks: Array<number> = [];
 		let edgeCase = false;
 		//1. Find small Y
-
 		for(const[_, cell] of this.cells) {
 			if(minY > cell.y) {
 				minY = cell.y;
@@ -162,17 +166,15 @@ export class RegionData {
 			if(!seenY.includes(y)) {
 				seenY.push(y);
 			}
-
-			cells.push(cell);
+			if(y === minY) {
+				cells.push(cell);
+			}
 		}
 
-		//3a. Check edge case, if Nx1
-		if(seenX.length > 1 && seenY.length === 1) {
-			dirToChecks.push(1);
-		}
+		//3a. Only check above		
 		
 		//3b. Check edge, if 1xN
-		else if(seenX.length === 1 && seenY.length > 1) {
+		if(seenX.length === 1 && seenY.length > 1) {
 			//3.a Find all Y
 			let minX = seenX.sort()[0];
 			cells = [];
@@ -187,6 +189,8 @@ export class RegionData {
 			dirToChecks.push(2);
 			dirToChecks.push(3);
 			edgeCase = true;
+		} else {
+			dirToChecks.push(1);
 		}
 
 		//TODO: What about 1x1?
@@ -308,7 +312,6 @@ export class RegionDataList {
 				offsets.push([1, 0, 2]);
 			}
 		}
-		
 		//2. Using the offsets and the cells, we compare against
 		//	the region cells
 		for(let offsetCoordsKey in offsets) {
@@ -342,7 +345,7 @@ export class RegionDataList {
 				cellsConnected = true;
 			}
 		}
-
+		
 		return cellsConnected;
 
 	}
@@ -356,7 +359,9 @@ export class RegionDataList {
 	canConnectToKind(kind: string, otherKind: string): boolean {
 		
 		const srcKindSet = CellKindMap[kind as keyof CellKindData];
-		return otherKind in srcKindSet;
+		const check = (srcKindSet.includes(otherKind as keyof CellKindData));
+		
+		return check;
 	}
 
 	/**
@@ -382,13 +387,11 @@ export class RegionDataList {
 		let regionCol = this.regions[kind][idx];
 
 		if(regionCol) {
-			
 			let outSegment = regionCol.getOutputCells(kind);
-
+			console.log(outSegment);
 			for(const regkey in this.regions) {
 				const regionsOfKind = this.regions[
 					regkey as keyof Regions];
-
 				if(this.canConnectToKind(outSegment.kind, regkey)) {
 
 					for(const rk in regionsOfKind) {
@@ -399,21 +402,12 @@ export class RegionDataList {
 									regkey)) {
 
 							//We are finished, return
-
 							return;
 						}
-
-
 					}
 				}
-
-
-
 			}
-			
-
 		}
-
 	}
 
 	/**
@@ -436,6 +430,43 @@ export class RegionDataList {
 
 	}
 
+	//TODO: Define a proper type for the return
+	getCellDataFromCoords(x: number, y: number): 
+		{ 
+			toolKind: number 
+			cell: RegionCell | null 
+		}
+	{
+		let res: { toolKind: number, cell: RegionCell | null } 
+			= { toolKind: -1, cell: null };	
+		const rcStr = `${x} ${y}`;
+		const fRes = [
+			this.regions.buffers.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.bus.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.tfactories.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.bellstates.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.registers.filter((c) => 
+				c.cells.get(rcStr) != null),
+		];
+		//TODO: We need a more robust method to determine this
+		//	This is gross
+
+		let idx = fRes.findIndex((r) => r.length > 0);
+		if(idx >= 0) {
+			let cell = fRes[idx][0].cells.get(rcStr);
+			if(cell) {
+				res.cell = cell;
+			}
+		}
+		res.toolKind = idx+1;
+		
+		return res;
+	}
+
 	getTagFromCoords(x: number, y: number): number {
 		
 		const rcStr = `${x} ${y}`;
@@ -451,6 +482,8 @@ export class RegionDataList {
 			this.regions.registers.filter((c) => 
 				c.cells.get(rcStr) != null),
 		];
+		//TODO: We need a more robust method to determine this
+		//	This is gross
 
 		let idx = fRes.findIndex((r) => r.length > 0);
 		

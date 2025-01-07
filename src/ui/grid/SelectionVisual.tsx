@@ -2,6 +2,7 @@ import React from 'react';
 import style from '../styles/SelectionVisual.module.css';
 import {DesignSpace} from '../DesignSpace';
 
+//TODO: coordsRef is no longer used
 type SelectionProps = {
 	container: DesignSpace
 	coordsRef: {

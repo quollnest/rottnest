@@ -128,11 +128,16 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 
 			
 		} else {
+
+			const x = e.clientX;
+			const y = e.clientY;
+			console.log(x, y);
 			this.onLeftDown(e)
-			}
+		}
 	}
 
 	onGridMove(e: React.MouseEvent<HTMLUListElement>) {
+				
 		if(this.state.middleIsDown) {
 			const x = e.movementX;
 			const y = e.movementY;
@@ -186,10 +191,9 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			let newGS = {...this.state};
 			newGS.selectionRect.x1 = e.clientX;
 			newGS.selectionRect.x2 = e.clientX;
-			newGS.selectionRect.y1 = e.clientY;
-			newGS.selectionRect.y2 = e.clientY;
+			newGS.selectionRect.y1 = e.clientY+1;
+			newGS.selectionRect.y2 = e.clientY+1;
 			newGS.leftIsDown = true;
-			
 			this.setState(newGS);
 		}
 	}
@@ -203,9 +207,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			newGS.selectionRect.x2 = x;
 			newGS.selectionRect.y2 = y;
 			this.setState(newGS);
-		}
-
-
+		} 
 	}
 
 
@@ -324,8 +326,9 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		const box = this.getCoordsFromSelectionData();
 		const width = this.props.width;
 		let items: Map<string, RegionCellAggr> = new Map();
-		if((box.x1 - box.x2 != 0 || box.y1 - box.y2 != 0)
-		  && this.state.leftIsDown) { 
+		//if((box.x1 - box.x2 != 0 || box.y1 - box.y2 != 0)
+		//  && 
+		if(this.state.leftIsDown) { 
 			for(let y = box.y1; y <= box.y2; y++) {
 				for(let x = box.x1; x <= box.x2; 
 				    x++) {
@@ -414,16 +417,27 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			this.state.cells.map((_, idx) => {
 				const x = idx % gwidth;
 				const y = Math.floor(idx / gwidth);
+				const cda = container
+						.getRegionList()
+						.getCellDataFromCoords(
+							x, y);
+				const cellData = cda.cell !== null ? cda.cell
+					: null;
+				let cdir: number | null = -1;
+				let covr = false;
+				if(cellData) {
+					cdir = cellData.cdir !== undefined ? 
+						cellData.cdir : null;
+					covr = cellData.manualSet !== undefined ? 
+						cellData.manualSet : false;
+				}
 				//console.log(c);
 				return (
 					<GridCell key={idx} cell={
 					{
-						taggedKind: container
-						.getRegionList()
-						.getTagFromCoords(
-						idx % gwidth,
-						Math.floor(idx / 
-							   gwidth))
+						taggedKind: cda.toolKind,
+						cdir,
+						override: covr 
 					}
 				}
 				paintMode={this.state.paintMode}

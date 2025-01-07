@@ -1,7 +1,7 @@
 import React from 'react';
 import GlobalBar from '../GlobalBar';
 import RottnestService from '../../service/RottnestService';
-import {RottnestProject, ProjectDetails, RegionData, 
+import {ProjectDetails, RegionData, 
 	RegionDataList, Regions,
 	ProjectDump} 
 	from '../../model/Project';
@@ -52,7 +52,16 @@ class RegionsSnapshotStack {
 		}
 		return null;
 	}
-
+	
+	/**
+	 * Takes the current regiondata list and
+	 * adds it to the redo list.
+	 *
+	 * It will then pop the top the undo list.
+	 * This will be then used as the current
+	 * region data list in the container
+	 * 
+	 */
 	undoAction(current: RegionDataList): RegionDataList 
 		| null | undefined {
 		//Only valid case
@@ -64,7 +73,12 @@ class RegionsSnapshotStack {
 		return null;
 	}
 
-
+	/**
+	 * Pops the redo list and replaces it
+	 * as the current regiondatalist, the 
+	 * current regiondatalist will then be
+	 * placed in the undo list
+	 */
 	redoAction(current: RegionDataList): RegionDataList 
 		| null | undefined {
 				
@@ -105,7 +119,9 @@ class RegionsSnapshotStack {
 type RottnestProperties = {}
 
 /**
- * 
+ *  Container State information
+ *  that can be updated by other components
+ *  or internally.
  */
 type RottnestAppState = {
 	settingsActive: boolean
@@ -150,7 +166,9 @@ type ComponentMonitor = {
  * components rendered underneath it
  *
  */
-class RottnestContainer extends React.Component<RottnestProperties, RottnestState> {
+class RottnestContainer 
+	extends React.Component<RottnestProperties, 
+	RottnestState> {
 
 	state: RottnestState = {
 		projectDetails: {
@@ -158,10 +176,9 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 			author: 'User',
 			width: 20,
 			height: 20,
-			description: 'Quick Description'	
+			description: 'Quick Description'
 		},
 		regionList: new RegionDataList(),
-
 		appStateData: {
 			settingsActive: false,
 			newProjectActive: false,
@@ -182,7 +199,8 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		settingsForm: null
 	}
 
-	regionStack: RegionsSnapshotStack = new RegionsSnapshotStack();
+	regionStack: RegionsSnapshotStack = 
+		new RegionsSnapshotStack();
 	currentRDBuffer: RegionData = new RegionData();
 	
 	resetData() {
@@ -202,15 +220,6 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		this.currentRDBuffer = new RegionData();
 
 	}
-
-	/*data: RottnestData = {
-		toolboxData: {...RottnestDefault.toolbox},
-		regionListData: {...RottnestDefault.regionList},
-		errorListData: {...RottnestDefault.errorList},
-		designSpaceData: {...RottnestDefault.designSpace},
-		project: new RottnestProject(),
-		selectedIndex: 0,
-	}*/
 
 	registerDesignSpace(designSpace: DesignSpace) {
 	       this.monitorComponent.designSpace = designSpace;
@@ -272,6 +281,11 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		return this.state.regionList;
 	}
 	
+	/**
+	 * TODO: Move this function to another place
+	 * 	Centralise the tool/region mapping controls
+	 * 	and make it consistent
+	 */
 	toolToRegionKey(): keyof Regions | null {
 
 		switch(this.getToolIndex()) {
@@ -292,9 +306,16 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		return null;
 	}
 
+	/**
+	 * Applys the current regiondata buffer to 
+	 * the region list. It will then duplicate the
+	 * current regionlist and move on.
+	 */	
 	applyRDBuffer() {
 		const oldBuffer = this.currentRDBuffer;
 		this.currentRDBuffer = new RegionData();
+		//The index 6, is currently the unselect,
+		//this is *not good*
 		if(this.getToolIndex() === 6) {
 			//Clean up
 			//TODO: We need to have callbacks for this
@@ -311,7 +332,13 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 				this.onRegion();
 				
 				this.state.regionList
-					.addData(oldBuffer, rkey)
+					.addData(oldBuffer, rkey);
+				//Trigger a resolution here
+				//
+				this.state.regionList
+					.resolveConnectionsForAll();
+				console.log(this.state.
+					    regionList);
 				this.triggerUpdate();
 			}
 		}
@@ -453,7 +480,7 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 	 */
 	zoomIn(perc: number) {
 		
-		if((this.state.appStateData.zoomValue + perc) <= 250) {
+		if((this.state.appStateData.zoomValue + perc) <= 400) {
 			this.state.appStateData.zoomValue += perc;	
 			this.triggerUpdate();
 		}
@@ -483,8 +510,10 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 		const toolKind = 0;
 		const zoomValue = this.state.appStateData.zoomValue;
 		
-		const settingsisActive = !this.state.appStateData.settingsActive;
-		const newProjectActive = this.state.appStateData.newProjectActive;
+		const settingsisActive = !this.state.appStateData
+			.settingsActive;
+		const newProjectActive = this.state.appStateData
+			.newProjectActive;
 
 
 		const newProjectElement = newProjectActive ? 
@@ -496,9 +525,11 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 
 		return (
 			<div className={styles.rottnest}>
-				<SettingsForm rootContainer={rottContainer}
+				<SettingsForm rootContainer={
+					rottContainer}
 					isHidden={settingsisActive} 
-					projectDetails={this.state.projectDetails}
+					projectDetails={this.state
+						.projectDetails}
 					/>
 				{newProjectElement}
 
@@ -524,8 +555,6 @@ class RottnestContainer extends React.Component<RottnestProperties, RottnestStat
 			</div>
 		)
 	}
-
-
 }
 
 export default RottnestContainer;

@@ -1,5 +1,13 @@
 import React from 'react';
+
 import styles from '../styles/GridItem.module.css'
+
+import {  
+	ArrowUpOutlined,
+	ArrowDownOutlined,
+	ArrowLeftOutlined,
+	ArrowRightOutlined
+} from '@ant-design/icons'
 
 /**
  * StyleMap type that will
@@ -16,7 +24,9 @@ type StyleMap = {
 	Detag: string
 }
 
-
+const CDirToIconMap = {
+	
+}
 
 
 const GridStylesMap: StyleMap = {
@@ -28,26 +38,6 @@ const GridStylesMap: StyleMap = {
 	Buffer: styles.Buffer,
 	Detag: styles.Detag,
 }
-
-type CellKindData = {
-	Bus: Array<keyof CellKindData>	
-	Register: Array<keyof CellKindData>
-	BellState: Array<keyof CellKindData>	
-	TFactory: Array<keyof CellKindData>
-	Buffer: Array<keyof CellKindData>
-	Untagged: Array<keyof CellKindData>
-}
-
-const CellKindMap: CellKindData = {
-	Bus: ['Register', 'Buffer'], 
-	Register: ['Register'],
-	BellState: ['Bus'],	
-	TFactory: ['Bus', 'Buffer'],
-	Buffer: ['Bus', 'Register'],
-	Untagged: [], 
-}
-
-const CellOutputDir = ["None", "Up", "Right", "Left"];  
 
 /**
  * CellData object that has a tag
@@ -61,6 +51,10 @@ class CellData {
 
 	constructor(tagNum: number) {
 		this.taggedKind = tagNum;
+	}
+
+	setNeighbourDir(dir: number) {
+		this.neighbourDir = dir;
 	}
 
 	toStyleKey() : keyof StyleMap {
@@ -120,7 +114,11 @@ export type CellProps = {
 	paintMode: boolean
 	x: number
 	y: number
-	cell: { taggedKind: number }
+	cell: { 
+		taggedKind: number
+		override: boolean
+		cdir: number | null
+	}
 	tagFn?: (x: number, y: number) => void
 }
 
@@ -144,29 +142,66 @@ export class GridCell extends React.Component<CellProps, CellState> {
 			tkind: number,
 		     	leftDown: boolean) {
 
-		const taggingFn = this.props.tagFn;
 		const x = this.props.x;
 		const y = this.props.y;
-
+		
 		if(leftDown) {	
-			let newGCState = {...this.state};
-			//Detects a change
-			if(newGCState.data.taggedKind != tkind) {
-				if(taggingFn) {	
-					taggingFn(x, y);
-				}
-				if(this.props.paintMode) {
-					newGCState.data.taggedKind = tkind;
-				}
-				this.setState(newGCState);
-			}
+			this.onTagging(x, y, tkind);
 		}
+	}
+
+	cellMouseDown(_: React.MouseEvent<HTMLDivElement>,
+			tkind: number) {
+		const x = this.props.x;
+		const y = this.props.y;
+		
+		this.onTagging(x, y, tkind);
+	}
+
+
+	onTagging(x: number, y: number, tkind: number) {
+			
+		const taggingFn = this.props.tagFn;
+
+		let newGCState = {...this.state};
+		//Detects a change
+		//TODO: Check if we need this if statement anymore
+		//if(newGCState.data.taggedKind != tkind) {
+			if(taggingFn) {
+				taggingFn(x, y);
+			}
+			if(this.props.paintMode) {
+				newGCState.data.taggedKind = tkind;
+			}
+			this.setState(newGCState);
+		//}
+
+	}
+
+	getDirectionRender(cdir: number) {
+		let arrowRender = <></>
+		if(cdir === 1) {
+			arrowRender = <ArrowUpOutlined />
+
+		} else if(cdir === 2) {
+
+			arrowRender = <ArrowRightOutlined />
+		} else if(cdir === 3) {
+
+			arrowRender = <ArrowLeftOutlined />
+		}
+
+		return arrowRender;
 	}
 
 	render() {
 
 		const cref = this;
+
+
 		const taggedKind = cref.props.cell.taggedKind;
+		const cdir = cref.props.cell.cdir;
+
 		const toolKind = cref.props.toolKind;
 		const leftDown = cref.props.leftDown;
 		
@@ -174,15 +209,7 @@ export class GridCell extends React.Component<CellProps, CellState> {
 		
 		const nCell = new CellData(taggedKind);
 
-		//TODO: Fix React Warning about setting state
-		//	during transition.	
-		/*if(cdata.taggedKind != diffCell
-			.taggedKind && !leftDown) {
-			this.setState({
-				data: new CellData(diffCell.taggedKind)
-			});
-		}*/
-	
+
 		const selectedStyle = isSelected ?
 			`${CellData.GetStyleKey(toolKind)}Selected` :
 			'';
@@ -191,13 +218,22 @@ export class GridCell extends React.Component<CellProps, CellState> {
 		const mmove = (e: React.MouseEvent<HTMLDivElement>) => {
 			cref.cellMouseMove(e, toolKind, leftDown)
 		}
+		const mDown = (e: React.MouseEvent<HTMLDivElement>) => {
+			cref.cellMouseDown(e, toolKind)
+			
+		}
+
+		const pointer = cdir !== null ? this.getDirectionRender(cdir) : <></>;
 		
 		return (
 			<div className={`${styles.gridItem} 
 				${GridStylesMap[nCell.toStyleKey()]} 
 				${styles[selectedStyle] !== undefined ? 
 					styles[selectedStyle] : ''}` }
-				onMouseMove={mmove}>
+				onMouseMove={mmove}
+				onMouseDown={mDown}>
+				{pointer}
+
 				 
 			</div>
 		)
