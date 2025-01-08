@@ -24,9 +24,6 @@ type StyleMap = {
 	Detag: string
 }
 
-const CDirToIconMap = {
-	
-}
 
 
 const GridStylesMap: StyleMap = {
@@ -189,6 +186,9 @@ export class GridCell extends React.Component<CellProps, CellState> {
 		} else if(cdir === 3) {
 
 			arrowRender = <ArrowLeftOutlined />
+		} else if(cdir === 4) {
+
+			arrowRender = <ArrowDownOutlined />
 		}
 
 		return arrowRender;
@@ -215,20 +215,21 @@ export class GridCell extends React.Component<CellProps, CellState> {
 			'';
 
 
-		const mmove = (e: React.MouseEvent<HTMLDivElement>) => {
+		const mmove = (e: React.MouseEvent<HTMLDivElement>)=> {
 			cref.cellMouseMove(e, toolKind, leftDown)
 		}
-		const mDown = (e: React.MouseEvent<HTMLDivElement>) => {
+		const mDown = (e: React.MouseEvent<HTMLDivElement>)=> {
 			cref.cellMouseDown(e, toolKind)
 			
 		}
 
-		const pointer = cdir !== null ? this.getDirectionRender(cdir) : <></>;
+		const pointer = cdir !== null ? 
+			this.getDirectionRender(cdir) : <></>;
 		
 		return (
 			<div className={`${styles.gridItem} 
 				${GridStylesMap[nCell.toStyleKey()]} 
-				${styles[selectedStyle] !== undefined ? 
+				${styles[selectedStyle] !==undefined ? 
 					styles[selectedStyle] : ''}` }
 				onMouseMove={mmove}
 				onMouseDown={mDown}>

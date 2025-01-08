@@ -58,7 +58,8 @@ class RegionList extends React.Component<RegionListProps,
 		const headerName = 'Regions';
 		const regions = this.props.regions;
 		const renderRegions = regions.flattenWithTags().map(
-			(r, idx) => <RegionItemRender {...r} key={idx} />)
+			(r, idx) => <RegionItemRender {...r} key={idx} 
+				/>)
 
 		return (
 

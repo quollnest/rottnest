@@ -1,10 +1,11 @@
 import React from 'react';
 import GlobalBar from '../GlobalBar';
 import RottnestService from '../../service/RottnestService';
-import {ProjectDetails, RegionData, 
-	RegionDataList, Regions,
+import {ProjectDetails, 
+	RegionDataList,
 	ProjectDump} 
 	from '../../model/Project';
+import { RegionData, Regions } from '../../model/RegionData';
 import WorkspaceContainer from './RowContainer';
 import SettingsForm from './SettingsForm';
 
