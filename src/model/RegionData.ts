@@ -78,6 +78,8 @@ export class RegionData {
 	connectionSet: boolean = false;
 	connectionToKind: string | null = null;
 	connectionToIdx: number | null = null;
+
+	subTypeKind: string | null = null;
 	
 	static fromFlatten(data: FlatRegionData): RegionData {
 		const rdata = new RegionData();
@@ -87,6 +89,22 @@ export class RegionData {
 		}	
 
 		return rdata;
+	}
+
+	cmpRef(other: RegionData): boolean {
+		return this === other;
+	}
+
+	shallowDuplicate(): RegionData {
+		let regNew = new RegionData();
+		regNew.cells = this.cells;
+		regNew.manuallySetConnection = this.manuallySetConnection;
+		regNew.connectionSet = this.connectionSet;
+		regNew.connectionToKind = this.connectionToKind;
+		regNew.connectionToIdx = this.connectionToIdx;
+		regNew.subTypeKind = this.subTypeKind;
+		
+		return regNew;
 	}
 
 	flatten(): FlatRegionData {

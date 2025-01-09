@@ -55,6 +55,10 @@ export type FlatRegions = {
 	buffers: Array<FlatRegionData>
 }
 
+export type TaggedRegionData = {
+	tag: string
+	regionData: RegionData
+}
 
 export class RegionDataList {
 	regions: Regions = {
@@ -64,6 +68,31 @@ export class RegionDataList {
 		tfactories: [],
 		buffers: []
 	};
+
+
+
+	retrieveByIdx(kind: string | null, idx: number): RegionData | null {
+		if(kind) {
+			const kindKey = kind as keyof Regions;
+			const regCol = this.regions[kindKey];
+			if(regCol) {
+				const regData = regCol[idx];
+				return regData;
+			}
+		}
+
+		return null;
+	}
+
+	updateByIdx(kind: string | null, idx: number, regData: RegionData) {
+		if(kind) {
+			const kindKey = kind as keyof Regions;
+			const regCol = this.regions[kindKey];
+			if(regCol) {
+				regCol[idx] = regData;
+			}
+		}
+	}
 
 	discoverFromEdges(edges: RegionDataEdges): Array<RegionData> {
 		let regionsOnEdges: Array<RegionData> = [];
@@ -324,7 +353,6 @@ export class RegionDataList {
 			
 			let outSegment 
 			= regionCol.getOutputCells(kind);
-			console.log(outSegment);
 			//TODO: Specify for multiple segments
 			for(const regkey in this.regions) {
 				const regionsOfKind = this.regions[
@@ -416,6 +444,42 @@ export class RegionDataList {
 		
 		return res;
 	}
+	
+	getRegionDataFromCoords(x: number, y: number) {
+		const kindList = ['buffer', 'bus', 'tfactory', 'bellstate', 'register'];
+		const rcStr = `${x} ${y}`;
+		const fRes = [
+			this.regions.buffers.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.bus.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.tfactories.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.bellstates.filter((c) => 
+				c.cells.get(rcStr) != null),
+			this.regions.registers.filter((c) => 
+				c.cells.get(rcStr) != null),
+		];
+	
+	
+		let idx = fRes.findIndex((r) => r.length > 0);
+		if(idx >= 0) {
+			let regData = fRes[idx].find((rd, _) => rd.cells
+						     .get(rcStr) !== null);
+			let regDataIdx = fRes[idx].findIndex((rd, _) => rd
+							     .cells.get(rcStr) !== null);
+						     
+			
+			return {
+				regData,
+				kind: kindList[idx],
+				kindIdx: idx,
+				regIdx: regDataIdx
+			}
+		} else {
+			return null;
+		}
+	}
 
 	getTagFromCoords(x: number, y: number): number {
 		
@@ -470,22 +534,25 @@ export class RegionDataList {
 		return dlist;
 	}
 
-	flattenWithTags(): Array<{tag: string, rdata: RegionData}> {
+	flattenWithTags(): Array<{kind: string, tag: string, idx: number, rdata: RegionData}> {
 		const regs = this.regions;
 		let flatArray = [];
 
 		flatArray.push(...regs.bus.map((v, i) => 
-			 { return {tag: `bus${i}`, rdata: v} }));
+			 { return {kind: 'bus', tag: `bus${i}`, rdata: v, idx: i} }));
 		flatArray.push(...regs.registers.map((v, i) => 
-			 { return {tag: `registers${i}`, rdata: v} }));
+			 { return {kind: 'register', tag: `registers${i}`, 
+				 rdata: v, idx: i} }));
 		flatArray.push(...regs.bellstates.map((v, i) => 
-			 { return {tag: `bellstates${i}`, 
-				 rdata: v} }));
+			 { return {kind: 'bellstate', tag: `bellstates${i}`, 
+				 rdata: v, idx: i}}));
+				 
 		flatArray.push(...regs.tfactories.map((v, i) => 
-			 { return {tag: `tfactories${i}`, 
-				 rdata: v} }));
+			 { return {kind: 'tfactory', tag: `tfactories${i}`, 
+				 rdata: v, idx: i} }));
 		flatArray.push(...regs.buffers.map((v, i) => 
-			 { return {tag: `buffers${i}`, rdata: v} }));
+			 { return {kind: 'buffer', tag: `buffers${i}`, 
+				 rdata: v, idx: i} }));
 
 		return flatArray;
 	}

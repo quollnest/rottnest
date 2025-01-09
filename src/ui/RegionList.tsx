@@ -1,14 +1,21 @@
 import React from 'react';
 import styles from './styles/RegionList.module.css';
-import {RegionData, RegionDataList} from '../model/Project';
+import {RegionDataList, RottnestProject} from '../model/Project';
+import {RegionData } from '../model/RegionData';
+import RottnestContainer from './container/RottnestContainer';
 
 type RegionListProps = {
 	regions: RegionDataList
+	container: RottnestContainer
 }
 
 type RegionItemData = {
-	tag: string 
+	tag: string
+	kind: string
+	idx: number
 	rdata: RegionData
+	isSelected: boolean
+	container: RottnestContainer
 }
 
 /**
@@ -27,9 +34,26 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
 
 	render() {
 		const data = this.props;
+		const rottContainer = data.container;
+		
+		const name= data.tag;
+		const idx = data.idx;
+		const kind = data.kind;
+		const isSelected = this.props.isSelected;
+
+
+		const onSelect = (_: React.MouseEvent<HTMLLIElement>) => {
+			console.log("Attempting to select");
+			rottContainer.selectCurrentRegion(kind, idx);
+		}
+
+		const isSelectedStyle = isSelected ? styles.regionSelected : '';
+
 		return (
-			<li key={data.tag} className={styles.regionItem}>
-				{data.tag}
+			<li key={name} className={`${styles.regionItem}
+				${isSelectedStyle}`}
+				onClick={onSelect}>
+				{name}
 			</li>
 		);
 	}
@@ -57,8 +81,19 @@ class RegionList extends React.Component<RegionListProps,
 	render() {
 		const headerName = 'Regions';
 		const regions = this.props.regions;
+		const container = this.props.container;
+		const [selIdx, selKind] = container.getRegionSelectionData();
+
 		const renderRegions = regions.flattenWithTags().map(
-			(r, idx) => <RegionItemRender {...r} key={idx} 
+			(r, idx) => <RegionItemRender 
+				tag={r.tag}
+				kind={r.kind}
+				idx={r.idx}
+				rdata={r.rdata} 
+				container={container}
+				isSelected={r.kind === selKind 
+					&& r.idx == selIdx}
+				key={idx} 
 				/>)
 
 		return (

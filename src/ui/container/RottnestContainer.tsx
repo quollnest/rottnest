@@ -9,110 +9,13 @@ import { RegionData, Regions } from '../../model/RegionData';
 import WorkspaceContainer from './RowContainer';
 import SettingsForm from './SettingsForm';
 
+import { RegionsSnapshotStack } from '../../model/RegionSnapshotStack';
+
 import styles from '../styles/RottnestContainer.module.css';
 import {DesignSpace} from '../DesignSpace';
 import NewProjectForm from './NewProjectForm';
+import { RottnestKindMap } from '../../model/KindMap.ts'
 
-
-
-/**
- * This allows for undo and redo functionality
- * within the container system
- * TODO: Move to another file
- */
-class RegionsSnapshotStack {
-	
-	redoListStack: Array<RegionDataList> = [];
-	regionListStack: Array<RegionDataList> = [];
-	capacity: number = 32;
-
-	/**
-	 * New regionList object will be pushed onto
-	 * the stack. This happens when a new region is
-	 * drawn
-	 */
-	push(list: RegionDataList) {
-		if(this.regionListStack.length >= 
-		   this.capacity) {
-			this.regionListStack.pop();	
-			this.regionListStack.unshift(list);
-		} else {
-			this.regionListStack.unshift(list);
-		}
-	}
-	
-	/**
-	 * Used as part of the undo functionality,
-	 * when the user hits undo, it will pop what is
-	 * in the regionListStack
-	 */
-	pop(): RegionDataList | null | undefined {
-		if(this.regionListStack.length > 0) {
-			let res = this.regionListStack.shift();
-			return res;
-		}
-		return null;
-	}
-	
-	/**
-	 * Takes the current regiondata list and
-	 * adds it to the redo list.
-	 *
-	 * It will then pop the top the undo list.
-	 * This will be then used as the current
-	 * region data list in the container
-	 * 
-	 */
-	undoAction(current: RegionDataList): RegionDataList 
-		| null | undefined {
-		//Only valid case
-		if(this.regionListStack.length > 0) {
-			let res = this.regionListStack.shift();
-			this.redoListStack.unshift(current);
-			return res;
-		}
-		return null;
-	}
-
-	/**
-	 * Pops the redo list and replaces it
-	 * as the current regiondatalist, the 
-	 * current regiondatalist will then be
-	 * placed in the undo list
-	 */
-	redoAction(current: RegionDataList): RegionDataList 
-		| null | undefined {
-				
-		if(this.redoListStack.length > 0) {
-			let res = this.redoListStack.shift();
-			this.regionListStack.unshift(current);
-			return res;
-		}
-		return null;
-	}
-
-	onAction(current: RegionDataList) {
-		this.push(current);
-		this.redoListStack = [];
-	}
-
-}
-
-/**
- * Data that is required for the container,
- * events and functionality to operate on.
- *
- * TODO: Update the data parts to allow for
- * more strict typing
- */
-/*type RottnestData = {
-	toolboxData: any
-	regionListData: any
-	errorListData: any
-	designSpaceData: any 
-	selectedIndex: number
-	project: RottnestProject
-}*/
 
 /**
  * At the moment, nothing interesting
@@ -133,17 +36,19 @@ type RottnestAppState = {
 	componentData: {
 		selectedTool: number
 		selectedRegion: number
+		selectedRegionType: string | null 
 	}
 
 }
 
 
-type RottnestWorkData = {
-	undoStack: RegionsSnapshotStack
-	currentRDBuffer: RegionData
+const RottnestSubKinds: RottnestKindMap = {
+	bus: [{ name: 'test_bus' }],	
+	register: [{ name: 'test_register'}],
+	bellstate: [{ name: 'test_bellstate'}],
+	tfactory: [{ name: 'test_tfactory'}],
+	buffer: [{ name: 'test_buffer' }]	
 }
-
-
 
 
 /**
@@ -188,7 +93,9 @@ class RottnestContainer
 			helpActive: false,
 			componentData: {
 				selectedTool: 0,
-				selectedRegion: 0
+				selectedRegion: -1,
+				selectedRegionType: null
+
 			}
 		}
 	};
@@ -202,8 +109,77 @@ class RottnestContainer
 
 	regionStack: RegionsSnapshotStack = 
 		new RegionsSnapshotStack();
-	currentRDBuffer: RegionData = new RegionData();
-	
+	currentRDBuffer: RegionData = 
+		new RegionData();
+
+	selectCurrentRegion(kind: string, idx: number) {
+		const selectedObj = this.getRegionList()
+			.retrieveByIdx(kind, idx);
+		this.state.appStateData.componentData.selectedRegion = idx;
+		this.state.appStateData.componentData.selectedRegionType = kind;
+		
+		this.triggerUpdate();
+	}
+
+	getRegionListData() {
+		return {
+			regionList: this.state.regionList,
+			selectedIdx: this.state.appStateData
+				.componentData.selectedRegion,
+			selectedKind: this.state.appStateData
+				.componentData.selectedRegionType,
+			subTypes: RottnestSubKinds,
+			connectionRecs: [{name: 'None/Invalid', connectorId: 0}]
+		}
+	}
+
+	updateSelectedRegion(x: number, y: number) {
+		const aggrData = this.state.regionList
+			.getRegionDataFromCoords(x, y);
+		if(aggrData) {
+			this.state.appStateData.componentData.selectedRegion 
+				= aggrData.regIdx
+			this.state.appStateData.componentData.selectedRegionType 
+				= aggrData.kind;
+
+			this.triggerUpdate();
+		}
+	}
+
+	getSelectedRegionData(): RegionData | null {
+		const getSelectedIdx = this.state.appStateData
+			.componentData.selectedRegion;
+
+		const getSelectedKeyStr = this.state.appStateData
+			.componentData.selectedRegionType;
+
+
+		return this.getRegionList()
+			.retrieveByIdx(getSelectedKeyStr, 
+			getSelectedIdx);
+	}
+
+	getRegionSelectionData(): [number, string | null] {
+		return [
+			this.state.appStateData.componentData.selectedRegion,
+			this.state.appStateData.componentData.selectedRegionType,
+		]
+
+	}
+
+	updateSelectedRegionData(regData: RegionData) {
+		const getSelectedIdx = this.state.appStateData
+			.componentData.selectedRegion;
+
+		const getSelectedKeyStr = this.state.appStateData
+			.componentData.selectedRegionType;
+
+		this.getRegionList()
+			.updateByIdx(getSelectedKeyStr, 
+				     getSelectedIdx, 
+				     regData)
+	}
+
 	resetData() {
 		this.state.regionList = new RegionDataList();
 		this.state.appStateData = {
@@ -214,7 +190,8 @@ class RottnestContainer
 			helpActive: false,
 			componentData: {
 				selectedTool: 0,
-				selectedRegion: 0
+				selectedRegion: 0,
+				selectedRegionType: null
 			}
 		};
 		this.regionStack = new RegionsSnapshotStack();
@@ -289,7 +266,16 @@ class RottnestContainer
 	 */
 	toolToRegionKey(): keyof Regions | null {
 
-		switch(this.getToolIndex()) {
+		const rtag = RottnestContainer.ToolNumberToRegionKey(this
+				.getToolIndex());
+		if(rtag !== null) {
+			return rtag as keyof Regions;
+		}
+		return null;
+	}
+	
+	static ToolNumberToRegionKey(tnum: number): string | null {
+		switch(tnum) {
 			case 1:
 				return 'buffers';
 			case 2:
@@ -306,6 +292,8 @@ class RottnestContainer
 
 		return null;
 	}
+
+
 
 	/**
 	 * Applys the current regiondata buffer to 
@@ -338,8 +326,6 @@ class RottnestContainer
 				//
 				this.state.regionList
 					.resolveConnectionsForAll();
-				console.log(this.state.
-					    regionList);
 				this.triggerUpdate();
 			}
 		}

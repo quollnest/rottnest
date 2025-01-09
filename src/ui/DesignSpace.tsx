@@ -4,7 +4,7 @@ import SelectionVisual from './grid/SelectionVisual.tsx';
 
 import styles from './styles/DesignSpace.module.css'
 import RottnestContainer from './container/RottnestContainer.tsx';
-import {RegionCell} from '../model/Project.ts';
+import {RegionCell} from '../model/RegionData.ts';
 
 /**
  * Selection Box
@@ -72,7 +72,9 @@ export type GridData = {
  * a reference to regions that are placed on it. 
  */
 export class DesignSpace extends React.Component<GridData, GridState> {
-	
+	toolKind = this.props.toolKind;
+	parentContainer = this.props.container;
+
 	state: GridState = {
 		cells: DesignSpace.FillCells(this.props.width, 
 					     this.props.height),
@@ -109,6 +111,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			this.state.cells[i].isSelected = false;
 		}
 	}
+
 	
 
 	onGridDown(e: React.MouseEvent<HTMLUListElement>) {
@@ -129,9 +132,6 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			
 		} else {
 
-			const x = e.clientX;
-			const y = e.clientY;
-			console.log(x, y);
 			this.onLeftDown(e)
 		}
 	}
@@ -195,7 +195,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			newGS.selectionRect.y2 = e.clientY+1;
 			newGS.leftIsDown = true;
 			this.setState(newGS);
-		}
+		} 	
 	}
 
 	selectionMove(newX: number, newY: number) {
@@ -373,6 +373,8 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	}
 
 	render() {
+		this.toolKind = this.props.toolKind;
+		this.parentContainer = this.props.container;
 		const gref = this;
 		const container = this.props.container;
 		const zoomValue = this.props.zoomValue;
@@ -400,6 +402,10 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			gref.onWheelTrigger(e);
 		}
 
+		const selectFn = (x: number, y: number) => {
+			container.updateSelectedRegion(x, y);
+		}
+		
 		const dataTagFn = (x: number, y: number) => {
 			gref.potentialStartMark(x, y);
 			gref.potentialEndMark(x, y);
@@ -456,6 +462,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 				}
 				
 				tagFn={dataTagFn}
+				selectFn={selectFn}
 			     />
 				)
 			});

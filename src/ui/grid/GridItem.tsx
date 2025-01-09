@@ -117,6 +117,7 @@ export type CellProps = {
 		cdir: number | null
 	}
 	tagFn?: (x: number, y: number) => void
+	selectFn?: (x: number, y: number) => void
 }
 
 
@@ -159,11 +160,14 @@ export class GridCell extends React.Component<CellProps, CellState> {
 	onTagging(x: number, y: number, tkind: number) {
 			
 		const taggingFn = this.props.tagFn;
-
+		const selectFn = this.props.selectFn;
 		let newGCState = {...this.state};
 		//Detects a change
 		//TODO: Check if we need this if statement anymore
-		//if(newGCState.data.taggedKind != tkind) {
+		if(tkind === 0) {
+			selectFn(x, y);
+
+		} else if(newGCState.data.taggedKind != tkind) {
 			if(taggingFn) {
 				taggingFn(x, y);
 			}
@@ -171,7 +175,7 @@ export class GridCell extends React.Component<CellProps, CellState> {
 				newGCState.data.taggedKind = tkind;
 			}
 			this.setState(newGCState);
-		//}
+		}
 
 	}
 

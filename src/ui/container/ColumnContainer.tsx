@@ -7,6 +7,8 @@ import ErrorList from '../ErrorList';
 import toolStyle from '../styles/ToolContainer.module.css'
 import regionStyle from '../styles/RegionContainer.module.css'
 import RottnestContainer from './RottnestContainer';
+import RegionSettings from '../RegionSettings';
+import {RottnestKindMap} from '../../model/KindMap';
 
 
 const ContainerDefaults = {
@@ -82,7 +84,14 @@ export class RegionContainer
 	render() {
 		const container = this.props.container;
 		const regionList = container.getRegionList();
-
+		
+		const regListInfo = container.getRegionListData();
+		const selected = regListInfo.selectedKind;
+		const regKind = regListInfo.selectedKind as keyof RottnestKindMap;
+		const subtypesCol = selected === '' || selected === null ? [] :
+			regListInfo.subTypes[regKind]
+		
+		const connRecs = regListInfo.connectionRecs;
 		return (
 			<div className={regionStyle.regionContainer}
 				onMouseMove={
@@ -91,7 +100,25 @@ export class RegionContainer
 						.resetDSMove();
 					}
 				}>
-				<RegionList regions={regionList} />
+				<RegionList 
+					regions={regionList} 
+					container={container}
+					/>
+				<RegionSettings 
+					container={container}
+					subTypes={
+						{
+							subtypes: subtypesCol,
+							currentlySelected: regListInfo.selectedIdx
+						}
+					} 
+					connections={
+						{
+							connections: connRecs,
+							selectedIdx: 0,
+						}
+					} />
+					
 				<ErrorList 
 					{...ContainerDefaults
 						.errorList} />

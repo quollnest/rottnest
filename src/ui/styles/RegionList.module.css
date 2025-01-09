@@ -9,10 +9,12 @@
 
 .regionList ul {
 	overflow: scroll;
+	margin: 0;
 }
 
 .regionListing {
-	padding-left: 0.5em;
+	padding: 0;
+	margin-left: 0.5em;
 	overflow: scroll;
 }
 
@@ -22,10 +24,13 @@
 	border-bottom: 1px #35332f solid; 
 }
 
-
+.regionSelected {
+	background-color: #303040;
+}
 
 .regionItem {
 	display: block;
 
+	padding-left: 0.5em;
 	list-style: none;
 }
