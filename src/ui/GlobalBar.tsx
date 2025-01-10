@@ -11,6 +11,7 @@ import ZoomInEvent from './global/ZoomIn.ts';
 import ZoomOutEvent from './global/ZoomOut.ts';
 import SettingsEvent from './global/Settings.ts';
 import NewProjectEvent from './global/NewProject.ts';
+import RunEvents from './global/Run.ts';
 import NullEvents from './global/NullEvents.ts';
 
 import {  
@@ -22,7 +23,8 @@ import {
 	RedoOutlined,
 	SettingOutlined,
 	FlagOutlined,
-	PlusSquareOutlined
+	PlusSquareOutlined,
+	PlaySquareOutlined
 } from '@ant-design/icons'
 
 import styles from './styles/GlobalBar.module.css';
@@ -180,6 +182,15 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			iconComponent: <></>
 		},
 		{ 
+			id: 10, 
+			name: "Run", 
+			toolTip: "Run App (Experiment)", 
+			image: "Run",
+			events: RunEvents,
+			style: styles.run,
+			iconComponent: <PlaySquareOutlined />
+		},
+		{ 
 			id: 4, 
 			name: "Save", 
 			toolTip: "Save Project", 
@@ -234,7 +245,7 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			style: styles.help,
 			iconComponent: <FlagOutlined />
 		},
-	];
+		];
 
 	render() {
 		const compMap = this.props.componentMap;

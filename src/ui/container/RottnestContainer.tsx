@@ -15,7 +15,9 @@ import styles from '../styles/RottnestContainer.module.css';
 import {DesignSpace} from '../DesignSpace';
 import NewProjectForm from './NewProjectForm';
 import { RottnestKindMap } from '../../model/KindMap.ts'
-
+import {AppServiceClient, APP_URL} 
+	from '../../net/AppService.ts';
+import AppServiceModule from '../../net/AppServiceModule.ts';
 
 /**
  * At the moment, nothing interesting
@@ -42,11 +44,11 @@ type RottnestAppState = {
 }
 
 
-const RottnestSubKinds: RottnestKindMap = {
+let RottnestSubKinds: RottnestKindMap = {
 	bus: [{ name: 'test_bus' }],	
 	register: [{ name: 'test_register'}],
 	bellstate: [{ name: 'test_bellstate'}],
-	tfactory: [{ name: 'test_tfactory'}],
+	factory: [{ name: 'test_factory'}],
 	buffer: [{ name: 'test_buffer' }]	
 }
 
@@ -59,11 +61,18 @@ type RottnestState = {
 	projectDetails: ProjectDetails
 	appStateData: RottnestAppState
 	regionList: RegionDataList
+	subTypes: RottnestKindMap
+	subTypesRecvd: boolean
 }
 
 type ComponentMonitor = {
 	designSpace: DesignSpace | null
 	settingsForm: SettingsForm | null
+}
+
+type AppCommData = {
+	appService: AppServiceClient
+
 }
 
 /**
@@ -76,6 +85,11 @@ class RottnestContainer
 	extends React.Component<RottnestProperties, 
 	RottnestState> {
 
+	commData: AppCommData = {
+		appService: AppServiceModule
+			.GetAppServiceInstance()
+	}
+
 	state: RottnestState = {
 		projectDetails: {
 			projectName: 'Project1', 
@@ -85,6 +99,8 @@ class RottnestContainer
 			description: 'Quick Description'
 		},
 		regionList: new RegionDataList(),
+		subTypes: RottnestSubKinds,	
+		subTypesRecvd: false,
 		appStateData: {
 			settingsActive: false,
 			newProjectActive: false,
@@ -95,30 +111,73 @@ class RottnestContainer
 				selectedTool: 0,
 				selectedRegion: -1,
 				selectedRegionType: null
-
 			}
 		}
 	};
 
+	constructor(props: RottnestProperties) {
+		super(props);
+		const selfRef = this;
+		const appService = this.commData.appService;
+		appService.registerReciverKinds(
+			'subtype', (_) => {
+				let kinds = appService
+					.retrieveSubTypes();
+				console.log("We received something");
+				if(kinds) {
+					selfRef.updateSubTypes(kinds);
+				}
+			}
+		);
+		appService.registerReciverKinds(
+			'usearch', (_) => {
+				console.log('Hey we got a response');
+			}
+		);
+	}
 
+	componentDidMount() {
+
+		const appService = AppServiceModule
+			.GetAppServiceInstance();
+		if(!appService.isConnected()) {
+			appService.connect();
+			//appService.sendMsg('subtype');
+		}
+	}
 
 	monitorComponent: ComponentMonitor = {
 		designSpace: null,
 		settingsForm: null
 	}
-
+	
 	regionStack: RegionsSnapshotStack = 
 		new RegionsSnapshotStack();
 	currentRDBuffer: RegionData = 
 		new RegionData();
+	
+	updateSubTypesFromService() {
+		const apserv = this.commData.appService;
+		apserv.retrieveSubTypes();
+	}
+
+	updateSubTypes(subTypes: RottnestKindMap) {
+		this.state.subTypes = subTypes;
+		this.state.subTypesRecvd = true;
+		this.triggerUpdate();
+	}
 
 	selectCurrentRegion(kind: string, idx: number) {
 		const selectedObj = this.getRegionList()
 			.retrieveByIdx(kind, idx);
-		this.state.appStateData.componentData.selectedRegion = idx;
-		this.state.appStateData.componentData.selectedRegionType = kind;
-		
-		this.triggerUpdate();
+		if(selectedObj) {
+			this.state.appStateData.componentData
+				.selectedRegion = idx;
+			this.state.appStateData.componentData
+				.selectedRegionType = kind;
+			
+			this.triggerUpdate();
+		}
 	}
 
 	getRegionListData() {
@@ -128,8 +187,9 @@ class RottnestContainer
 				.componentData.selectedRegion,
 			selectedKind: this.state.appStateData
 				.componentData.selectedRegionType,
-			subTypes: RottnestSubKinds,
-			connectionRecs: [{name: 'None/Invalid', connectorId: 0}]
+			subTypes: this.state.subTypes,
+			connectionRecs: [{name: 'None/Invalid', 
+				connectorId: 0}]
 		}
 	}
 
@@ -137,9 +197,11 @@ class RottnestContainer
 		const aggrData = this.state.regionList
 			.getRegionDataFromCoords(x, y);
 		if(aggrData) {
-			this.state.appStateData.componentData.selectedRegion 
+			this.state.appStateData.componentData
+			.selectedRegion 
 				= aggrData.regIdx
-			this.state.appStateData.componentData.selectedRegionType 
+			this.state.appStateData.componentData
+			.selectedRegionType 
 				= aggrData.kind;
 
 			this.triggerUpdate();
@@ -161,8 +223,10 @@ class RottnestContainer
 
 	getRegionSelectionData(): [number, string | null] {
 		return [
-			this.state.appStateData.componentData.selectedRegion,
-			this.state.appStateData.componentData.selectedRegionType,
+			this.state.appStateData.componentData
+			.selectedRegion,
+			this.state.appStateData.componentData
+			.selectedRegionType,
 		]
 
 	}
@@ -266,7 +330,8 @@ class RottnestContainer
 	 */
 	toolToRegionKey(): keyof Regions | null {
 
-		const rtag = RottnestContainer.ToolNumberToRegionKey(this
+		const rtag = RottnestContainer
+			.ToolNumberToRegionKey(this
 				.getToolIndex());
 		if(rtag !== null) {
 			return rtag as keyof Regions;
@@ -281,7 +346,7 @@ class RottnestContainer
 			case 2:
 				return 'bus';
 			case 3:
-				return 'tfactories';
+				return 'factories';
 			case 4:
 				return 'bellstates';
 			case 5:
@@ -509,7 +574,14 @@ class RottnestContainer
 			<></>
 		
 		updateables.set(100, [`${zoomValue}%`, rottContainer]);
-
+		
+		//TODO: Fix this ASAP, this is really gross
+		const appService = AppServiceModule
+			.GetAppServiceInstance();
+		if(!this.state.subTypesRecvd) {
+			appService.sendMsg('subtype');
+		}
+		
 		return (
 			<div className={styles.rottnest}>
 				<SettingsForm rootContainer={

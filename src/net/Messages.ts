@@ -38,7 +38,8 @@ export class RottSubTypesMSG implements DeRott  {
 		}
 	}
 
-	fromJSON(data: any) {
+	fromJSON(mdata: any) {
+		const data = mdata['subtypes'];
 		for(const k in data) {
 			const lowerK = k.toLowerCase();
 			let lowerKey = 

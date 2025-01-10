@@ -106,6 +106,13 @@
 .help div {
 	font-size: x-small;
 }
+.run {
+	justify-content: center;
+}
+
+.run div {
+	font-size: x-small;
+}
 
 .help {
 	flex: 0.5 !important;

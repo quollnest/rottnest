@@ -19,7 +19,7 @@ export type CellKindData = {
 	bus: Array<keyof CellKindData>	
 	registers: Array<keyof CellKindData>
 	bellstates: Array<keyof CellKindData>	
-	tfactories: Array<keyof CellKindData>
+	factories: Array<keyof CellKindData>
 	buffers: Array<keyof CellKindData>
 	untagged: Array<keyof CellKindData>
 }
@@ -34,7 +34,7 @@ const CellKindMap: CellKindData = {
 	bus: ['registers', 'buffers', 'bus'], 
 	registers: [],
 	bellstates: ['bus'],	
-	tfactories: ['bus', 'buffers'],
+	factories: ['bus', 'buffers'],
 	buffers: ['bus'],
 	untagged: [], 
 }
@@ -51,7 +51,7 @@ export type FlatRegions = {
 	bus: Array<FlatRegionData>
 	registers: Array<FlatRegionData>
 	bellstates: Array<FlatRegionData>
-	tfactories: Array<FlatRegionData>
+	factories: Array<FlatRegionData>
 	buffers: Array<FlatRegionData>
 }
 
@@ -65,7 +65,7 @@ export class RegionDataList {
 		bus: [],
 		registers: [],
 		bellstates: [],
-		tfactories: [],
+		factories: [],
 		buffers: []
 	};
 
@@ -84,7 +84,8 @@ export class RegionDataList {
 		return null;
 	}
 
-	updateByIdx(kind: string | null, idx: number, regData: RegionData) {
+	updateByIdx(kind: string | null, idx: number, 
+		    regData: RegionData) {
 		if(kind) {
 			const kindKey = kind as keyof Regions;
 			const regCol = this.regions[kindKey];
@@ -423,7 +424,7 @@ export class RegionDataList {
 				c.cells.get(rcStr) != null),
 			this.regions.bus.filter((c) => 
 				c.cells.get(rcStr) != null),
-			this.regions.tfactories.filter((c) => 
+			this.regions.factories.filter((c) => 
 				c.cells.get(rcStr) != null),
 			this.regions.bellstates.filter((c) => 
 				c.cells.get(rcStr) != null),
@@ -446,14 +447,15 @@ export class RegionDataList {
 	}
 	
 	getRegionDataFromCoords(x: number, y: number) {
-		const kindList = ['buffer', 'bus', 'tfactory', 'bellstate', 'register'];
+		const kindList = ['buffer', 'bus', 'factory', 
+			'bellstate', 'register'];
 		const rcStr = `${x} ${y}`;
 		const fRes = [
 			this.regions.buffers.filter((c) => 
 				c.cells.get(rcStr) != null),
 			this.regions.bus.filter((c) => 
 				c.cells.get(rcStr) != null),
-			this.regions.tfactories.filter((c) => 
+			this.regions.factories.filter((c) => 
 				c.cells.get(rcStr) != null),
 			this.regions.bellstates.filter((c) => 
 				c.cells.get(rcStr) != null),
@@ -489,7 +491,7 @@ export class RegionDataList {
 				c.cells.get(rcStr) != null),
 			this.regions.bus.filter((c) => 
 				c.cells.get(rcStr) != null),
-			this.regions.tfactories.filter((c) => 
+			this.regions.factories.filter((c) => 
 				c.cells.get(rcStr) != null),
 			this.regions.bellstates.filter((c) => 
 				c.cells.get(rcStr) != null),
@@ -510,7 +512,7 @@ export class RegionDataList {
 			bus: [],
 			registers: [],
 			bellstates: [],
-			tfactories: [],
+			factories: [],
 			buffers: []
 		}
 		
@@ -520,7 +522,7 @@ export class RegionDataList {
 			.map((rd) => rd.cloneData());
 		regions.bellstates = this.regions.bellstates
 			.map((rd) => rd.cloneData());
-		regions.tfactories = this.regions.tfactories
+		regions.factories = this.regions.factories
 			.map((rd) => rd.cloneData());
 		regions.buffers = this.regions.buffers
 			.map((rd) => rd.cloneData());
@@ -547,8 +549,8 @@ export class RegionDataList {
 			 { return {kind: 'bellstate', tag: `bellstates${i}`, 
 				 rdata: v, idx: i}}));
 				 
-		flatArray.push(...regs.tfactories.map((v, i) => 
-			 { return {kind: 'tfactory', tag: `tfactories${i}`, 
+		flatArray.push(...regs.factories.map((v, i) => 
+			 { return {kind: 'factory', tag: `factories${i}`, 
 				 rdata: v, idx: i} }));
 		flatArray.push(...regs.buffers.map((v, i) => 
 			 { return {kind: 'buffer', tag: `buffers${i}`, 
@@ -616,7 +618,7 @@ export class RegionDataList {
 			bus: [],
 			registers: [],
 			bellstates: [],
-			tfactories: [],
+			factories: [],
 			buffers: []
 		};
 		
@@ -626,7 +628,7 @@ export class RegionDataList {
 			.map((rd) => rd.flatten());
 		regions.bellstates = this.regions.bellstates
 			.map((rd) => rd.flatten());
-		regions.tfactories = this.regions.tfactories
+		regions.factories = this.regions.factories
 			.map((rd) => rd.flatten());
 		regions.buffers = this.regions.buffers
 			.map((rd) => rd.flatten());
@@ -641,7 +643,7 @@ export class RegionDataList {
 			bus: [],
 			registers: [],
 			bellstates: [],
-			tfactories: [],
+			factories: [],
 			buffers: []
 		};
 		
@@ -651,7 +653,7 @@ export class RegionDataList {
 			.map((rd) => RegionData.fromFlatten(rd));
 		regions.bellstates = fdata.bellstates
 			.map((rd) => RegionData.fromFlatten(rd));
-		regions.tfactories = fdata.tfactories
+		regions.factories = fdata.factories
 			.map((rd) => RegionData.fromFlatten(rd));
 		regions.buffers = fdata.buffers
 			.map((rd) => RegionData.fromFlatten(rd));

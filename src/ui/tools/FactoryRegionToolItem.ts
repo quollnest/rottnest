@@ -1,6 +1,6 @@
 import {ToolOperation} from "./Tool";
 
-export const TFactoryToolOperations: ToolOperation = {
+export const FactoryToolOperations: ToolOperation = {
 	designSpaceLeft: function() {
 
 	},

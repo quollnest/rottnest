@@ -1,5 +1,8 @@
 
 import { AppServiceMessage } from "./AppServiceMessage.ts"; 
+import {RottSubTypesMSG} from "./Messages.ts";
+
+export const APP_URL: string = "ws://localhost:8080/websocket";
 
 const WS_ONMESSAGE: string = "message";
 const WS_ONSEND: string = "send";
@@ -13,6 +16,8 @@ export type WSConnectFns = {
 	onMessageFn: (aps: AppServiceClient) => void
 }
 
+export type ASRecvCallback 
+	= (data: string | Uint8Array) => void;
 
 export class AppServiceClient {
 	
@@ -20,6 +25,8 @@ export class AppServiceClient {
 	socket: WebSocket | null = null;
 	buffer: Array<AppServiceMessage> = [];
 	bufferCapacity: number = 256;
+	
+	receiveTriggers: Map<string, ASRecvCallback> = new Map();
 
 	constructor(url: string | null) {
 		this.url = url;
@@ -76,36 +83,41 @@ export class AppServiceClient {
 	}
 
 	
+	sendMsg(msg: string) {
+		if(this.socket) {
+			this.socket.send(
+				msg
+			);
+		}
+	}
 
 	/**
 	 * Will attempt to connect to the
 	 * application service process,
 	 * will return the state of the connection
 	 */
-	connect(fns?: WSConnectFns): boolean {
+	connect(): boolean {
 		
 		const self = this;
-
+		if(this.isConnected()) {
+			return true;
+		}
 		const onMsgHandler = (e: any) => {
-		
-			console.log(e);	
-			self.queue(new AppServiceMessage(e.data));
-			if(fns) {
-				fns.onMessageFn(self);
+			const asm = new AppServiceMessage(e.data);
+			self.queue(asm);
+			asm.parseData();
+			const jsmsg = asm.getJSON();
+			if(jsmsg) {
+				let mtype = jsmsg['message'];
+				let fn = this.receiveTriggers
+					.get(mtype);
+				if(fn) {
+					fn(e.data);
+				}
 			}
-
 		}
 		const onSendHandler = (_: any) => {}
-		const onOpenHandler = (_: any) => {
-			console.log("Attempting to open");
-			if(self.socket) {
-				if(fns) {
-					
-					fns.onOpenFn(self);
-				}
-				//self.socket.send("subtype");
-			}
-		}
+		const onOpenHandler = (_: any) => {}
 		if(this.url) {
 			this.socket = new WebSocket(this.url);
 			//Attach the events
@@ -120,11 +132,32 @@ export class AppServiceClient {
 			this.isConnected();
 	}
 
-	retrieveSubTypes(): Array<string> {
-		let subtypes: Array<string> = [];
-			
+	registerReciverKinds(evKind: string, 
+			     callback: ASRecvCallback) {
+		this.receiveTriggers.set(evKind, callback);
+	}
 
-		return subtypes;
+	retrieveSubTypes() {
+				
+		const data = this.dequeue();
+		if(data) {
+			const msgContainer =
+				new RottSubTypesMSG();
+			data.parseData();
+			const realData = data
+				.parseDataTo(msgContainer);
+			if(realData) {
+				return realData.regionKinds;
+			}
+		}
+
+		return null;
+	}
+
+	submitArch(_: any | null) {
+		if(this.socket) {
+			this.socket.send('usearch');
+		}
 	}
 
 }

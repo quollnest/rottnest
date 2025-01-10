@@ -1,4 +1,4 @@
-import {DeRott} from "../util/Serialisation";
+import {DeRott} from "./Serialisation";
 
 
 export class AppServiceMessage {

@@ -63,7 +63,7 @@ export type Regions = {
 	bus: Array<RegionData>
 	registers: Array<RegionData>
 	bellstates: Array<RegionData>
-	tfactories: Array<RegionData>
+	factories: Array<RegionData>
 	buffers: Array<RegionData>
 }
 

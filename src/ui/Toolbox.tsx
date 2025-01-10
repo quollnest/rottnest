@@ -5,7 +5,7 @@ import styles from './styles/Toolbox.module.css';
 import {RegisterToolOperations} from './tools/RegisterToolItem.ts';
 import {BufferToolOperations} from './tools/BufferRegionToolItem.ts';
 import {BusToolOperations} from './tools/BusRegionToolItem.ts';
-import {TFactoryToolOperations} from './tools/FactoryRegionToolItem.ts';
+import {FactoryToolOperations} from './tools/FactoryRegionToolItem.ts';
 import {BellStateToolOperations} from './tools/BellStateToolItem.ts';
 import {SelectorToolOperations} from './tools/SelectorToolItem.ts';
 import {UnselectToolOperations} from './tools/UnselectToolItem.ts';
@@ -76,10 +76,10 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 		},
 		{
 			kind : 3,
-			kindName: 'T-Factory',
-			imageUrl: 'tfactory_img.svg',
-			events: TFactoryToolOperations,
-			description: "Mark t-factories in your design"
+			kindName: 'Factory',
+			imageUrl: 'factory_img.svg',
+			events: FactoryToolOperations,
+			description: "Mark factories in your design"
 		},
 		{
 			kind : 4,
