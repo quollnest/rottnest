@@ -1,6 +1,6 @@
 import { Regions, FlatRegionData, RegionOutputSegment,
 	RegionData, RegionCell, 
-	RegionDataEdges, RegionEdge, 
+	RegionDataEdges, RegionNode, 
 	RegionCellAggr} from './RegionData.ts'
 /**
  * Project Details,
@@ -95,8 +95,8 @@ export class RegionDataList {
 		}
 	}
 
-	discoverFromEdges(edges: RegionDataEdges): Array<RegionData> {
-		let regionsOnEdges: Array<RegionData> = [];
+	discoverFromEdges(edges: RegionDataEdges): Array<RegionNode> {
+		let regionsOnEdges: Array<RegionNode> = [];
 		
 		
 
@@ -118,8 +118,12 @@ export class RegionDataList {
 						edges.right);
 
 				if(isFound) {
-					regionsOnEdges.push(
-						regionData);
+					regionsOnEdges.push({
+						regionData,
+						   parentRefs: [],
+						   adjacentRefs: [],
+						   ownIdx: rk}
+							);
 				}
 
 
@@ -131,37 +135,100 @@ export class RegionDataList {
 		return regionsOnEdges
 	}
 	
+	
+	/**
+	 * Intent of this function is construct a list
+	 * of regions (RegionData)
+	 *
+	 * A set comparison can be conducted to ensure
+	 * that both the region list set that is active
+	 * and the traversalable one match.
+	 */	
 	traverseFromRegisters() {
 
+		let travInfo: Array<RegionNode> = [];
 		let seenSet: Array<RegionData> = []; 
+		
 		if(this.hasRegisters()) {
 			const registers = this.regions
 				.registers[0];
-			//TODO: Return seenset, should be
-			// in 
-			let queue: Array<RegionData> = [registers];
-			seenSet.push(registers);
+			
+			let queue: Array<[number, RegionData]> = [[0, registers]];
+			//seenSet.push(registers);
+
 			//We should do a AABB check on edges
 			while(queue.length > 0) {
-				let region = queue.shift();
+				const pair = queue.shift();
+
+				if(!pair) {
+					break;
+				}
+				const [idx, region] = pair;
+
+				let aggNode: RegionNode = {
+					regionData: region,
+					parentRefs: [],
+					adjacentRefs: [],
+					ownIdx: idx 
+				};
+				
+				if(!seenSet.includes(region)) {
+					travInfo.push(aggNode); //early push				
+					seenSet.push(region);
+				}
 				if(region) {
 					const regionAABBs = region
 						.edgeAABBs();
+
+					//Gets adjacent region list below
+					//TODO: discoverFromEdges has a bug
 					const reglist = 
 					this.discoverFromEdges(
 						regionAABBs);
-				
-					//TODO: Check to see
-						//if it matches right
+					
+					//Attempts to add regions to
+					//queue and seenlist
 					for(const r of reglist) {
-						if(!seenSet
-						   .includes(r)) {
-							
-							seenSet.push(
-								r);
-							queue
-							.unshift(r);
+
+						
+						let tlistIdx = r.ownIdx !== null ? r.ownIdx : -1;
+						
+						const ridx = seenSet
+						   .indexOf(r.regionData);
+						const nextPos = seenSet.length;
+
+						//Add to seen list and travInfo
+						if(ridx === -1) {
+								
+							seenSet.push(r.regionData);
+							queue.unshift([nextPos, r.regionData]);
+
+							aggNode.adjacentRefs
+								.push(nextPos);
+
+							travInfo.push({
+								regionData: r.regionData,
+								parentRefs: [idx],
+								adjacentRefs: [],
+								ownIdx: nextPos 
+							});
+						} else {
+							//TODO: Bug here!
+							//Apparent ridx just doesn't exist...
+							const existNode = travInfo[ridx];
+							existNode.parentRefs.push(idx);
 						}
+
+						//Check to see if in adjacency list
+						//Add it to adjacent list
+						if(!aggNode.adjacentRefs
+						   .includes(ridx) && ridx >= 0) {
+							
+							aggNode.adjacentRefs
+							.push(ridx);
+						}
+
+
 					}
 
 					
@@ -169,14 +236,55 @@ export class RegionDataList {
 
 				
 			}
-			
-
-
-
 		}
 
-		return seenSet;
+		return travInfo;
 	}
+
+	resolveConnectionsFromTraversal(forceAll: boolean) {
+		const seenlist = this.traverseFromRegisters();
+		console.log(seenlist);
+		for(const rnode of seenlist) {
+			const current = rnode.regionData;
+			if(current.isConnectionSet() && !forceAll) {
+				continue;
+			}
+			const cKind = current.getKind();
+			if(cKind !== null) {
+				const outSegment = current
+					.getOutputCells(cKind as keyof Regions);	
+				const regRefs = rnode.parentRefs.concat(
+					rnode.adjacentRefs);	
+				for(const refidx of regRefs) {
+					const reg = seenlist[refidx].regionData;
+					const rIdx = seenlist[refidx].ownIdx;
+
+					if(reg !== null && rIdx !== null) {
+						const rKind = reg.getKind();
+						
+						if(cKind !== null && rKind !== null) {
+							if(this.canConnectToKind(cKind, rKind)) {
+								const isSet =
+									this.attemptConnections
+										(outSegment, 
+									 	reg, rKind);
+								if(isSet) {
+									current
+									.setConnectionInformation(rKind, 
+												  rIdx);
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+
+		}
+		
+
+	}
+
 
 	hasRegisters() {
 		return this.regions.registers.length > 0;
@@ -193,13 +301,13 @@ export class RegionDataList {
 			 dirToChecks: Array<number>,
 			 regionData: RegionData):
 					[number, number, 
-						RegionCell[]]{
+						Array<[RegionCell, boolean]>]{
 		let offsets = [];
 
 		let dirResult = 0;
 		let mostCellsConnected = 0;
 		let cellsConnected = 0;
-		let cellMarkers = [];
+		let cellMarkers: Array<[RegionCell, boolean]> = [];	
 		//1. Gets the current set of directions we need 
 		//	to check
 		//	we need to then get the current offsets
@@ -237,8 +345,11 @@ export class RegionDataList {
 				if(regionData.hasCoord(ox, oy)) {
 					matchedOne = true;
 					cellsConnected++;
-					cellMarkers.push(cll);
-				} 
+					cellMarkers.push([cll, true]);
+				} else {
+					
+					cellMarkers.push([cll, false]);
+				}
 
 			}
 			
@@ -259,7 +370,6 @@ export class RegionDataList {
 		return [mostCellsConnected, dirResult, cellMarkers];
 
 	}
-
 	/**
 	 * Check to see if it is even viable, if it is isn't,
 	 * we don't check, if it is then we attempt to connect
@@ -271,7 +381,7 @@ export class RegionDataList {
 		const srcKindSet = CellKindMap[kind as 
 			keyof CellKindData];
 		const check = (srcKindSet.includes(
-			otherKind as keyof CellKindData));
+			otherKind as keyof CellKindData))
 		
 		return check;
 	}
@@ -288,6 +398,7 @@ export class RegionDataList {
 		return srcKindSet.indexOf(
 			otherKind as keyof CellKindData);
 	}
+	
 	/**
 	 * Will attempt to provide the best suggestion
 	 * based on heuristics
@@ -296,18 +407,18 @@ export class RegionDataList {
 			   regionData: RegionData, 
 			   regionKind: string): boolean {
 		//let computedConnections = [];
-		if(regionData.isConnectionSet() ||
-		  	outSegment.kind === regionKind) {
+		/*if(outSegment.kind === regionKind) {
+
 			return false;
-		}
+		}*/
 		let bestConnections = 0;
 		let bestDir = 0;
-		let bestMarkers: Array<RegionCell> = [];
+		let bestMarkers: Array<[RegionCell, boolean]> = [];
 
 		let encKind = this.getConnectKindIndex(outSegment
 							.kind, 
 						       regionKind);
-		console.log(outSegment);
+		
 		for(let i = 0; i < outSegment.cells.length; i++) {
 			const cellsSeg = outSegment.cells[i];
 			const dirToCheck = outSegment.dirToChecks[i];
@@ -325,7 +436,9 @@ export class RegionDataList {
 		}
 		
 		if(bestConnections > 0) {
-			for(const c of bestMarkers) {
+			
+			for(const cpair of bestMarkers) {
+				const [c, _] = cpair;
 				c.cdir = bestDir;
 				c.cnKind = encKind;
 				c.manualSet = false;
@@ -610,6 +723,7 @@ export class RegionDataList {
 		this.cleanupIntersections(data)		
 		//Gets added
 		//console.log(this.regions);
+		data.regionKind = pkey;
 		this.regions[pkey].push(data);
 	}
 

@@ -15,7 +15,7 @@ import styles from '../styles/RottnestContainer.module.css';
 import {DesignSpace} from '../DesignSpace';
 import NewProjectForm from './NewProjectForm';
 import { RottnestKindMap } from '../../model/KindMap.ts'
-import {AppServiceClient, APP_URL} 
+import {AppServiceClient} 
 	from '../../net/AppService.ts';
 import AppServiceModule from '../../net/AppServiceModule.ts';
 
@@ -237,11 +237,12 @@ class RottnestContainer
 
 		const getSelectedKeyStr = this.state.appStateData
 			.componentData.selectedRegionType;
-
 		this.getRegionList()
 			.updateByIdx(getSelectedKeyStr, 
 				     getSelectedIdx, 
-				     regData)
+				     regData);
+
+		this.triggerUpdate();
 	}
 
 	resetData() {
@@ -390,7 +391,7 @@ class RottnestContainer
 				//Trigger a resolution here
 				//
 				this.state.regionList
-					.resolveConnectionsForAll();
+					.resolveConnectionsFromTraversal(false);
 				this.triggerUpdate();
 			}
 		}

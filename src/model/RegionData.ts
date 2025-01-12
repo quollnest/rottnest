@@ -67,6 +67,13 @@ export type Regions = {
 	buffers: Array<RegionData>
 }
 
+export type RegionNode = {
+	regionData: RegionData
+	parentRefs: Array<number>
+	adjacentRefs: Array<number>
+	ownIdx: number | null
+}
+
 /**
  * RegionData, this is the base type that holds
  * the sequence of cells within here
@@ -78,7 +85,8 @@ export class RegionData {
 	connectionSet: boolean = false;
 	connectionToKind: string | null = null;
 	connectionToIdx: number | null = null;
-
+	
+	regionKind: string | null = null;
 	subTypeKind: string | null = null;
 	
 	static fromFlatten(data: FlatRegionData): RegionData {
@@ -89,6 +97,10 @@ export class RegionData {
 		}	
 
 		return rdata;
+	}
+
+	getKind(): string | null {
+		return this.regionKind;
 	}
 
 	cmpRef(other: RegionData): boolean {
