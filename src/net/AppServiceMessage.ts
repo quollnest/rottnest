@@ -41,8 +41,6 @@ export class AppServiceMessage {
 		}
 
 		const gData = this.interpretedData;
-		console.log(this.rawData);
-		console.log(gData);
 		const res = container.fromJSON(gData);
 
 		return res;

@@ -15,6 +15,11 @@ export type ProjectDetails = {
 	description: string	
 }
 
+export type ProjectAssembly = {
+	projectDetails: ProjectDetails
+	regionList: RegionDataList
+}
+
 export type CellKindData = {
 	bus: Array<keyof CellKindData>	
 	registers: Array<keyof CellKindData>
@@ -187,8 +192,8 @@ export class RegionDataList {
 			const registers = this.regions
 				.registers[0];
 			
-			let queue: Array<[number, RegionData]> = 
-				[[0, registers]];
+			let queue: Array<[number, number, RegionData]> = 
+				[[0, 0, registers]];
 			//seenSet.push(registers);
 
 			//We should do a AABB check on edges
@@ -198,14 +203,14 @@ export class RegionDataList {
 				if(!pair) {
 					break;
 				}
-				const [idx, region] = pair;
-
+				const [idx, gidx, region] = pair;
+				//console.log(pair);
 				//TODO: Refactor this type for this fn
 				let aggNode: RegionNode = {
 					regionData: region,
 					parentRefs: [],
 					adjacentRefs: [],
-					ownIdx: idx,
+					ownIdx: gidx,
 					dir: 0 //Unused for this case
 				};
 				
@@ -230,9 +235,9 @@ export class RegionDataList {
 
 						//TODO: Eval
 						//if we need to hold this
-						/*let tlistIdx = 
+						let tlistIdx = 
 						r.ownIdx !== null ? 
-						r.ownIdx : -1;*/
+						r.ownIdx : -1;
 						
 						const ridx = seenSet
 						   .indexOf(r.regionData);
@@ -245,8 +250,10 @@ export class RegionDataList {
 								
 							seenSet
 							.push(r.regionData);
+							
 							queue
-							.unshift([nextPos, 
+							.unshift([nextPos,
+								 tlistIdx, 
 							r.regionData]);
 
 							aggNode.adjacentRefs
@@ -258,14 +265,10 @@ export class RegionDataList {
 								.regionData,
 							parentRefs: [idx],
 							adjacentRefs: [],
-							ownIdx: nextPos,
+							ownIdx: tlistIdx,
 							dir: 0
 							});
 						} else {
-							//TODO: Bug here!
-							//Apparent 
-							//ridx just 
-							//doesn't exist...
 							const existNode = 
 							travInfo[ridx];
 							
@@ -294,10 +297,12 @@ export class RegionDataList {
 				
 			}
 		}
-		console.log(travInfo);
+		//console.log(travInfo);
+
 		return travInfo;
 	}
 
+	
 	/**
 	 * Traversal logic for resolving connections, preferences parents
 	 * and then checks purely on adjacency.
@@ -307,6 +312,7 @@ export class RegionDataList {
 	 */
 	resolveConnectionsFromTraversal(forceAll: boolean) {
 		const seenlist = this.traverseFromRegisters();
+		console.log(seenlist);
 		for(const rnode of seenlist) {
 			const current = rnode.regionData;
 			if(current.isConnectionSet() && !forceAll) {
@@ -323,7 +329,6 @@ export class RegionDataList {
 						seenlist[refidx].regionData;
 					const rIdx = 
 						seenlist[refidx].ownIdx;
-
 					if(reg !== null && rIdx !== null) {
 						const rKind = reg.getKind();
 						
@@ -339,7 +344,8 @@ export class RegionDataList {
 							reg, rKind);
 							if(isSet) {
 								current
-								.setConnectionInformation(rKind, rIdx, bestDir);
+								.setConnectionInformation(rKind, rIdx, 
+											  bestDir);
 								break;
 								}
 							}
@@ -439,6 +445,17 @@ export class RegionDataList {
 		return [mostCellsConnected, dirResult, cellMarkers];
 
 	}
+	
+	static CanConnectToKind(kind: string, otherKind: string): boolean {
+		const srcKindSet = CellKindMap[kind as 
+			keyof CellKindData];
+		const check = (srcKindSet.includes(
+			otherKind as keyof CellKindData))
+		
+		return check;
+
+	}
+
 	/**
 	 * Check to see if it is even viable, if it is isn't,
 	 * we don't check, if it is then we attempt to connect

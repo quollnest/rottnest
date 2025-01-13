@@ -13,6 +13,13 @@ export type RegionCell = {
 
 }
 
+export type RegionDimension = {
+	x: number
+	y: number
+	width: number
+	height: number
+}
+
 /**
  * Returns the cell and the toolkind recorded
  * Used by the RegionDataList object
@@ -68,7 +75,12 @@ export type Regions = {
 }
 
 
-
+/**
+ * A RegionNode is used in a seenlist
+ * as part of a traversal, the parentRefs
+ * and adjacentRefs are indexes to for elements
+ * within the list itself
+ */
 export type RegionNode = {
 	regionData: RegionData
 	parentRefs: Array<number>
@@ -77,6 +89,10 @@ export type RegionNode = {
 	dir: number
 }
 
+type RegionConPair = {
+	kind: string
+	idx: number
+}
 
 const CellOutputDir = ["None", "Up", "Right", "Left", "Down"];  
 
@@ -105,6 +121,19 @@ export class RegionData {
 
 		return rdata;
 	}
+
+	getConnectionDataPair(): RegionConPair | null {
+		const pkind = this.connectionToKind;
+		const pidx = this.connectionToIdx;
+		if(pkind != null && pidx != null) {
+			return {
+				kind: RegionData.SingularKind(pkind),
+				idx: pidx			
+			}
+		} else {
+			return null;
+		}
+	}
 	
 	getPluralKind(): string {
 		if(this.regionKind) {
@@ -125,7 +154,7 @@ export class RegionData {
 			case 'bus':
 				return 'bus'
 			case 'registers':
-				return 'registe'
+				return 'register'
 			case 'factories':
 				return 'factory'
 			case 'bellstates':
@@ -486,6 +515,36 @@ export class RegionData {
 			this.getCell(minX, maxY),
 			
 		];
+	}
+
+	
+
+	getDimensions(): RegionDimension {
+		let minY = +Infinity;
+		let maxY = -Infinity;
+		let minX = +Infinity;
+		let maxX = -Infinity;
+		for(const [_, cell] of this.cells) {
+			if(minY > cell.y) {
+				minY = cell.y;
+			}
+			if(maxY < cell.y) {
+				maxY = cell.y;
+				}
+			if(minX > cell.x) {
+				minX = cell.x;
+			}
+			if(maxX < cell.x) {
+				maxX = cell.x;
+			}
+		}
+
+		return {
+			x: minX,
+			y: minY,
+			width: maxX - minX,
+			height: maxY - minY
+		}
 	}
 
 	/**

@@ -3,7 +3,8 @@ import GlobalBar from '../GlobalBar';
 import RottnestService from '../../service/RottnestService';
 import {ProjectDetails, 
 	RegionDataList,
-	ProjectDump} 
+	ProjectDump,
+	ProjectAssembly} 
 	from '../../model/Project';
 import { RegionData, Regions } from '../../model/RegionData';
 import WorkspaceContainer from './RowContainer';
@@ -18,6 +19,7 @@ import { RottnestKindMap } from '../../model/KindMap.ts'
 import {AppServiceClient} 
 	from '../../net/AppService.ts';
 import AppServiceModule from '../../net/AppServiceModule.ts';
+import ArchConverter from '../../util/ArchConverter.ts';
 
 /**
  * At the moment, nothing interesting
@@ -139,6 +141,13 @@ class RottnestContainer
 				console.log('Hey we got a response');
 			}
 		);
+	}
+
+	getProjectAssembly(): ProjectAssembly {
+		return {
+			projectDetails: this.state.projectDetails,
+			regionList: this.state.regionList
+		}
 	}
 
 	componentDidMount() {
