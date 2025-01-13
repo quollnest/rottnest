@@ -280,9 +280,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			y1 = y2;
 			y2 = tmp;
 		}
-		return {
-			x1, x2, y1, y2,
-		};
+		return { x1, x2, y1, y2 };
 	}	
 
 	getCoordsFromSelectionData() {
@@ -415,10 +413,19 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			}	
 		}
 	
-	let selectMap = this.selectCells();
+		let selectMap = this.selectCells();
+		//Get the infor for selected region and pass info to
+		//selected grid items
+	
+		
 
 		//TODO: We may want to maintain
 		//this list of pre-rendered cells
+
+		//Get selected region
+		const selectedRegion = this.parentContainer
+			.getSelectedRegionData();
+
 		const renderableCells = 
 			this.state.cells.map((_, idx) => {
 				const x = idx % gwidth;
@@ -431,10 +438,19 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 					: null;
 				let cdir: number | null = -1;
 				let covr = false;
+					
+				let highlighted = false;
+				if(selectedRegion) {
+					highlighted = selectedRegion
+						.hasCoord(x, y);
+				}
+
 				if(cellData) {
+
 					cdir = cellData.cdir !== undefined ? 
 						cellData.cdir : null;
-					covr = cellData.manualSet !== undefined ? 
+					covr = cellData.manualSet 
+						!== undefined ? 
 						cellData.manualSet : false;
 				}
 				//console.log(c);
@@ -461,6 +477,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 					.getToolIndex()
 				}
 				
+				isHighlighted={highlighted}
 				tagFn={dataTagFn}
 				selectFn={selectFn}
 			     />
@@ -469,6 +486,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		
 		const svprops = this.getSelectionData();
 		
+
 		return (
 			<div draggable={false} className={
 				styles

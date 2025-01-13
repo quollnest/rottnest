@@ -13,11 +13,11 @@ import { RottnestKindMap } from '../model/KindMap.ts'
 export class RottSubTypesMSG implements DeRott  {
 	
 	regionKinds: RottnestKindMap = {
-		bus: [{ name: 'test_bus' }],	
-		register: [{ name: 'test_register'}],
-		bellstate: [{ name: 'test_bellstate'}],
-		factory: [{ name: 'test_factory'}],
-		buffer: [{ name: 'test_buffer' }]
+		bus: [{ name: 'Not Selected' }],	
+		register: [{ name: 'Not Selected'}],
+		bellstate: [{ name: 'Not Selected'}],
+		factory: [{ name: 'Not Selected'}],
+		buffer: [{ name: 'Not Selected' }]		
 	}
 	
 	//This is not used

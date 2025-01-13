@@ -9,7 +9,7 @@ import regionStyle from '../styles/RegionContainer.module.css'
 import RottnestContainer from './RottnestContainer';
 import RegionSettings from '../RegionSettings';
 import {RottnestKindMap} from '../../model/KindMap';
-
+import {RegionData} from '../../model/RegionData';
 
 const ContainerDefaults = {
 	toolbox: { 
@@ -87,11 +87,30 @@ export class RegionContainer
 		
 		const regListInfo = container.getRegionListData();
 		const selected = regListInfo.selectedKind;
-		const regKind = regListInfo.selectedKind as keyof RottnestKindMap;
-		const subtypesCol = selected === '' || selected === null ? [] :
+		const regKeyVal = regListInfo.selectedKind !== null ?
+			regListInfo.selectedKind : 'NA';
+		const regSingular = RegionData.SingularKind(
+			regKeyVal);
+		const regKind = regSingular as keyof RottnestKindMap;
+		const subtypesCol = selected === '' || 
+			selected === null ? [] :
 			regListInfo.subTypes[regKind]
 		
-		const connRecs = regListInfo.connectionRecs;
+		const connRecs = container
+			.getValidAdjacentsOfSelected();
+
+		const regData = container.getSelectedRegionData();
+		let connectedIdx = 0;
+		let connectedKind = null;
+		if(regData) {
+			if(regData.connectionToIdx !== null) {
+				connectedIdx = regData.connectionToIdx;
+			}		
+			if(regData.connectionToKind!== null) {
+				connectedKind = regData.connectionToKind;
+			}
+		} 
+		
 		return (
 			<div className={regionStyle.regionContainer}
 				onMouseMove={
@@ -108,14 +127,21 @@ export class RegionContainer
 					container={container}
 					subTypes={
 						{
-							subtypes: subtypesCol,
-							currentlySelected: regListInfo.selectedIdx
+						subtypes: 
+							subtypesCol,
+						currentlySelected: 
+							regListInfo
+							.selectedIdx
 						}
 					} 
 					connections={
 						{
-							connections: connRecs,
-							selectedIdx: 0,
+						connections: 
+							connRecs,
+						connectedIdx: 
+							connectedIdx,
+						connectedKind:
+							connectedKind
 						}
 					} />
 					
@@ -125,7 +151,5 @@ export class RegionContainer
 			</div>
 		)
 	}
-
 }
-
 

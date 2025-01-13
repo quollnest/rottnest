@@ -43,8 +43,8 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
 
 
 		const onSelect = (_: React.MouseEvent<HTMLLIElement>) => {
-			console.log("Attempting to select");
-			rottContainer.selectCurrentRegion(kind, idx);
+			const pluKind = RegionData.PluraliseKind(kind);
+			rottContainer.selectCurrentRegion(pluKind, idx);
 		}
 
 		const isSelectedStyle = isSelected ? styles.regionSelected : '';
@@ -83,18 +83,25 @@ class RegionList extends React.Component<RegionListProps,
 		const regions = this.props.regions;
 		const container = this.props.container;
 		const [selIdx, selKind] = container.getRegionSelectionData();
-
 		const renderRegions = regions.flattenWithTags().map(
-			(r, idx) => <RegionItemRender 
+			(r, idx) => {
+				//TODO: Remove ternery
+				let selKindS = selKind !== null 
+					? selKind : '';
+				if(selKind) {
+					selKindS = RegionData.SingularKind(selKind);
+				}
+				return (<RegionItemRender 
 				tag={r.tag}
 				kind={r.kind}
 				idx={r.idx}
 				rdata={r.rdata} 
 				container={container}
-				isSelected={r.kind === selKind 
+				isSelected={r.kind === selKindS 
 					&& r.idx == selIdx}
 				key={idx} 
 				/>)
+			});
 
 		return (
 

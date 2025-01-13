@@ -5,15 +5,17 @@ import {RegionData} from "../model/RegionData";
 import {SubKind} from "../model/KindMap";
 
 
-
 type RegionConnection = {
 	name: string
-	connectorId: number 
+	listIdx: number
+	connectorId: number
+	direction: number
 }
 
 type RegionConnectionList = {
 	connections: Array<RegionConnection>
-	selectedIdx: number
+	connectedIdx: number
+	connectedKind: string | null
 }
 
 type RegionConnectorData = {
@@ -21,34 +23,77 @@ type RegionConnectorData = {
 	container: RegionSettings
 }
 
-class RegionConnectorOptions extends React.Component<RegionConnectorData, {}> {
+class RegionConnectorOptions extends React.Component
+	<RegionConnectorData, {}> {
 	
-
+	static MatchInConnections(connections: Array<RegionConnection>,
+				  idx: number, kind: string): number {
+		for(let i = 0; i < connections.length; i++) {
+			const c = connections[i];
+			if(c.name === kind && c.listIdx === idx) {
+				return i;
+			}
+		}
+		return -1;
+	}
 
 	render() {
+		
 		const props = this.props;
 		const settings = props.container;
 		const connections = props.connectionList.connections;
-		const selectedIdx = props.connectionList.selectedIdx;
-
+		const connectedIdx = props.connectionList.connectedIdx;
+		const connectedKind = props.connectionList.connectedKind;
+			
+		const selectedIdx = RegionConnectorOptions
+			.MatchInConnections(connections, connectedIdx,
+					   connectedKind === null ? '' :
+					   connectedKind);
+		const dirStrs = RegionData.GetDirectionStrings();
 		const renderedOptions = connections.length === 0 ?
-			<option value={"Not Selected"}>Not Selected</option> :
+			<option value={"Not Selected"}>
+			Not Selected
+			</option> :
 			connections.map((rc, idx) => {
-			return <option value={rc.name} key={idx}>{rc.name}</option>
+			return (
+				<option value={idx} 
+					key={idx}>
+					{`${rc.name},${dirStrs[
+						rc.direction]}`}
+				</option>
+			);
 		});
-
-		const regionSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		
+		const regionSelect = (e: 
+			React.ChangeEvent<HTMLSelectElement>) => {
 			if(e.target.value !== 'Not Selected') {
-				const conDir = Number(e.target.value);
-				const kindKey = e.target.innerText;
-				settings.updateDirOfSelected(conDir, kindKey);
+
+				//TODO: Below are two bugs
+				const conIdx = Number(e.target.value);
+				const regTup = connections[conIdx];
+				if(regTup) {
+					const conDir = regTup.listIdx
+					const kindKey = regTup.name;
+					const dirIndex = regTup.direction;
+
+				
+					console.log(dirIndex);
+					//TODO: May need pluralised key
+					const kindPlu = RegionData
+						.PluraliseKind(kindKey);
+					settings.updateDirOfSelected(
+						conDir, 
+						kindPlu,
+						dirIndex);
+				}
 			}
 		}
 
 		return (
 			<div className={styles.connectionsComp}>
 			<label>Connections</label>
-			<select name="connections" value={selectedIdx} onChange={regionSelect}>	
+			<select name="connections" 
+			value={selectedIdx} onChange={regionSelect}>
 				{renderedOptions}
 			</select>
 			</div>
@@ -79,14 +124,18 @@ type RegionSubState = {
  * List of subtypes of a region that
  * impact the configuration and how it is to be compiled
  */
-class RegionSubTypeList extends React.Component<RegionSubTypeComponentData, RegionSubState> {
+class RegionSubTypeList extends React.Component
+	<RegionSubTypeComponentData, RegionSubState> {
 	
-	subKindKeyToIdx(subList: Array<SubKind>, kind: string): number {
+	subKindKeyToIdx(subList: Array<SubKind>, kind: string): 
+		number {
 		let m = -1;
-		for(let i = 0; i < subList.length; i++) {
-			if(subList[i].name === kind) {
-				m = i;
-				break;
+		if(subList) {	
+			for(let i = 0; i < subList.length; i++) {
+				if(subList[i].name === kind) {
+					m = i;
+					break;
+				}
 			}
 		}
 		return m;
@@ -96,28 +145,36 @@ class RegionSubTypeList extends React.Component<RegionSubTypeComponentData, Regi
 		const props = this.props;
 		const settings = props.container;
 		const subtypes = props.dataList.subtypes;
-		const selectedSubKind = props.selectedSubKind !== null ? 
+		const selectedSubKind = props.selectedSubKind 
+			!== null ? 
 			props.selectedSubKind : '';
-		const selectedIdx = this.subKindKeyToIdx(subtypes, selectedSubKind);
-		console.log(subtypes, selectedIdx, selectedSubKind);	
 	
 
 		const renderedOptions = subtypes.length === 0 ? 
-			<option value={"Not Selected"}>Not Selected</option> :
+			<option value={"Not Selected"}>
+			Not Selected</option> :
 			subtypes.map((rc, idx) => {
-			return <option value={rc.name} key={idx} >{rc.name}</option>
+			return (
+				<option value={rc.name} key={idx}>
+				{rc.name}
+				</option>
+			)
 		});
 
-		const regionSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		const regionSelect = (e: 
+			React.ChangeEvent<HTMLSelectElement>) => {
 			console.log(e.target.value);
 			if(e.target.value !== 'Not Selected') {
-				settings.updateSubTypeOfSelected(e.target.value);
+				settings.updateSubTypeOfSelected(
+					e.target.value);
 			}
 		}
 		return ( 
 			<div className={styles.subTypeComp}>
 			<label>Region Type</label>
-			<select name="connections" onChange={regionSelect} value={selectedSubKind}>
+			<select name="connections" 
+			onChange={regionSelect} 
+			value={selectedSubKind}>
 				{renderedOptions}
 			</select>
 			</div>
@@ -142,24 +199,46 @@ class RegionSettings extends React.Component<RegionSettingsData, {}> {
 	rottContainer: RottnestContainer = this.props.container;
 
 	updateSubTypeOfSelected(subTypeKey: string) {
-		const currentObj = this.rottContainer.getSelectedRegionData();
+		const currentObj = this.rottContainer
+			.getSelectedRegionData();
 		if(currentObj) {
-			let regData: RegionData = currentObj.shallowDuplicate();
+			let regData: RegionData = currentObj
+				.shallowDuplicate();
 			regData.subTypeKind = subTypeKey;
 		
-			this.rottContainer.updateSelectedRegionData(regData);
+			this.rottContainer
+			.updateSelectedRegionData(regData);
 		}
 		
 	}
 
 
-	updateDirOfSelected(conDirIdx: number, conKind: string) {
-		const currentObj = this.rottContainer.getSelectedRegionData();
+	updateDirOfSelected(conDirIdx: number, conKind: string, 
+			    dir: number) {
+		const currentObj = this.rottContainer
+			.getSelectedRegionData();
+		const regList = this.rottContainer.getRegionList();
 		if(currentObj) {
-			let regData: RegionData = currentObj.shallowDuplicate();
-			regData.setConnectionInformation(conKind, conDirIdx);
-		
-			this.rottContainer.updateSelectedRegionData(regData);
+			let regData: RegionData = currentObj
+				.shallowDuplicate();
+			let regKind = regData.getKind();
+			//TODO: Check in to see what is happening
+			//here
+			//Check to see if the selectionHas changed
+			if(regData.getSubKind() !== conKind) {
+				const encKind = regList.getConnectKindIndex(
+					regKind, conKind);
+				console.log(encKind);
+
+				regData.setConnectionInformation(conKind, 
+							 conDirIdx, dir);
+
+				regData.updateManuallySet(true);
+				regData.setDirectionOnCells(dir, 
+							    encKind);
+				this.rottContainer.updateSelectedRegionData(
+					regData);
+			}
 		}
 	}
 
@@ -171,23 +250,32 @@ class RegionSettings extends React.Component<RegionSettingsData, {}> {
 	render() {
 		const headerName = 'Region Settings';
 		const parentContainer = this;
-		const selectedRegion = this.rottContainer.getSelectedRegionData();
+		const selectedRegion = this.rottContainer
+			.getSelectedRegionData();
 		const subList = this.props.subTypes;
 		const connectionsList = this.props.connections;
-		const currentSubKey = selectedRegion?.subTypeKind; //TODO: Make method call
+		
+		//TODO: Refactor this to provide non-null guarantee	
+		const currentSubKey = 
+			selectedRegion === null ? '' :
+				selectedRegion.subTypeKind === null ?
+				'' : selectedRegion.subTypeKind; 
+
 		return (
 			<div className={styles.regionSettings}>
-				<header className={styles.regionSettingsHeader}>
+				<header className={styles
+						.regionSettingsHeader}>
 					{headerName}
 				</header>
 				<RegionConnectorOptions
-					connectionList={connectionsList}
+					connectionList={
+						connectionsList}
 					container={parentContainer} />
 				<RegionSubTypeList 
 					dataList={subList}
 					container={parentContainer}
 					selectedSubKind={currentSubKey}
-					/>
+				/>
 			</div>
 		)
 	}

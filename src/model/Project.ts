@@ -39,7 +39,6 @@ const CellKindMap: CellKindData = {
 	untagged: [], 
 }
 
-const CellOutputDir = ["None", "Up", "Right", "Left", "Down"];  
 
 
 /**
@@ -69,8 +68,12 @@ export class RegionDataList {
 		buffers: []
 	};
 
-
-
+	
+	
+	
+	/*/
+	 * Requires pluralised strings when used
+	 */
 	retrieveByIdx(kind: string | null, idx: number): RegionData | null {
 		if(kind) {
 			const kindKey = kind as keyof Regions;
@@ -78,10 +81,18 @@ export class RegionDataList {
 			if(regCol) {
 				const regData = regCol[idx];
 				return regData;
+			} else {
+				//console.error("Unable to retrieve requested region",
+				//     kind, kindKey, idx);
+				return null;
 			}
+		} else {
+			console.error("Unable to retrieve requested region",
+				     kind, idx);
+			let eRR = new Error();
+			console.error(eRR.stack);
+			return null;
 		}
-
-		return null;
 	}
 
 	updateByIdx(kind: string | null, idx: number, 
@@ -107,9 +118,31 @@ export class RegionDataList {
 			for(let rk = 0; rk < regionsOfKind.length; 
 			    rk++) {
 				const regionData = regionsOfKind[rk];
-				const isFound = 
-					regionData.checkAABB(
-						edges.top) ||
+				//TODO: Return the direction it found it in
+				const isTop = regionData.checkAABB(
+						edges.top);
+				const isBottom = regionData.checkAABB(
+						edges.bottom);	
+				const isLeft = regionData.checkAABB(
+						edges.left);
+				const isRight = regionData.checkAABB(
+						edges.right);
+				let dir = 0;
+				if(isTop) {
+					dir = 1;
+				}
+				if(isBottom) {
+					dir = 4;
+				}
+				if(isLeft) {
+					dir = 3;
+				}
+				if(isRight) {
+					dir = 2;
+				}
+				const isFound = isTop || isBottom 
+					|| isLeft || isRight;
+
 					regionData.checkAABB(
 						edges.bottom) ||
 					regionData.checkAABB(
@@ -122,8 +155,9 @@ export class RegionDataList {
 						regionData,
 						   parentRefs: [],
 						   adjacentRefs: [],
-						   ownIdx: rk}
-							);
+						   ownIdx: rk,
+						   dir
+					});
 				}
 
 
@@ -153,7 +187,8 @@ export class RegionDataList {
 			const registers = this.regions
 				.registers[0];
 			
-			let queue: Array<[number, RegionData]> = [[0, registers]];
+			let queue: Array<[number, RegionData]> = 
+				[[0, registers]];
 			//seenSet.push(registers);
 
 			//We should do a AABB check on edges
@@ -165,15 +200,18 @@ export class RegionDataList {
 				}
 				const [idx, region] = pair;
 
+				//TODO: Refactor this type for this fn
 				let aggNode: RegionNode = {
 					regionData: region,
 					parentRefs: [],
 					adjacentRefs: [],
-					ownIdx: idx 
+					ownIdx: idx,
+					dir: 0 //Unused for this case
 				};
 				
 				if(!seenSet.includes(region)) {
-					travInfo.push(aggNode); //early push				
+					travInfo.push(aggNode); 
+					//early push				
 					seenSet.push(region);
 				}
 				if(region) {
@@ -190,39 +228,58 @@ export class RegionDataList {
 					//queue and seenlist
 					for(const r of reglist) {
 
-						
-						let tlistIdx = r.ownIdx !== null ? r.ownIdx : -1;
+						//TODO: Eval
+						//if we need to hold this
+						/*let tlistIdx = 
+						r.ownIdx !== null ? 
+						r.ownIdx : -1;*/
 						
 						const ridx = seenSet
 						   .indexOf(r.regionData);
-						const nextPos = seenSet.length;
+						const nextPos = seenSet
+							.length;
 
-						//Add to seen list and travInfo
+						//Add to seen list and 
+							//travInfo
 						if(ridx === -1) {
 								
-							seenSet.push(r.regionData);
-							queue.unshift([nextPos, r.regionData]);
+							seenSet
+							.push(r.regionData);
+							queue
+							.unshift([nextPos, 
+							r.regionData]);
 
 							aggNode.adjacentRefs
-								.push(nextPos);
+							  .push(nextPos);
 
 							travInfo.push({
-								regionData: r.regionData,
-								parentRefs: [idx],
-								adjacentRefs: [],
-								ownIdx: nextPos 
+							regionData: 
+								r
+								.regionData,
+							parentRefs: [idx],
+							adjacentRefs: [],
+							ownIdx: nextPos,
+							dir: 0
 							});
 						} else {
 							//TODO: Bug here!
-							//Apparent ridx just doesn't exist...
-							const existNode = travInfo[ridx];
-							existNode.parentRefs.push(idx);
+							//Apparent 
+							//ridx just 
+							//doesn't exist...
+							const existNode = 
+							travInfo[ridx];
+							
+							existNode
+							.parentRefs
+							.push(idx);
 						}
 
-						//Check to see if in adjacency list
+						//Check to see if in 
+						//adjacency list
 						//Add it to adjacent list
 						if(!aggNode.adjacentRefs
-						   .includes(ridx) && ridx >= 0) {
+						   .includes(ridx) && 
+						   	ridx >= 0) {
 							
 							aggNode.adjacentRefs
 							.push(ridx);
@@ -237,13 +294,19 @@ export class RegionDataList {
 				
 			}
 		}
-
+		console.log(travInfo);
 		return travInfo;
 	}
 
+	/**
+	 * Traversal logic for resolving connections, preferences parents
+	 * and then checks purely on adjacency.
+	 *
+	 * If Manually set it will be ignored
+	 *
+	 */
 	resolveConnectionsFromTraversal(forceAll: boolean) {
 		const seenlist = this.traverseFromRegisters();
-		console.log(seenlist);
 		for(const rnode of seenlist) {
 			const current = rnode.regionData;
 			if(current.isConnectionSet() && !forceAll) {
@@ -252,27 +315,32 @@ export class RegionDataList {
 			const cKind = current.getKind();
 			if(cKind !== null) {
 				const outSegment = current
-					.getOutputCells(cKind as keyof Regions);	
-				const regRefs = rnode.parentRefs.concat(
-					rnode.adjacentRefs);	
+					.getOutputCells();	
+				const regRefs = rnode.parentRefs
+					.concat(rnode.adjacentRefs);	
 				for(const refidx of regRefs) {
-					const reg = seenlist[refidx].regionData;
-					const rIdx = seenlist[refidx].ownIdx;
+					const reg = 
+						seenlist[refidx].regionData;
+					const rIdx = 
+						seenlist[refidx].ownIdx;
 
 					if(reg !== null && rIdx !== null) {
 						const rKind = reg.getKind();
 						
-						if(cKind !== null && rKind !== null) {
-							if(this.canConnectToKind(cKind, rKind)) {
-								const isSet =
-									this.attemptConnections
-										(outSegment, 
-									 	reg, rKind);
-								if(isSet) {
-									current
-									.setConnectionInformation(rKind, 
-												  rIdx);
-									break;
+						if(cKind !== null 
+						   && rKind !== null) {
+							if(this
+							.canConnectToKind(
+							cKind, rKind)) {
+							const [isSet, bestDir] =
+								this
+							.attemptConnections
+							(outSegment, 
+							reg, rKind);
+							if(isSet) {
+								current
+								.setConnectionInformation(rKind, rIdx, bestDir);
+								break;
 								}
 							}
 						}
@@ -301,9 +369,10 @@ export class RegionDataList {
 			 dirToChecks: Array<number>,
 			 regionData: RegionData):
 					[number, number, 
-						Array<[RegionCell, boolean]>]{
+					Array<[RegionCell, boolean]>]{
+		const dirStrings = RegionData.GetDirectionStrings();
 		let offsets = [];
-
+		
 		let dirResult = 0;
 		let mostCellsConnected = 0;
 		let cellsConnected = 0;
@@ -312,18 +381,18 @@ export class RegionDataList {
 		//	to check
 		//	we need to then get the current offsets
 		for(let o of dirToChecks) {
-			if(CellOutputDir[o] === 'Up') {
+			if(dirStrings[o] === 'Up') {
 				offsets.push([0, -1, 1]);
 			}
-			if(CellOutputDir[o] === 'Left') {
+			if(dirStrings[o] === 'Left') {
 
 				offsets.push([-1, 0, 3]);
 			}
-			if(CellOutputDir[o] === 'Right') {
+			if(dirStrings[o] === 'Right') {
 
 				offsets.push([1, 0, 2]);
 			}
-			if(CellOutputDir[o] === 'Down') {
+			if(dirStrings[o] === 'Down') {
 
 				offsets.push([0, 1, 4]);
 			}
@@ -391,12 +460,17 @@ export class RegionDataList {
 	 * it into the cells
 	 * so it can be saved with this information
 	 */
-	getConnectKindIndex(kind: string, otherKind: string): number {
+	static GetConnectKindIndex(kind: string, otherKind: string): number {
 		
 		const srcKindSet = CellKindMap[
 			kind as keyof CellKindData];
 		return srcKindSet.indexOf(
 			otherKind as keyof CellKindData);
+	}
+
+	getConnectKindIndex(kind: string, otherKind: string): number {
+		return RegionDataList.GetConnectKindIndex(kind, 
+							  otherKind);
 	}
 	
 	/**
@@ -405,7 +479,8 @@ export class RegionDataList {
 	 */
 	attemptConnections(outSegment: RegionOutputSegment,
 			   regionData: RegionData, 
-			   regionKind: string): boolean {
+			   regionKind: string): [boolean, number] {
+		//TODO: Re-evaluate this check
 		//let computedConnections = [];
 		/*if(outSegment.kind === regionKind) {
 
@@ -436,18 +511,17 @@ export class RegionDataList {
 		}
 		
 		if(bestConnections > 0) {
-			
+			//TODO: Update the cells to show if they should point 
+			//or not	
 			for(const cpair of bestMarkers) {
 				const [c, _] = cpair;
 				c.cdir = bestDir;
 				c.cnKind = encKind;
 				c.manualSet = false;
 			}
-			return true;
+			return [true, bestDir];
 		}
-		console.log(bestConnections, bestMarkers,
-			    bestDir);
-		return false;
+		return [false, bestDir];
 	}
 
 	/**
@@ -466,7 +540,7 @@ export class RegionDataList {
 		if(regionCol && !regionCol.isManuallySet()) {
 			
 			let outSegment 
-			= regionCol.getOutputCells(kind);
+			= regionCol.getOutputCells();
 			//TODO: Specify for multiple segments
 			for(const regkey in this.regions) {
 				const regionsOfKind = this.regions[
@@ -481,7 +555,7 @@ export class RegionDataList {
 						regionsOfKind[rk];
 						if(regionCol !==
 						   regionData) {
-						const isSet =
+						const [isSet, bestDir] =
 						this
 						.attemptConnections(
 							outSegment, 
@@ -491,7 +565,7 @@ export class RegionDataList {
 						if(isSet) { 
 					regionCol.
 					setConnectionInformation
-							(regkey, rk)
+							(regkey, rk, bestDir)
 
 							return; 
 							}
@@ -581,10 +655,8 @@ export class RegionDataList {
 		if(idx >= 0) {
 			let regData = fRes[idx].find((rd, _) => rd.cells
 						     .get(rcStr) !== null);
-			let regDataIdx = fRes[idx].findIndex((rd, _) => rd
-							     .cells.get(rcStr) !== null);
-						     
-			
+			let regDataIdx = fRes[idx].findIndex((rd, _) => { 
+				return rd.cells.get(rcStr) !== null });
 			return {
 				regData,
 				kind: kindList[idx],
@@ -649,18 +721,20 @@ export class RegionDataList {
 		return dlist;
 	}
 
-	flattenWithTags(): Array<{kind: string, tag: string, idx: number, rdata: RegionData}> {
+	flattenWithTags(): Array<{kind: string, tag: string, 
+		idx: number, rdata: RegionData}> {
 		const regs = this.regions;
 		let flatArray = [];
 
 		flatArray.push(...regs.bus.map((v, i) => 
-			 { return {kind: 'bus', tag: `bus${i}`, rdata: v, idx: i} }));
+			 { return {kind: 'bus', tag: `bus${i}`, 
+				 rdata: v, idx: i} }));
 		flatArray.push(...regs.registers.map((v, i) => 
 			 { return {kind: 'register', tag: `registers${i}`, 
 				 rdata: v, idx: i} }));
 		flatArray.push(...regs.bellstates.map((v, i) => 
-			 { return {kind: 'bellstate', tag: `bellstates${i}`, 
-				 rdata: v, idx: i}}));
+			 { return {kind: 'bellstate', 
+			tag: `bellstates${i}`, rdata: v, idx: i}}));
 				 
 		flatArray.push(...regs.factories.map((v, i) => 
 			 { return {kind: 'factory', tag: `factories${i}`, 

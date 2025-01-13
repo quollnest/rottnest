@@ -67,12 +67,18 @@ export type Regions = {
 	buffers: Array<RegionData>
 }
 
+
+
 export type RegionNode = {
 	regionData: RegionData
 	parentRefs: Array<number>
 	adjacentRefs: Array<number>
 	ownIdx: number | null
+	dir: number
 }
+
+
+const CellOutputDir = ["None", "Up", "Right", "Left", "Down"];  
 
 /**
  * RegionData, this is the base type that holds
@@ -85,7 +91,8 @@ export class RegionData {
 	connectionSet: boolean = false;
 	connectionToKind: string | null = null;
 	connectionToIdx: number | null = null;
-	
+	connectionDir: number = 0;
+
 	regionKind: string | null = null;
 	subTypeKind: string | null = null;
 	
@@ -98,9 +105,66 @@ export class RegionData {
 
 		return rdata;
 	}
+	
+	getPluralKind(): string {
+		if(this.regionKind) {
+			return RegionData
+				.PluraliseKind(this.regionKind);
 
-	getKind(): string | null {
-		return this.regionKind;
+		} else {
+			return 'NA';
+		}
+	}
+	
+	static GetDirectionStrings(): Array<string> {
+		return CellOutputDir;
+	}
+
+	static SingularKind(regKind: string): string {
+		switch(regKind) {
+			case 'bus':
+				return 'bus'
+			case 'registers':
+				return 'registe'
+			case 'factories':
+				return 'factory'
+			case 'bellstates':
+				return 'bellstate'
+			case 'buffers':
+				return 'buffer'
+				
+		}
+
+		return regKind;
+	}
+
+	static PluraliseKind(regKind: string): string {
+
+		switch(regKind) {
+			case 'bus':
+				return 'bus'
+			case 'register':
+				return 'registers'
+			case 'factory':
+				return 'factories'
+			case 'bellstate':
+				return 'bellstates'
+			case 'buffer':
+				return 'buffers'
+				
+		}
+
+		return regKind;
+	}
+
+	getKind(): string {
+		return this.regionKind !== null ? this.regionKind :
+			'NoKind';
+	}
+
+	getSubKind(): string {
+		return this.subTypeKind !== null ? this.subTypeKind :
+			'NoKind';
 	}
 
 	cmpRef(other: RegionData): boolean {
@@ -110,10 +174,13 @@ export class RegionData {
 	shallowDuplicate(): RegionData {
 		let regNew = new RegionData();
 		regNew.cells = this.cells;
-		regNew.manuallySetConnection = this.manuallySetConnection;
+		regNew.regionKind = this.regionKind;
+		regNew.manuallySetConnection = this
+			.manuallySetConnection;
 		regNew.connectionSet = this.connectionSet;
 		regNew.connectionToKind = this.connectionToKind;
 		regNew.connectionToIdx = this.connectionToIdx;
+		regNew.connectionDir = this.connectionDir;
 		regNew.subTypeKind = this.subTypeKind;
 		
 		return regNew;
@@ -217,10 +284,51 @@ export class RegionData {
 		return this.connectionSet;
 	}
 
-	setConnectionInformation(kind: string, idx: number) {
+	updateManuallySet(isManual: boolean) {
+		this.manuallySetConnection = isManual;
+	}
+
+	//TODO: Revise this method to set only cells required
+	setDirectionOnCells(direction: number, encKind: number) {
+		const outputSegment = this.getOutputCells();
+		let markers: Array<RegionCell> = [];
+		if(direction > 0) {
+			for(let i = 0; i < outputSegment.cells.length; i++) {
+				const dset = outputSegment.dirToChecks[i]; 
+				for(const d of dset) {		
+					if(d === direction) {
+						markers = outputSegment
+						.cells[i];
+					}
+				}
+			}
+
+			console.log(direction, outputSegment, markers);	
+			for(const c of markers) {
+				c.cdir = direction;
+				c.cnKind = encKind; 
+				c.manualSet = true;
+			}
+		} else {
+			//TODO: Reset but we should have clearer type
+			//field information here
+			for(const [_, c] of this.cells) {
+				c.cdir = direction;
+				c.cnKind = undefined; 
+				c.manualSet = false;
+			}
+		}
+
+	}
+
+	setConnectionInformation(kind: string, idx: number, 
+				dir: number) {
 		this.connectionToKind = kind;
 		this.connectionToIdx = idx;
+		this.connectionDir = dir;
 		this.connectionSet = true;
+
+		//Should apply update to cells
 	}
 
 
@@ -244,7 +352,7 @@ export class RegionData {
 	 * TODO: Refine this solution, it is slow
 	 *
 	 */
-	getOutputCells(kind: keyof Regions): RegionOutputSegment {
+	getOutputCells(): RegionOutputSegment {
 		
 		let minY = +Infinity;
 		let maxY = -Infinity;
@@ -328,10 +436,22 @@ export class RegionData {
 		}
 		return {
 			cells: aggr,
-			dirToChecks,
-			kind,
+			dirToChecks,//0 top, 1 bottom, 
+			kind: this.getKind(),			
 			edgeCase
 		}
+	}
+	
+	getCell(x: number, y: number): RegionCell | null  {
+		
+		const rcStr = `${x} ${y}`;
+		const r = this.cells.get(rcStr);
+		if(r) { 
+			return r; 
+		} else {
+			return null;
+		}
+		
 	}
 
 	/**
@@ -340,7 +460,32 @@ export class RegionData {
 	 * a rectangle
 	 */
 	getCorners() {
-		return [];
+		let minY = +Infinity;
+		let maxY = -Infinity;
+		let minX = +Infinity;
+		let maxX = -Infinity;
+		for(const [_, cell] of this.cells) {
+			if(minY > cell.y) {
+				minY = cell.y;
+			}
+			if(maxY < cell.y) {
+				maxY = cell.y;
+				}
+			if(minX > cell.x) {
+				minX = cell.x;
+			}
+			if(maxX < cell.x) {
+				maxX = cell.x;
+			}
+		}
+
+		return [
+			this.getCell(minX, minY),
+			this.getCell(maxX, minY),
+			this.getCell(maxX, maxY),
+			this.getCell(minX, maxY),
+			
+		];
 	}
 
 	/**

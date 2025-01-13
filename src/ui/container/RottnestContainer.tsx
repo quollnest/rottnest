@@ -45,11 +45,11 @@ type RottnestAppState = {
 
 
 let RottnestSubKinds: RottnestKindMap = {
-	bus: [{ name: 'test_bus' }],	
-	register: [{ name: 'test_register'}],
-	bellstate: [{ name: 'test_bellstate'}],
-	factory: [{ name: 'test_factory'}],
-	buffer: [{ name: 'test_buffer' }]	
+	bus: [{ name: 'Not Selected' }],	
+	register: [{ name: 'Not Selected'}],
+	bellstate: [{ name: 'Not Selected'}],
+	factory: [{ name: 'Not Selected'}],
+	buffer: [{ name: 'Not Selected' }]	
 }
 
 
@@ -114,6 +114,11 @@ class RottnestContainer
 			}
 		}
 	};
+	
+	regionStack: RegionsSnapshotStack = 
+		new RegionsSnapshotStack();
+	currentRDBuffer: RegionData = 
+		new RegionData();
 
 	constructor(props: RottnestProperties) {
 		super(props);
@@ -142,7 +147,6 @@ class RottnestContainer
 			.GetAppServiceInstance();
 		if(!appService.isConnected()) {
 			appService.connect();
-			//appService.sendMsg('subtype');
 		}
 	}
 
@@ -151,11 +155,53 @@ class RottnestContainer
 		settingsForm: null
 	}
 	
-	regionStack: RegionsSnapshotStack = 
-		new RegionsSnapshotStack();
-	currentRDBuffer: RegionData = 
-		new RegionData();
-	
+
+	//Methods
+
+	/**
+	 * Calls into the selected region and retrieves the
+	 * list of adjacent regions that it can manually set
+	 */
+	getValidAdjacentsOfSelected() {
+		const adjacentList = [
+			{
+				name: "Not Selected",
+				listIdx: -1,
+				connectorId: 0,
+				direction: 0
+			}
+		]
+		const regionList = this.state.regionList;
+		const selectedRegion = this.getSelectedRegionData();
+
+		if(selectedRegion) {
+			const edges = selectedRegion.edgeAABBs();
+			const aregs = this.state.regionList
+				.discoverFromEdges(edges);
+			const selKind = selectedRegion.getKind();
+			adjacentList	
+				.push(...aregs.map((ar, idx) =>{
+					const kindP = RegionData
+						.PluraliseKind(ar.regionData
+						       .getKind())
+					return ({
+						name: kindP,
+						listIdx: ar.ownIdx !== null ?
+							ar.ownIdx : -1,
+						connectorId: idx+1,
+						direction: ar.dir
+					})
+				})
+				.filter((ar, _) => {
+					return regionList
+						.canConnectToKind(
+							selKind, 
+							ar.name);
+				}));
+		} 
+		return adjacentList;
+	}
+
 	updateSubTypesFromService() {
 		const apserv = this.commData.appService;
 		apserv.retrieveSubTypes();
@@ -166,7 +212,8 @@ class RottnestContainer
 		this.state.subTypesRecvd = true;
 		this.triggerUpdate();
 	}
-
+	
+	//TODO: Bug exists when called from region list...
 	selectCurrentRegion(kind: string, idx: number) {
 		const selectedObj = this.getRegionList()
 			.retrieveByIdx(kind, idx);
@@ -177,9 +224,13 @@ class RottnestContainer
 				.selectedRegionType = kind;
 			
 			this.triggerUpdate();
+		} else {
+			console.error("Unable set current region");
 		}
 	}
 
+	//TODO: Funny method, subTypes and selected might be
+	//messing with things
 	getRegionListData() {
 		return {
 			regionList: this.state.regionList,
@@ -202,8 +253,8 @@ class RottnestContainer
 				= aggrData.regIdx
 			this.state.appStateData.componentData
 			.selectedRegionType 
-				= aggrData.kind;
-
+				= RegionData.PluraliseKind(
+					aggrData.kind);
 			this.triggerUpdate();
 		}
 	}
@@ -211,9 +262,12 @@ class RottnestContainer
 	getSelectedRegionData(): RegionData | null {
 		const getSelectedIdx = this.state.appStateData
 			.componentData.selectedRegion;
-
-		const getSelectedKeyStr = this.state.appStateData
-			.componentData.selectedRegionType;
+		const selKey = this.state.appStateData
+			.componentData.selectedRegionType !== null ?
+			this.state.appStateData
+			.componentData.selectedRegionType  : 'NA';
+		const getSelectedKeyStr = RegionData.PluraliseKind(
+			selKey);
 
 
 		return this.getRegionList()
@@ -237,6 +291,7 @@ class RottnestContainer
 
 		const getSelectedKeyStr = this.state.appStateData
 			.componentData.selectedRegionType;
+		console.log(getSelectedIdx, getSelectedKeyStr, regData);
 		this.getRegionList()
 			.updateByIdx(getSelectedKeyStr, 
 				     getSelectedIdx, 
@@ -391,7 +446,8 @@ class RottnestContainer
 				//Trigger a resolution here
 				//
 				this.state.regionList
-					.resolveConnectionsFromTraversal(false);
+					.resolveConnectionsFromTraversal(
+						false);
 				this.triggerUpdate();
 			}
 		}

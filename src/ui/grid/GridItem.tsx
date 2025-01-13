@@ -107,6 +107,7 @@ type CellState = {
 export type CellProps = {
 	leftDown: boolean
 	toolKind: number
+	isHighlighted: boolean
 	isSelected: boolean
 	paintMode: boolean
 	x: number
@@ -165,7 +166,7 @@ export class GridCell extends React.Component<CellProps, CellState> {
 		//Detects a change
 		//TODO: Check if we need this if statement anymore
 		if(tkind === 0) {
-			selectFn(x, y);
+			if(selectFn) { selectFn(x, y); }
 
 		} else if(newGCState.data.taggedKind != tkind) {
 			if(taggingFn) {
@@ -212,7 +213,7 @@ export class GridCell extends React.Component<CellProps, CellState> {
 		const isSelected = cref.props.isSelected;
 		
 		const nCell = new CellData(taggedKind);
-
+		const isHighlighted = cref.props.isHighlighted;
 
 		const selectedStyle = isSelected ?
 			`${CellData.GetStyleKey(toolKind)}Selected` :
@@ -226,13 +227,16 @@ export class GridCell extends React.Component<CellProps, CellState> {
 			cref.cellMouseDown(e, toolKind)
 			
 		}
-
+		//console.log(cdir);
 		const pointer = cdir !== null ? 
 			this.getDirectionRender(cdir) : <></>;
 		
+		const highlighted = !isHighlighted ? '' :
+			styles.gridItemSelected;
 		return (
 			<div className={`${styles.gridItem} 
-				${GridStylesMap[nCell.toStyleKey()]} 
+				${GridStylesMap[nCell.toStyleKey()]}
+				${highlighted}
 				${styles[selectedStyle] !==undefined ? 
 					styles[selectedStyle] : ''}` }
 				onMouseMove={mmove}
