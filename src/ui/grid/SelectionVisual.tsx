@@ -34,11 +34,13 @@ export default class SelectionVisual
 		const sref = this.props.container;
 
 		const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+			console.log('SelectionVisual:onMove');
 			sref.selectionMove(e.clientX,
 					e.clientY);
 		}
 
 		const onUp = (_: React.MouseEvent<HTMLDivElement>) => {
+			console.log('SelectionVisual:onUp');
 			sref.onSelectFinish();
 		}
 		return (

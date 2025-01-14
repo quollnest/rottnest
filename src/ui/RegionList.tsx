@@ -83,8 +83,10 @@ class RegionList extends React.Component<RegionListProps,
 		const regions = this.props.regions;
 		const container = this.props.container;
 		const [selIdx, selKind] = container.getRegionSelectionData();
-		const renderRegions = regions.flattenWithTags().map(
-			(r, idx) => {
+		const renderRegions = regions.flattenWithTags()
+			.filter((r, _) => !r.rdata.isDead())
+			.map(
+				(r, idx) => {
 				//TODO: Remove ternery
 				let selKindS = selKind !== null 
 					? selKind : '';

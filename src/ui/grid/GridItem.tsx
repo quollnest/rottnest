@@ -106,6 +106,7 @@ type CellState = {
  */
 export type CellProps = {
 	leftDown: boolean
+	middleDown: boolean
 	toolKind: number
 	isHighlighted: boolean
 	isSelected: boolean
@@ -150,13 +151,31 @@ export class GridCell extends React.Component<CellProps, CellState> {
 	}
 
 	cellMouseDown(_: React.MouseEvent<HTMLDivElement>,
-			tkind: number) {
+			tkind: number, middleDown: boolean) {
+				
 		const x = this.props.x;
 		const y = this.props.y;
-		
-		this.onTagging(x, y, tkind);
+		//TODO: Doesn't do anything, griditem gets the event first
+		if(!middleDown) {	
+			this.onTagging(x, y, tkind);
+		}
 	}
+	
+	/*cellMouseUp(_: React.MouseEvent<HTMLDivElement>,
+			tkind: number, middleDown: boolean) {
 
+		//const x = this.props.x;
+		//const y = this.props.y;
+		if(middleDown) {
+
+			const unselectFn = this.props.unselectFn;
+			if(unselectFn) {
+				unselectFn(-1, -1);
+				console.log('unselectFn called');
+			}
+			
+		}
+	}*/
 
 	onTagging(x: number, y: number, tkind: number) {
 			
@@ -209,6 +228,7 @@ export class GridCell extends React.Component<CellProps, CellState> {
 
 		const toolKind = cref.props.toolKind;
 		const leftDown = cref.props.leftDown;
+		const middleDown = cref.props.middleDown;
 		
 		const isSelected = cref.props.isSelected;
 		
@@ -221,10 +241,10 @@ export class GridCell extends React.Component<CellProps, CellState> {
 
 
 		const mmove = (e: React.MouseEvent<HTMLDivElement>)=> {
-			cref.cellMouseMove(e, toolKind, leftDown)
+			cref.cellMouseMove(e, toolKind, leftDown);
 		}
 		const mDown = (e: React.MouseEvent<HTMLDivElement>)=> {
-			cref.cellMouseDown(e, toolKind)
+			cref.cellMouseDown(e, toolKind, middleDown);
 			
 		}
 		//console.log(cdir);

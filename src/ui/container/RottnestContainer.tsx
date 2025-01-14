@@ -19,7 +19,6 @@ import { RottnestKindMap } from '../../model/KindMap.ts'
 import {AppServiceClient} 
 	from '../../net/AppService.ts';
 import AppServiceModule from '../../net/AppServiceModule.ts';
-import ArchConverter from '../../util/ArchConverter.ts';
 
 /**
  * At the moment, nothing interesting
@@ -130,7 +129,6 @@ class RottnestContainer
 			'subtype', (_) => {
 				let kinds = appService
 					.retrieveSubTypes();
-				console.log("We received something");
 				if(kinds) {
 					selfRef.updateSubTypes(kinds);
 				}
@@ -138,7 +136,6 @@ class RottnestContainer
 		);
 		appService.registerReciverKinds(
 			'usearch', (_) => {
-				console.log('Hey we got a response');
 			}
 		);
 	}
@@ -257,7 +254,6 @@ class RottnestContainer
 		const aggrData = this.state.regionList
 			.getRegionDataFromCoords(x, y); 
 
-		console.log(aggrData);
 		if(aggrData) {
 			this.state.appStateData.componentData
 			.selectedRegion 
@@ -267,6 +263,17 @@ class RottnestContainer
 				= RegionData.PluraliseKind(
 					aggrData.kind);
 			this.triggerUpdate();
+		} else {
+			//reset
+			console.log("region unselected");
+			this.state.appStateData.componentData
+			.selectedRegion 
+				= -1; 
+			this.state.appStateData.componentData
+			.selectedRegionType 
+				= null;			
+			this.triggerUpdate();
+
 		}
 	}
 

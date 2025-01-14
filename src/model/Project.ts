@@ -1,3 +1,4 @@
+import {FreeRegionStack} from './FreeRegionStack.ts'
 import { Regions, FlatRegionData, RegionOutputSegment,
 	RegionData, RegionCell, 
 	RegionDataEdges, RegionNode, 
@@ -72,7 +73,8 @@ export class RegionDataList {
 		factories: [],
 		buffers: []
 	};
-
+	
+	freeStack: FreeRegionStack = new FreeRegionStack();
 	
 	
 	
@@ -313,7 +315,6 @@ export class RegionDataList {
 	 */
 	resolveConnectionsFromTraversal(forceAll: boolean) {
 		const seenlist = this.traverseFromRegisters();
-		console.log(seenlist);
 		for(const rnode of seenlist) {
 			const current = rnode.regionData;
 			if(current.isConnectionSet() && !forceAll) {
@@ -750,6 +751,7 @@ export class RegionDataList {
 	cloneList(): RegionDataList {
 		let dlist = new RegionDataList();
 		dlist.regions = this.cloneRegions();
+		dlist.freeStack = this.freeStack.cloneFreeList();
 		return dlist;
 	}
 
@@ -782,27 +784,105 @@ export class RegionDataList {
 		Set<string> {
 		return a.intersection(b);	
 	}
+	
+	
+	
+	resolveConnectionsOnChange(oldRegData: RegionData, 
+				   toRemove: Set<string>,
+				  idx: number) {
+		const kind = oldRegData.getKind();
+		const newRegData = oldRegData.cloneData();
+		newRegData.cleanupRegionData(toRemove);
+		//newRegData will have this info, now we need
+		//defuse its connections
+		const oldAABBs = oldRegData.edgeAABBs();
+		const newAABBs = newRegData.edgeAABBs();
+		const oldAdjacents = this.discoverFromEdges(oldAABBs);
+		const newAdjacents = this.discoverFromEdges(newAABBs);
 
+		if(oldAdjacents.length != newAdjacents.length) {
+			//Assume newAdjacents is smaller	
+			//find what got lost
+			
+			for(let oIdx = 0; oIdx < oldAdjacents.length; oIdx++) {
+				
+				const oReg = oldAdjacents[oIdx];
+				let found = false;
+				for(let nIdx = 0; nIdx < 
+				    newAdjacents.length; nIdx++) {
+
+					const nReg = newAdjacents[nIdx];
+					if(oReg.regionData === 
+					   	nReg.regionData) {
+						found = true;
+					}
+					
+
+				}
+				//Found a region that no longer maps
+				//Check to see if it is still connected
+				//or it is connected to the current region
+				if(!found) {
+					if(oReg.regionData
+					   .matchConnection(kind, idx)) {
+						   oReg.regionData
+						   	.resetConnection();
+					}
+				}
+			}
+
+
+		}
+
+		/*const reglist = 
+		this.discoverFromEdges(
+			regionAABBs);*/
+		
+		//Attempts to add regions to
+		//queue and seenlist
+		//for(const r of reglist) {
+
+
+		
+	}
 
 	cleanupIntersections(data: RegionData) {
 		const rset = data.keySet();
+		const freeStack = this.freeStack;
 		for(const key in this.regions) {
-			const dataToRemove = [];
+			//const dataToRemove = [];
 			const kRegions = this.regions[
 				key as keyof Regions];
 			
 			for(const rk in kRegions) {
-				const eReg = kRegions[rk];
 
+				const eReg = kRegions[rk];
+				if(eReg.isDead()) {
+					continue;
+				}
+
+				const idx = Number(rk);
 				let toRemove = this
 					.resolveIntersections(rset, 
 					eReg.keySet());
+				//Clean up any connected region
+				//That could have been adjacent
+				if(toRemove.size != 0) {
+					this.resolveConnectionsOnChange(eReg,
+								toRemove,
+								       idx);
+				}
+				
+				//Before we clean it up
 				const r = eReg.cleanupRegionData(
 					toRemove);
-
+				
 				if(r <= 0) {
-					dataToRemove
-						.push(Number(rk));
+					//TODO: Mark as dead but don't remove
+					//dataToRemove
+					//	.push(Number(rk));
+					eReg.markAsDead();
+					freeStack.pushOnKind(key, idx);	
 				}
 
 			}
@@ -810,13 +890,14 @@ export class RegionDataList {
 			//Removes any region that has 
 			//  no more cells mapped
 			//from the array.
-			//TODO: Check to see if sort is necessary
-			
-			dataToRemove.sort();			
-			dataToRemove.reverse();
-			for(const idx of dataToRemove) {
-				kRegions.splice(idx, 1);
-			}
+			//TODO: We may not need this anymore,
+			//	we will mark regions as dead rather
+			//	than ripping it out 
+			//dataToRemove.sort();			
+			//dataToRemove.reverse();
+			//for(const idx of dataToRemove) {
+			//	kRegions.splice(idx, 1);
+			//}
 		}
 	}
 
@@ -829,8 +910,21 @@ export class RegionDataList {
 		this.cleanupIntersections(data)		
 		//Gets added
 		//console.log(this.regions);
+		//Check freelist
 		data.regionKind = pkey;
-		this.regions[pkey].push(data);
+		if(this.freeStack.availableOnKind(pkey)) {
+			const idx = this.freeStack
+				.popOnKind(pkey);
+			if(idx !== null) {
+				this.regions[pkey][idx]
+					.replaceWith(data);
+			} else {	
+				this.regions[pkey].push(data);
+			}
+		} else {
+			this.regions[pkey].push(data);
+		}
+		console.log('Buffer applied');
 	}
 
 	flatten(): FlatRegions {

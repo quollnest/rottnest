@@ -111,7 +111,11 @@ export class RegionData {
 
 	regionKind: string | null = null;
 	subTypeKind: string | null = null;
+
+	deadRegion: boolean = false;
 	
+	
+
 	static fromFlatten(data: FlatRegionData): RegionData {
 		const rdata = new RegionData();
 		
@@ -120,6 +124,66 @@ export class RegionData {
 		}	
 
 		return rdata;
+	}
+
+	replaceWith(rep: RegionData) {
+		this.cells = rep.cells;
+		this.manuallySetConnection = rep
+			.manuallySetConnection;
+		this.connectionSet = rep.connectionSet;
+		this.connectionToKind = rep.connectionToKind;
+		this.connectionToIdx = rep.connectionToIdx;
+		this.connectionDir = rep.connectionDir;
+
+		this.regionKind = rep.regionKind;
+		this.subTypeKind = rep.subTypeKind;
+		this.deadRegion = rep.deadRegion;
+	}
+
+	isDead(): boolean {
+		return this.deadRegion;
+	}
+
+	markAsDead() {
+		//TODO: Consider dropping memory hogs like cells
+		//and other things
+		this.cells = new Map(); //kills them
+		this.deadRegion = true;
+	}
+
+	cloneData(): RegionData {
+		let newCells: Map<string, RegionCell> = new Map();
+		const regData = new RegionData();
+		regData.manuallySetConnection = this
+			.manuallySetConnection;
+		
+		regData.regionKind = this.regionKind;
+		regData.subTypeKind = this.subTypeKind;
+
+		regData.connectionSet = this.connectionSet;
+		regData.connectionToKind = this.connectionToKind;
+		regData.connectionToIdx = this.connectionToIdx;
+		regData.connectionDir = this.connectionDir;
+		
+		regData.deadRegion = this.deadRegion;
+
+		for(let [key, value] of this.cells) {
+			//console.log(key);
+			const rcell = value; 
+			if(rcell) {
+				newCells.set(key, 
+				     { 
+					     x: rcell.x, 
+					     y: rcell.y,
+					     cdir: rcell.cdir,
+					     cnKind: rcell.cnKind,
+					     manualSet: rcell.manualSet
+				     } );
+			}
+		}
+		regData.cells = newCells;
+
+		return regData;
 	}
 
 	getConnectionDataPair(): RegionConPair | null {
@@ -226,7 +290,10 @@ export class RegionData {
 		return { cells: flatMap }
 	}
 
-	
+	matchConnection(kind: string, idx: number) {
+		return this.connectionToKind === kind &&
+			this.connectionToIdx == idx;
+	}
 
 	checkAABB(regEdge: RegionEdge): boolean {
 		for(const [_, cell] of this.cells) {
@@ -322,8 +389,10 @@ export class RegionData {
 		const outputSegment = this.getOutputCells();
 		let markers: Array<RegionCell> = [];
 		if(direction > 0) {
-			for(let i = 0; i < outputSegment.cells.length; i++) {
-				const dset = outputSegment.dirToChecks[i]; 
+			for(let i = 0; i < outputSegment.cells
+			    .length; i++) {
+				const dset = outputSegment
+				.dirToChecks[i]; 
 				for(const d of dset) {		
 					if(d === direction) {
 						markers = outputSegment
@@ -358,6 +427,13 @@ export class RegionData {
 		this.connectionSet = true;
 
 		//Should apply update to cells
+	}
+	resetConnection() {
+		this.connectionToKind = null;
+		this.connectionToIdx = null;
+		this.connectionDir = 0;
+		this.connectionSet = false;
+		this.manuallySetConnection = false;
 	}
 
 
@@ -572,19 +648,4 @@ export class RegionData {
 		return this.cells.size;
 	}
 
-	cloneData(): RegionData {
-		let newCells: Map<string, RegionCell> = new Map();
-		const regData = new RegionData();
-		for(let [key, value] of this.cells) {
-			//console.log(key);
-			const rcell = value; 
-			if(rcell) {
-				newCells.set(key, 
-				     { x: rcell.x, y: rcell.y } );
-			}
-		}
-		regData.cells = newCells;
-
-		return regData;
 	}
-}

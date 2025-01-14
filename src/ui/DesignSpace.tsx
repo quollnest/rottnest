@@ -106,6 +106,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		return things;
 	}
 
+	//TODO: Refactor, this is costly
 	resetSelection() {
 		for(let i = 0; i < this.state.cells.length; i++) {
 			this.state.cells[i].isSelected = false;
@@ -154,7 +155,20 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		}
 	}
 
-	onGridUp(_: React.MouseEvent<HTMLUListElement>) {
+	selectionMove(newX: number, newY: number) {
+		if(this.state.leftIsDown) {	
+			let newGS = {...this.state};
+			
+			const x = newX;
+			const y = newY;
+			newGS.selectionRect.x2 = x;
+			newGS.selectionRect.y2 = y;
+			this.setState(newGS);
+		} 
+	}
+
+
+	onGridUp(e: React.MouseEvent<HTMLUListElement>) {
 		//1. Needs to construct RegionData:
 		//2. Send the old RegionDataList to undo stack
 		//3. Add the RegionData to RegionDataList
@@ -171,16 +185,29 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			//newGS.leftIsDown = false;
 			this.onSelectFinish();
 			//this.setState(newGS);
+
 		} else if(this.state.middleIsDown) {
-			this.onMiddleUp();
+			const x = e.clientX;
+			const y = e.clientY;
+			this.onMiddleUp(x, y);
 		}
 		
 	}
 
-	onMiddleUp() {
+	onMiddleUp(x: number, y: number) {
 		const newGS = {...this.state};
+		newGS.selectionRect.x1 = x;
+		newGS.selectionRect.x2 = x+1;
+		newGS.selectionRect.y1 = y;
+		newGS.selectionRect.y2 = y+1;
 		newGS.leftIsDown = false;
 		newGS.middleIsDown = false;
+		newGS.startSelected = false;
+		newGS.selectionRect = { x1: 0, x2: 0, y1: 0, 
+			y2: 0 };
+		newGS.startCell = { x: 0, y: 0 };
+		newGS.endCell = { x: 0, y: 0 };
+		this.resetSelection();
 		this.setState(newGS);
 	}
 
@@ -198,19 +225,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		} 	
 	}
 
-	selectionMove(newX: number, newY: number) {
-		if(this.state.leftIsDown) {	
-			let newGS = {...this.state};
-			
-			const x = newX;
-			const y = newY;
-			newGS.selectionRect.x2 = x;
-			newGS.selectionRect.y2 = y;
-			this.setState(newGS);
-		} 
-	}
-
-
+	
 	/**
 	 * This is used to detect 
 	 */
@@ -473,6 +488,9 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 				y={y}
 				leftDown={
 					gref.state.leftIsDown
+				}
+				middleDown={
+					gref.state.middleIsDown
 				}
 				toolKind={
 					gref.props.container
