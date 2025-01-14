@@ -79,7 +79,8 @@ export class RegionDataList {
 	/*/
 	 * Requires pluralised strings when used
 	 */
-	retrieveByIdx(kind: string | null, idx: number): RegionData | null {
+	retrieveByIdx(kind: string | null, idx: number): 
+		RegionData | null {
 		if(kind) {
 			const kindKey = kind as keyof Regions;
 			const regCol = this.regions[kindKey];
@@ -669,14 +670,28 @@ export class RegionDataList {
 	
 	
 		let idx = fRes.findIndex((r) => r.length > 0);
+		
 		if(idx >= 0) {
-			let regData = fRes[idx].find((rd, _) => rd.cells
-						     .get(rcStr) !== null);
-			let regDataIdx = fRes[idx].findIndex((rd, _) => { 
-				return rd.cells.get(rcStr) !== null });
+			let regData = fRes[idx].find((rd, _) => 
+					rd.cells
+					.get(rcStr) !== null);
+			const kindKey = 
+				kindList[idx] as keyof Regions;
+			let regDataIdx = -1;
+			for(let i = 0; i < 
+			    this.regions[kindKey].length;
+			    	i++) {
+				const rmap = this
+					.regions[kindKey][i].cells;
+				if(rmap.has(rcStr)) {
+					regDataIdx = i;
+					break;
+				}
+			}
+
 			return {
 				regData,
-				kind: kindList[idx],
+				kind: kindKey,
 				kindIdx: idx,
 				regIdx: regDataIdx
 			}

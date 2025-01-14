@@ -2,13 +2,28 @@
 import { DeRott } from './Serialisation'
 
 import { RottnestKindMap } from '../model/KindMap.ts'
+import {TSchedData} from '../model/TSchedData.ts';
 //This is used to current convert between front and
 //backend
 //
 
 //Normalisation via keys
 
+export class RottArchMSG {
+	
+	tschedData: TSchedData;
 
+	constructor(tsched: TSchedData) {
+		this.tschedData = tsched;
+	}
+
+	toJsonStr(): string {
+		return JSON.stringify({
+			message: "arch",
+			arch: this.tschedData,
+		});
+	}
+}
 
 export class RottSubTypesMSG implements DeRott  {
 	
@@ -40,7 +55,7 @@ export class RottSubTypesMSG implements DeRott  {
 
 	fromJSON(mdata: any) {
 		const data = mdata['subtypes'];
-		for(const k in data) {
+			for(const k in data) {
 			const lowerK = k.toLowerCase();
 			let lowerKey = 
 				lowerK as keyof RottnestKindMap

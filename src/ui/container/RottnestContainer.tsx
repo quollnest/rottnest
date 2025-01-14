@@ -252,10 +252,12 @@ class RottnestContainer
 				connectorId: 0}]
 		}
 	}
-
+	
 	updateSelectedRegion(x: number, y: number) {
 		const aggrData = this.state.regionList
-			.getRegionDataFromCoords(x, y);
+			.getRegionDataFromCoords(x, y); 
+
+		console.log(aggrData);
 		if(aggrData) {
 			this.state.appStateData.componentData
 			.selectedRegion 

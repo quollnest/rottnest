@@ -1,6 +1,6 @@
 
 import { AppServiceMessage } from "./AppServiceMessage.ts"; 
-import {RottSubTypesMSG} from "./Messages.ts";
+import {RottArchMSG, RottSubTypesMSG} from "./Messages.ts";
 
 export const APP_URL: string = "ws://localhost:8080/websocket";
 
@@ -153,10 +153,10 @@ export class AppServiceClient {
 
 		return null;
 	}
-
-	submitArch(_: any | null) {
+	
+	submitArch(schedMsg: RottArchMSG) {
 		if(this.socket) {
-			this.socket.send('usearch');
+			this.socket.send(schedMsg.toJsonStr());
 		}
 	}
 

@@ -434,7 +434,8 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 						.getRegionList()
 						.getCellDataFromCoords(
 							x, y);
-				const cellData = cda.cell !== null ? cda.cell
+				const cellData = cda.cell !== null 
+					? cda.cell
 					: null;
 				let cdir: number | null = -1;
 				let covr = false;
@@ -447,7 +448,8 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 
 				if(cellData) {
 
-					cdir = cellData.cdir !== undefined ? 
+					cdir = cellData.cdir 
+					!== undefined ? 
 						cellData.cdir : null;
 					covr = cellData.manualSet 
 						!== undefined ? 

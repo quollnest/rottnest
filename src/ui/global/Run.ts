@@ -1,11 +1,16 @@
-import {AppServiceClient, APP_URL} from "../../net/AppService"
+import {RottArchMSG} from "../../net/Messages";
+import ArchConverter from "../../util/ArchConverter";
 import RottnestContainer from "../container/RottnestContainer"
 
 
 const leftClick = (container: RottnestContainer) => {
 	const rottContainer = container;
 	const appService = rottContainer.commData.appService;
-	appService.submitArch(null)
+	const projAssembly = rottContainer.getProjectAssembly();
+	const tschedProject = ArchConverter.ToTSched(projAssembly);
+	if(tschedProject) {	
+		appService.submitArch(new RottArchMSG(tschedProject))
+	}
 }
 
 const auxEvent = (_: RottnestContainer) => { }
