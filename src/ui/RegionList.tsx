@@ -4,6 +4,11 @@ import {RegionDataList, RottnestProject} from '../model/Project';
 import {RegionData } from '../model/RegionData';
 import RottnestContainer from './container/RottnestContainer';
 
+import {
+	EyeOutlined,
+	EyeInvisibleOutlined
+} from '@ant-design/icons'
+
 type RegionListProps = {
 	regions: RegionDataList
 	container: RottnestContainer
@@ -14,7 +19,9 @@ type RegionItemData = {
 	kind: string
 	idx: number
 	rdata: RegionData
+	isVisible: boolean
 	isSelected: boolean
+	setVisibility:() => void
 	container: RottnestContainer
 }
 
@@ -41,11 +48,15 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
 		const kind = data.kind;
 		const isSelected = this.props.isSelected;
 
+		const isVisible = data.isVisible;
+
 
 		const onSelect = (_: React.MouseEvent<HTMLLIElement>) => {
 			const pluKind = RegionData.PluraliseKind(kind);
 			rottContainer.selectCurrentRegion(pluKind, idx);
 		}
+
+		const visToggle = data.setVisibility;
 
 		const isSelectedStyle = isSelected ? styles.regionSelected : '';
 
@@ -53,7 +64,12 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
 			<li key={name} className={`${styles.regionItem}
 				${isSelectedStyle}`}
 				onClick={onSelect}>
-				{name}
+				<span>{name}</span>
+				<span className={styles.regionItemBtn}
+					onClick={visToggle}>
+				{isVisible ? <EyeOutlined className={styles.regionItemBtn} /> : 
+					<EyeInvisibleOutlined className={styles.regionItemBtn} />}
+				</span>
 			</li>
 		);
 	}
@@ -83,6 +99,11 @@ class RegionList extends React.Component<RegionListProps,
 		const regions = this.props.regions;
 		const container = this.props.container;
 		const [selIdx, selKind] = container.getRegionSelectionData();
+		const updateVisibility = (regionData: RegionData) => {
+			container.updateVisibility(regionData,
+				!regionData.isVisible());
+		}
+		
 		const renderRegions = regions.flattenWithTags()
 			.filter((r, _) => !r.rdata.isDead())
 			.map(
@@ -98,6 +119,8 @@ class RegionList extends React.Component<RegionListProps,
 				kind={r.kind}
 				idx={r.idx}
 				rdata={r.rdata} 
+				isVisible={r.rdata.isVisible()}
+				setVisibility={() => updateVisibility(r.rdata)}
 				container={container}
 				isSelected={r.kind === selKindS 
 					&& r.idx == selIdx}

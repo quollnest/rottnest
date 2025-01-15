@@ -182,11 +182,59 @@ class RegionSubTypeList extends React.Component
 	}
 }
 
+
+type RegionFactoryKindData = {
+	container: RottnestContainer
+	defaultValue: number
+}
+
+type RegionFactoryKindState = {
+	bstateValue: number 
+}
+
+/**
+ * RegionSettings, when a region is selected from the
+ * RegionList, it will provide a set of region information
+ * that can be changed for that region
+ *
+ */
+class RegionBellStateSettings extends React.Component<RegionFactoryKindData,
+	RegionFactoryKindState> {
+
+	state = {
+
+		bstateValue: 1
+	};
+
+	changeBStateValue(v: number) {
+		
+	}
+
+	render() {
+
+		const rbss = this;
+
+		return ( 
+			<div className={styles.subTypeComp}>
+			<label>Bell State Counter</label>
+				<input type="text" onChange={(e) => {
+					const vStr = e.target.value;
+					const vNum = Number(vStr);
+					rbss.changeBStateValue(vNum);
+				}}></input>
+			</div>
+		)	}
+
+}
+
+
+
 type RegionSettingsData = {
 	subTypes: RegionSubTypeDataList
 	connections: RegionConnectionList
 	container: RottnestContainer
 }
+
 
 /**
  * RegionSettings, when a region is selected from the
@@ -197,7 +245,7 @@ type RegionSettingsData = {
 class RegionSettings extends React.Component<RegionSettingsData, {}> {
 
 	rottContainer: RottnestContainer = this.props.container;
-
+	
 	updateSubTypeOfSelected(subTypeKey: string) {
 		const currentObj = this.rottContainer
 			.getSelectedRegionData();
@@ -255,14 +303,17 @@ class RegionSettings extends React.Component<RegionSettingsData, {}> {
 		const subList = this.props.subTypes;
 		const connectionsList = this.props.connections;
 		
-		//TODO: Refactor this to provide non-null guarantee	
-		const currentSubKey = 
-			selectedRegion === null ? '' :
-				selectedRegion.subTypeKind === null ?
-				'' : selectedRegion.subTypeKind; 
-
+		//TODO: Refactor this to provide non-null guarantee
+		let currentSubKey = ''; 
+		if(selectedRegion !== null && selectedRegion !== undefined) {
+			currentSubKey = selectedRegion.subTypeKind === null ?
+				'' : selectedRegion.subTypeKind;
+		} 		 
+		const isVisible = selectedRegion !== null;
+		console.log(isVisible);
 		return (
-			<div className={styles.regionSettings}>
+			<div className={styles.regionSettings}
+				style={{visibility: isVisible ? 'visible' : 'hidden'}}>
 				<header className={styles
 						.regionSettingsHeader}>
 					{headerName}

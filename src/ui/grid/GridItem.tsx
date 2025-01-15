@@ -117,6 +117,7 @@ export type CellProps = {
 		taggedKind: number
 		override: boolean
 		cdir: number | null
+		isVisible: boolean
 	}
 	tagFn?: (x: number, y: number) => void
 	selectFn?: (x: number, y: number) => void
@@ -250,12 +251,14 @@ export class GridCell extends React.Component<CellProps, CellState> {
 		//console.log(cdir);
 		const pointer = cdir !== null ? 
 			this.getDirectionRender(cdir) : <></>;
-		
+		const isVisible = this.props.cell.isVisible;	
 		const highlighted = !isHighlighted ? '' :
 			styles.gridItemSelected;
+		const cellStyle = isVisible ? GridStylesMap[nCell.toStyleKey()] :
+			'Untagged';
 		return (
 			<div className={`${styles.gridItem} 
-				${GridStylesMap[nCell.toStyleKey()]}
+				${cellStyle}
 				${highlighted}
 				${styles[selectedStyle] !==undefined ? 
 					styles[selectedStyle] : ''}` }

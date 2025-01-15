@@ -194,6 +194,13 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		
 	}
 
+	resetMove() {
+		const newGS = {...this.state};
+		newGS.leftIsDown = false;
+		newGS.middleIsDown = false;
+		this.setState(newGS);
+	}
+
 	onMiddleUp(x: number, y: number) {
 		const newGS = {...this.state};
 		newGS.selectionRect.x1 = x;
@@ -449,19 +456,20 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 						.getRegionList()
 						.getCellDataFromCoords(
 							x, y);
-				const cellData = cda.cell !== null 
+				const visible = cda.visible;
+				const cellData = cda.cell !== null
+					&& visible
 					? cda.cell
 					: null;
 				let cdir: number | null = -1;
 				let covr = false;
-					
 				let highlighted = false;
-				if(selectedRegion) {
+				if(selectedRegion && visible) {
 					highlighted = selectedRegion
 						.hasCoord(x, y);
 				}
 
-				if(cellData) {
+				if(cellData && visible) {
 
 					cdir = cellData.cdir 
 					!== undefined ? 
@@ -476,7 +484,8 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 					{
 						taggedKind: cda.toolKind,
 						cdir,
-						override: covr 
+						override: covr, 
+						isVisible: visible
 					}
 				}
 				paintMode={this.state.paintMode}

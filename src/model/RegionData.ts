@@ -27,7 +27,9 @@ export type RegionDimension = {
 export type RegionCellAggr = {
 	toolKind: number
 	cell: RegionCell | null
+	visible: boolean
 }
+	
 
 
 /**
@@ -114,6 +116,7 @@ export class RegionData {
 
 	deadRegion: boolean = false;
 	
+	visible: boolean = true;
 	
 
 	static fromFlatten(data: FlatRegionData): RegionData {
@@ -138,10 +141,19 @@ export class RegionData {
 		this.regionKind = rep.regionKind;
 		this.subTypeKind = rep.subTypeKind;
 		this.deadRegion = rep.deadRegion;
+		this.visible = rep.visible;
 	}
 
 	isDead(): boolean {
 		return this.deadRegion;
+	}
+
+	isVisible(): boolean {
+		return this.visible;
+	}
+
+	setVisbility(vis: boolean) {
+		this.visible = vis;
 	}
 
 	markAsDead() {

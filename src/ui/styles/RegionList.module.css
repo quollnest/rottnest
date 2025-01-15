@@ -29,8 +29,24 @@
 }
 
 .regionItem {
-	display: block;
-
+	display: flex;
 	padding-left: 0.5em;
 	list-style: none;
 }
+
+.regionItem span {
+	flex: 1;
+	display: flex;
+}
+
+.regionItem svg {
+	display: flex;	
+	justify-content: end;
+}
+
+.regionItemBtn {
+	justify-content: end;
+	flex: 0.2 !important
+}
+
+

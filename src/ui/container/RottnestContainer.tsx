@@ -627,8 +627,13 @@ class RottnestContainer
 	resetDSMove() {
 		const dspace = this.monitorComponent.designSpace;
 		if(dspace) {
-			dspace.onMiddleUp();
+			dspace.resetMove();
 		}
+	}
+
+	updateVisibility(region: RegionData, visible: boolean) {	
+		region.setVisbility(visible);
+		this.triggerUpdate();
 	}
 	
 	render() {

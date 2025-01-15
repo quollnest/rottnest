@@ -618,12 +618,12 @@ export class RegionDataList {
 		}
 
 	}
-
+	
 	//TODO: Define a proper type for the return
 	getCellDataFromCoords(x: number, y: number): RegionCellAggr {
 
 		let res: RegionCellAggr 
-			= { toolKind: -1, cell: null };	
+			= { toolKind: -1, cell: null, visible: true };	
 		const rcStr = `${x} ${y}`;
 		const fRes = [
 			this.regions.buffers.filter((c) => 
@@ -643,6 +643,8 @@ export class RegionDataList {
 		let idx = fRes.findIndex((r) => r.length > 0);
 		if(idx >= 0) {
 			let cell = fRes[idx][0].cells.get(rcStr);
+			const visible = fRes[idx][0].isVisible();
+			res.visible = visible;
 			if(cell) {
 				res.cell = cell;
 			}
@@ -676,8 +678,11 @@ export class RegionDataList {
 			let regData = fRes[idx].find((rd, _) => 
 					rd.cells
 					.get(rcStr) !== null);
+			
 			const kindKey = 
-				kindList[idx] as keyof Regions;
+				RegionData.PluraliseKind(
+					kindList[idx]) as keyof Regions;
+			console.log(kindKey);
 			let regDataIdx = -1;
 			for(let i = 0; i < 
 			    this.regions[kindKey].length;
