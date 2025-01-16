@@ -21,7 +21,7 @@ type SelectionRect = {
  */
 type GridState = {
 	cells: Array<CellInfo>
-	mousePosition: [number, number]
+	gridPosition: [number, number]
 	middleIsDown: boolean
 	leftIsDown: boolean
 	startSelected: boolean
@@ -78,7 +78,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	state: GridState = {
 		cells: DesignSpace.FillCells(this.props.width, 
 					     this.props.height),
-		mousePosition: [0, 0],
+		gridPosition: [0, 0],
 		middleIsDown: false,
 		leftIsDown: false,
 		selectionRect: { x1: 0, x2: 0, y1: 0, y2: 0 },
@@ -122,8 +122,8 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			
 			let newGS = {...this.state};
 			
-			let [oX, oY] = newGS.mousePosition
-			newGS.mousePosition = [
+			let [oX, oY] = newGS.gridPosition
+			newGS.gridPosition = [
 				oX + x,
 				oY + y
 			];
@@ -144,8 +144,8 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			const y = e.movementY;
 
 			let newGS = {...this.state};
-			let [oX, oY] = newGS.mousePosition
-			newGS.mousePosition = [
+			let [oX, oY] = newGS.gridPosition
+			newGS.gridPosition = [
 				oX + x,
 				oY + y
 			];
@@ -153,6 +153,19 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		} else {
 			this.onLeftMove(e);
 		}
+	}
+	selectionMoveRel(relX: number, relY: number) {
+		if(this.state.leftIsDown) {	
+			let newGS = {...this.state};
+			
+			const x = relX;
+			const y = relY;
+			newGS.selectionRect.x2 += x;
+			newGS.selectionRect.y2 += y;
+			console.log(newGS.selectionRect);
+			this.setState(newGS);
+		} 
+
 	}
 
 	selectionMove(newX: number, newY: number) {
@@ -163,6 +176,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			const y = newY;
 			newGS.selectionRect.x2 = x;
 			newGS.selectionRect.y2 = y;
+			console.log(newGS.selectionRect);
 			this.setState(newGS);
 		} 
 	}
@@ -221,12 +235,15 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	
 	onLeftDown(e: React.MouseEvent<HTMLUListElement>) {
 		if(e.button === 0) {
-			
+			const b = e.currentTarget.getBoundingClientRect();
+		//console.log(e.clientX-b.left, e.clientY-b.top);
+			const newX = e.clientX+(-b.left+this.state.gridPosition[0]);
+			const newY = e.clientY+(-b.top+this.state.gridPosition[1]);
 			let newGS = {...this.state};
-			newGS.selectionRect.x1 = e.clientX;
-			newGS.selectionRect.x2 = e.clientX;
-			newGS.selectionRect.y1 = e.clientY+1;
-			newGS.selectionRect.y2 = e.clientY+1;
+			newGS.selectionRect.x1 = newX;
+			newGS.selectionRect.x2 = newX+1;
+			newGS.selectionRect.y1 = newY;
+			newGS.selectionRect.y2 = newY+1;
 			newGS.leftIsDown = true;
 			this.setState(newGS);
 		} 	
@@ -239,7 +256,12 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	onLeftMove(e: React.MouseEvent<HTMLUListElement>) {
 		//1. Start drawing a rectangle
 		//2. Start doing detection on the grid
-		this.selectionMove(e.clientX, e.clientY);
+		const b = e.currentTarget.getBoundingClientRect();
+		//console.log(e.clientX-b.left, e.clientY-b.top);
+		this.selectionMove(
+			e.clientX+(-b.left+this.state.gridPosition[0]),
+			e.clientY+(-b.top+this.state.gridPosition[1])
+		);
 	}
 
 	onLeftUp(_: React.MouseEvent<HTMLUListElement>) {
@@ -290,7 +312,6 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		let y2 = this.state.leftIsDown ? 
 			window.scrollY + 
 			this.state.selectionRect.y2 : 0;
-
 		if(x1 > x2) {
 			let tmp = x1;
 			x1 = x2;
@@ -336,7 +357,9 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 		if(e.deltaY < 0) {
 			container.zoomIn(25);
 		} else if(e.deltaY > 0) {
-			container.zoomIn(-25);
+			if(this.props.zoomValue >= 50) {
+				container.zoomIn(-25);
+			}
 		}
 
 	}
@@ -514,7 +537,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			});
 		
 		const svprops = this.getSelectionData();
-		
+		console.log(zoomValue);	
 
 		return (
 			<div draggable={false} className={
@@ -536,10 +559,10 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 					style={ { 
 						left: 
 						gref.state
-						.mousePosition[0],
+						.gridPosition[0],
 						top: 
 						gref.state
-						.mousePosition[1],
+						.gridPosition[1],
 						width: 
 						`${zoomValue}%`,
 						gridTemplateColumns: 

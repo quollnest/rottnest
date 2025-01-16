@@ -34,23 +34,24 @@ export default class SelectionVisual
 		const sref = this.props.container;
 
 		const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
-			console.log('SelectionVisual:onMove');
-			sref.selectionMove(e.clientX,
-					e.clientY);
+			sref.selectionMoveRel(e.movementX,
+					e.movementY);
 		}
 
 		const onUp = (_: React.MouseEvent<HTMLDivElement>) => {
-			console.log('SelectionVisual:onUp');
 			sref.onSelectFinish();
 		}
+
+
 		return (
 			<div 
 			className={style.selectionVisual}
 			style={ {
 				top: sy,
 				left: sx,
-				width: width >= 5 ? width-5 : width,
-				height: height >= 5 ? height-5 : height,	 
+				width: width >= 3 ? width-3 : width,
+				height: height >= 3 ? height-3 : height,	 
+				
 				visibility: props.container.state
 					.leftIsDown ? 'visible' 
 						: 'hidden'

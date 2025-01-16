@@ -1,7 +1,9 @@
-import {RottArchMSG} from "../../net/Messages";
+import {TSchedData} from "../../model/TSchedData";
+import {RottArchMSG, RottRunResultMSG} from "../../net/Messages";
 import ArchConverter from "../../util/ArchConverter";
 import RottnestContainer from "../container/RottnestContainer"
 
+const IS_DEBUG: boolean = true;
 
 const leftClick = (container: RottnestContainer) => {
 	const rottContainer = container;
@@ -9,6 +11,14 @@ const leftClick = (container: RottnestContainer) => {
 	const projAssembly = rottContainer.getProjectAssembly();
 	const tschedProject = ArchConverter.ToTSched(projAssembly);
 	if(tschedProject) {	
+		appService.submitArch(new RottArchMSG(tschedProject))
+	}
+	if(IS_DEBUG) {
+		let tschedProject: TSchedData = {
+			width: 0,
+			height: 0,
+			regions: []
+		};
 		appService.submitArch(new RottArchMSG(tschedProject))
 	}
 }

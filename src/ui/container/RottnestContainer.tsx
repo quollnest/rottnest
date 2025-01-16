@@ -19,6 +19,7 @@ import { RottnestKindMap } from '../../model/KindMap.ts'
 import {AppServiceClient} 
 	from '../../net/AppService.ts';
 import AppServiceModule from '../../net/AppServiceModule.ts';
+import {RottRunResultMSG} from '../../net/Messages.ts';
 
 /**
  * At the moment, nothing interesting
@@ -41,7 +42,6 @@ type RottnestAppState = {
 		selectedRegion: number
 		selectedRegionType: string | null 
 	}
-
 }
 
 
@@ -63,6 +63,7 @@ type RottnestState = {
 	appStateData: RottnestAppState
 	regionList: RegionDataList
 	subTypes: RottnestKindMap
+	tabData: TabViewStateData
 	subTypesRecvd: boolean
 }
 
@@ -74,6 +75,12 @@ type ComponentMonitor = {
 type AppCommData = {
 	appService: AppServiceClient
 
+}
+
+type TabViewStateData = {	
+	selectedTabIndex: number
+	tabNames: Array<string>
+	availableTabs: Array<boolean>
 }
 
 /**
@@ -112,7 +119,12 @@ class RottnestContainer
 				selectedTool: 0,
 				selectedRegion: -1,
 				selectedRegionType: null
-			}
+			},
+		},		
+		tabData: {
+			selectedTabIndex: 0,
+			availableTabs: [true, false, false],
+			tabNames: ['Architecture', 'Widget', 'Visualiser']
 		}
 	};
 	
@@ -135,7 +147,12 @@ class RottnestContainer
 			}
 		);
 		appService.registerReciverKinds(
-			'usearch', (_) => {
+			'use_arch', (_) => {
+				let someMsg = appService.dequeue();
+				let arch_id = someMsg?.getJSON();
+				appService.runResult(new RottRunResultMSG(arch_id));
+
+
 			}
 		);
 	}
@@ -330,8 +347,13 @@ class RottnestContainer
 				selectedTool: 0,
 				selectedRegion: 0,
 				selectedRegionType: null
-			}
+			},
 		};
+		this.state.tabData = {
+			selectedTabIndex: 0,
+			availableTabs: [true, false, false],
+			tabNames: ['Architecture', 'Widget', 'Visualiser']
+		}
 		this.regionStack = new RegionsSnapshotStack();
 		this.currentRDBuffer = new RegionData();
 
@@ -606,7 +628,6 @@ class RottnestContainer
 	 * TODO: Bug with zoom-ing and breaking the grid gap
 	 */
 	zoomIn(perc: number) {
-		
 		if((this.state.appStateData.zoomValue + perc) <= 400) {
 			this.state.appStateData.zoomValue += perc;	
 			this.triggerUpdate();
@@ -615,11 +636,11 @@ class RottnestContainer
 
 	/**
 	 * Modifies the zoomIn and zoomOut
-	 * TODO: Bug with zoom-ing and breaking the grid gap
+	 * TODO: Bug wih zoom-ing and breaking the grid gap
 	 */
 	zoomOut(perc: number) {
 		if((this.state.appStateData.zoomValue - perc) > 0) {
-			this.state.appStateData.zoomValue -= perc;		
+			this.state.appStateData.zoomValue -= perc;	
 			this.triggerUpdate();
 		}
 	}
@@ -633,6 +654,13 @@ class RottnestContainer
 
 	updateVisibility(region: RegionData, visible: boolean) {	
 		region.setVisbility(visible);
+		this.triggerUpdate();
+	}
+
+	updateSelectedTab(idx: number) {
+		const tabs = this.state.tabData.tabNames;
+		this.state.tabData.selectedTabIndex 
+			= idx % tabs.length;
 		this.triggerUpdate();
 	}
 	
@@ -659,7 +687,10 @@ class RottnestContainer
 		const appService = AppServiceModule
 			.GetAppServiceInstance();
 		if(!this.state.subTypesRecvd) {
-			appService.sendMsg('subtype');
+			appService.sendMsg(JSON.stringify(
+				{
+					cmd: 'subtype',
+				}));
 		}
 		
 		return (
@@ -688,6 +719,14 @@ class RottnestContainer
 							.height,
 						}
 					}
+					selectedTab={this.state
+						.tabData
+						.selectedTabIndex}
+					tabTitles={this.state
+						.tabData
+						.tabNames}
+					availableTabs={this.state
+						.tabData.availableTabs}
 					zoomValue={zoomValue}
 					container={rottContainer}
 					toolKind={toolKind} />

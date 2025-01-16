@@ -5,3 +5,41 @@
 	flex: 1;
 	overflow-y: hidden;
 }
+
+.workspaceTabBar {
+	min-height: 1em;
+	flex-flow: column;
+	width: 100%;
+	border-bottom: 1px #35332f solid;
+	border-left: 1px #35332f solid;
+	border-right: 1px #35332f solid;
+	background-color: #232122;
+
+}
+
+.workTabUnavailable {	
+	color: #555555;
+
+}
+
+.workTab {	
+	border: 1px #35332f solid;
+	background-color: #232122;
+	padding-left: 2em;
+	padding-right: 2em;
+}
+
+.selectedTab {
+	background-color: #333132;
+
+}
+
+.workspaceZone {
+	display: block;
+	position: relative;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	user-select: none;
+}
+

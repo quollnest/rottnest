@@ -19,11 +19,28 @@ export class RottArchMSG {
 
 	toJsonStr(): string {
 		return JSON.stringify({
-			message: "arch",
-			arch: this.tschedData,
+			cmd: "use_arch",
+			payload: this.tschedData,
 		});
 	}
 }
+
+export class RottRunResultMSG {
+
+	archid: number;
+
+	constructor(archid: number) {
+		this.archid = archid;
+	}
+
+	toJsonStr(): string {
+		return JSON.stringify({
+			cmd: "run_result",
+			payload: this.archid,
+		});
+	}
+}
+
 
 export class RottSubTypesMSG implements DeRott  {
 	

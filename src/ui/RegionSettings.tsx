@@ -310,7 +310,6 @@ class RegionSettings extends React.Component<RegionSettingsData, {}> {
 				'' : selectedRegion.subTypeKind;
 		} 		 
 		const isVisible = selectedRegion !== null;
-		console.log(isVisible);
 		return (
 			<div className={styles.regionSettings}
 				style={{visibility: isVisible ? 'visible' : 'hidden'}}>
