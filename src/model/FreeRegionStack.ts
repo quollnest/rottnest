@@ -16,7 +16,17 @@ export class FreeRegionStack {
 		factories: [],
 		buffers: [],
 	}
-	
+
+	constructor() {
+		this.freeRegions = {
+			bus: [],
+			registers: [],
+			bellstates: [],
+			factories: [],
+			buffers: [],
+		}
+	}
+
 	availableOnKind(kind: string): boolean {
 		const keyFR = kind as keyof FreeRegions;	
 		const flist = this.freeRegions[keyFR];
@@ -50,7 +60,6 @@ export class FreeRegionStack {
 
 	cloneFreeList(): FreeRegionStack {
 		let frs: FreeRegions = {
-
 			bus: [...this.freeRegions.bus],
 			registers: [...this.freeRegions.registers],
 			bellstates: [...this.freeRegions.bellstates],
@@ -58,7 +67,7 @@ export class FreeRegionStack {
 			buffers: [...this.freeRegions.buffers]
 		};
 
-		let fstack: FreeRegionStack = {...this}
+		let fstack: FreeRegionStack = new FreeRegionStack();
 		fstack.freeRegions = frs;//duplicate it
 
 		return fstack;

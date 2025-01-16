@@ -40,8 +40,8 @@ class WorkspaceTabBar extends React.Component<WorkspaceTabData, {}> {
 		const tabs = data.tabTitles.map((t, idx) => {
 
 			const isSelected = idx == selTab;
-			//const available = avaibilities[idx];
-			const available = true;
+			const available = avaibilities[idx];
+			//const available = true;
 			const updateSelected = () => {
 				if(available) {
 					container.updateSelectedTab(idx);
