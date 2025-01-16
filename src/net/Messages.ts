@@ -19,8 +19,8 @@ export class RottArchMSG {
 
 	toJsonStr(): string {
 		return JSON.stringify({
-			message: "arch",
-			arch: this.tschedData,
+			message: "use_arch",
+			payload: this.tschedData,
 		});
 	}
 }

@@ -135,7 +135,14 @@ class RottnestContainer
 			}
 		);
 		appService.registerReciverKinds(
-			'usearch', (_) => {
+			'use_arch', (message) => {
+				var obj = JSON.parse(message.toString());
+				appService.sendMsg(JSON.stringify(
+					{
+						'cmd': 'run_result',
+						'payload': obj['arch_id']
+					}
+				))
 			}
 		);
 	}
@@ -659,7 +666,7 @@ class RottnestContainer
 		const appService = AppServiceModule
 			.GetAppServiceInstance();
 		if(!this.state.subTypesRecvd) {
-			appService.sendMsg('subtype');
+			appService.sendMsg(JSON.stringify({"cmd": "subtype"}));
 		}
 		
 		return (
