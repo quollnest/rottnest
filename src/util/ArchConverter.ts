@@ -57,6 +57,9 @@ export default class ArchConverter {
 				registerSet = true;
 			}
 
+			if(r.rdata.getSubKind() === 'CombShapedRegisterRegion') {
+				obj.incl_top = false;
+			}
 		}
 		
 		//Resolve hierarchy 

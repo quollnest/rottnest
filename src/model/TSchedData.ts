@@ -13,6 +13,7 @@ export type TSchedDataNode = {
 	//Optional fields
 	bell_rate?: number
 	factory_type?: string
+	incl_top?: boolean
 }
 
 /**

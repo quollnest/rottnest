@@ -3,7 +3,7 @@ import {RottArchMSG, RottRunResultMSG} from "../../net/Messages";
 import ArchConverter from "../../util/ArchConverter";
 import RottnestContainer from "../container/RottnestContainer"
 
-const IS_DEBUG: boolean = true;
+const IS_DEBUG: boolean = false;
 
 const leftClick = (container: RottnestContainer) => {
 	const rottContainer = container;
