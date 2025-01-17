@@ -151,8 +151,6 @@ class RottnestContainer
 				let someMsg = appService.dequeue();
 				let arch_id = someMsg?.getJSON();
 				appService.runResult(new RottRunResultMSG(arch_id));
-
-
 			}
 		);
 	}
