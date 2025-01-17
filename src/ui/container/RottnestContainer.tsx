@@ -65,6 +65,7 @@ type RottnestState = {
 	subTypes: RottnestKindMap
 	tabData: TabViewStateData
 	subTypesRecvd: boolean
+	visData: any
 }
 
 type ComponentMonitor = {
@@ -123,9 +124,10 @@ class RottnestContainer
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, false, false],
+			availableTabs: [true, false, true],
 			tabNames: ['Architecture', 'Widget', 'Visualiser']
-		}
+		},
+		visData: {}
 	};
 	
 	regionStack: RegionsSnapshotStack = 
@@ -162,6 +164,15 @@ class RottnestContainer
 				console.error(json);
 			}
 		);;
+		appService.registerReciverKinds(
+			'run_result', (_) => {
+				let someMsg = appService.dequeue();
+
+				let json = someMsg?.getJSON();
+				selfRef.state.visData = json;
+				selfRef.triggerUpdate();
+			}
+		);
 	}
 
 	getProjectAssembly(): ProjectAssembly {
@@ -359,9 +370,11 @@ class RottnestContainer
 		};
 		this.state.tabData = {
 			selectedTabIndex: 0,
-			availableTabs: [true, false, false],
-			tabNames: ['Architecture', 'Widget', 'Visualiser']
-		}
+			availableTabs: [true, false, true],
+			tabNames: ['Architecture', 'Widget', 
+				'Visualiser']
+		};
+		this.state.visData = {};
 		this.regionStack = new RegionsSnapshotStack();
 		this.currentRDBuffer = new RegionData();
 

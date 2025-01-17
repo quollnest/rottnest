@@ -39,7 +39,7 @@ class NewProjectForm extends React.Component<NewSettingsProps,
 		project: {
 			projectName: 'Project1', 
 			author: 'User',
-			width: 10,
+			width: 20,
 			height: 20,
 			description: 'Quick Description'	
 		}
@@ -78,7 +78,7 @@ class NewProjectForm extends React.Component<NewSettingsProps,
 			let partial: 
 			Partial<ProjectDetails> = {
 				[key]: 
-				e.currentTarget.value
+				Number(e.currentTarget.value)
 			};
 
 			let newState: 
@@ -118,14 +118,14 @@ class NewProjectForm extends React.Component<NewSettingsProps,
 						{inputChangeFn(e, 
 						'author')}}/>
 				<label>Width & Height</label>
-				<input type="text" name="width"
+				<input type="number" name="width"
 					className={styles.inputMult}
 					value={this.state
 						.project.width} 
 					onChange={(e) => 
 						{inputChangeFn(e, 
 						'width')}}/>x 
-				<input type="text" name="height"
+				<input type="number" name="height"
 					className={styles
 						.inputMult}	
 					value={this.state

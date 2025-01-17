@@ -5,7 +5,7 @@ import { RegionContainer, ToolContainer } from "./ColumnContainer";
 import { DesignSpace } from "../DesignSpace";
 import RottnestContainer from "./RottnestContainer";
 import {WidgetView} from "../WidgetView";
-import {SchedulerVisualiser} from "../SchedulerVisualiser";
+import {SchedulerVisualiser} from "../SchedulerIFrame";
 
 type WorkspaceData = {
 	container: RottnestContainer
@@ -86,7 +86,8 @@ class WorkspaceZone extends React.Component<WorkspaceZoneData, {}> {
 			}
  		} />) },
 		() => { return (<WidgetView />) },
-		() => { return ( <SchedulerVisualiser />) }
+		() => { return ( <SchedulerVisualiser visData={this.props
+				.workspaceData.container.state.visData}/>) }
 
 	];
 

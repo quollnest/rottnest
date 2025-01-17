@@ -42,6 +42,7 @@ const symbolmap = {
 type VisGate = {
 	type: string
 	locked_by: number
+	holds: Array<[number, number]>
 }
 
 type VisCell = {
@@ -49,8 +50,8 @@ type VisCell = {
 }
 
 type VisDataLayer = {
-	board: Map<number, VisCell>
-	gates: Map<number, VisGate>
+	board: Array<Array<VisCell>>
+	gates: Array<VisGate>
 }
 
 type VisRegion = {
@@ -173,32 +174,48 @@ class SchedulerButton extends React.Component<SchedButtonData,
 class SchedulerControls extends React.Component<
 	SchedulerControlsData, 
 	SchedulerControlState> {
+	
+	selfRefControlsData = this.props;
+	selfRefStateData = this.state;
 
 	playGroup: Array<SchedButtonData> = [
 		{ 
 			btnText: "Prev",
-			data: {},
+			data: {
+				controlsData: this.selfRefStateData,
+				stateData: this.selfRefStateData,
+			},
+			
 			onClickTrigger: (data: any) => {
 
 			}
 		},
 		{ 
 			btnText: "Play",
-			data: {},
+			data: {
+				controlsData: this.selfRefStateData,
+				stateData: this.selfRefStateData,
+			},
 			onClickTrigger: (data: any) => {
 
 			}
 		},
 		{ 
 			btnText: "Pause",
-			data: {},
+			data: {
+				controlsData: this.selfRefStateData,
+				stateData: this.selfRefStateData,
+			},
 			onClickTrigger: (data: any) => {
 
 			}
 		},
 		{ 
 			btnText: "Next",
-			data: {},
+			data: {
+				controlsData: this.selfRefStateData,
+				stateData: this.selfRefStateData,
+			},
 			onClickTrigger: (data: any) => {
 
 			}
@@ -208,9 +225,13 @@ class SchedulerControls extends React.Component<
 	resetGroup: Array<SchedButtonData> = [
 		{
 			btnText: "Reset Position",
-			data: {},
-			onClickTrigger: (data: any) => {
+			data: {
 
+				controlsData: this.selfRefStateData,
+				stateData: this.selfRefStateData,
+			},
+			onClickTrigger: (data: any) => {
+				
 			}
 		}
 	];
@@ -228,12 +249,22 @@ class SchedulerControls extends React.Component<
 		
 	render() {
 
-		const btnComponents = [];
+		const playGroup = this.playGroup.map((e, idx) => {
+			return (
+				<SchedulerButton {...e} key={idx} />
+			)
+		});
+		const resetGroup = this.resetGroup.map((e, idx) => {
+			return (
+				<SchedulerButton {...e} key={idx} />
+			)
+		});
 
 		return (
-			<div>
+			<div className={style.scheduleControls}>
 			<span className={style.controlPanel}>
-
+				{playGroup}
+				{resetGroup}
 			</span>
 			</div>
 		)
@@ -257,25 +288,34 @@ type SchedulerDisplayData = {
 }
 
 
-class SchedulerDisplay extends React.Component<SchedulerDisplayData, 
-	SchedulerDisplayStateData> {
+class SchedulerDisplay extends React.Component<SchedulerDisplayData, {}> {
 
-	state: SchedulerDisplayStateData = {
-		schedulerDisplayData: {
-			svgData: {
-				svgWidth: 1,
-				svgHeight: 1,
-				svgBackgroundColour: 'black',
-				svgForegroundColour: 'white',
-			}
-		},
-		svgObj: (<svg></svg>)
+	drawRoute(p1: [number, number], p2: [number, number]) {
+
 	}
 
-	drawLayer(layer) {
-		
+	drawCellContents(rowIdx: number, colIdx: number, cell: VisCell) {
+
 	}
 	
+
+	drawLayer(layer: VisDataLayer) {
+		for (const [rowIdx, row] of layer.board.entries()) {
+		    for (const [colIdx, cell] of row.entries()) {
+		      this.drawCellContents(rowIdx, colIdx, cell);
+		    }
+		  }
+		  for (var gate of layer.gates) {
+		    for (var i = 0; i < gate.holds.length - 1; i++) {
+		      this.drawRoute(gate.holds[i], gate.holds[i + 1]);
+		    }
+		}
+	}
+
+	drawDataBackground() {
+
+	}
+
 	draw() {
 
 	}
@@ -324,20 +364,29 @@ type SchedulerVisualiserProps = {
 
 
 type SchedulerVisualiserState = {
-
+		displayState: SchedulerDisplayStateData
+		controlState: SchedulerControlState
 }
 
 
 
 export class SchedulerVisualiser extends React.Component {
+	
+	state = {
+		controlState: {
 
-		
+		},
+		displayState: {
+
+		}
+
+	}
 
 	render() {
 		return (
 			<div className={style.schedulerVisualiser}>
-				<SchedulerDisplay />
-				<SchedulerControls />
+				<SchedulerDisplay {...this.state.displayState} />
+				<SchedulerControls {...this.state.controlState} />
 			</div>
 
 		)

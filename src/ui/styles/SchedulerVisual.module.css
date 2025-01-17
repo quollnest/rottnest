@@ -1,4 +1,23 @@
 
-.scheduleDisplay {
+.schedulerVisualiser {
+	
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	height: 100%;
+}
 
+.scheduleDisplay {
+	display: flex;
+	flex: 1;
+
+}
+
+.scheduleControls {
+	flex: 0.2;
+}
+
+.controlPanel {
+	display: flex;
+	flex: 1;
 }
