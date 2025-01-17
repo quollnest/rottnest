@@ -48,6 +48,8 @@ export type RegionOutputSegment = {
  * A flattened version used by RegionData
  */
 export type FlatRegionData = {
+	regionKind: string
+	subTypeKind: string
 	cells: Array<[string, RegionCell]>
 }
 
@@ -121,7 +123,8 @@ export class RegionData {
 
 	static fromFlatten(data: FlatRegionData): RegionData {
 		const rdata = new RegionData();
-		
+		rdata.regionKind = data.regionKind;
+		rdata.subTypeKind = data.subTypeKind;
 		for(const [key, value] of data.cells) {
 			rdata.cells.set(key, value);	
 		}	
@@ -299,7 +302,13 @@ export class RegionData {
 			flatMap.push([key, value]);
 		}	
 
-		return { cells: flatMap }
+		return { 
+			regionKind: 
+				this.regionKind !== null ? 
+				this.regionKind : 'NoKind',
+			subTypeKind: this.subTypeKind !== null ?
+				this.subTypeKind : 'NoKind',
+			cells: flatMap }
 	}
 
 	matchConnection(kind: string, idx: number) {

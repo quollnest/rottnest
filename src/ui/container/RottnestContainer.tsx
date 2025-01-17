@@ -203,11 +203,13 @@ class RottnestContainer
 			adjacentList	
 				.push(...aregs.map((ar, idx) =>{
 					const kindP = RegionData
-						.PluraliseKind(ar.regionData
+						.PluraliseKind(ar
+							.regionData
 						       .getKind())
 					return ({
 						name: kindP,
-						listIdx: ar.ownIdx !== null ?
+						listIdx: ar.ownIdx 
+						!== null ?
 							ar.ownIdx : -1,
 						connectorId: idx+1,
 						direction: ar.dir
@@ -280,7 +282,6 @@ class RottnestContainer
 			this.triggerUpdate();
 		} else {
 			//reset
-			console.log("region unselected");
 			this.state.appStateData.componentData
 			.selectedRegion 
 				= -1; 

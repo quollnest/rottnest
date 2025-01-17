@@ -14,7 +14,6 @@ const leftClick = (rott: RottnestContainer) => {
 	
 	let details = rott.getProjectDetails();
 	let regionList = rott.getRegionList();
-	console.log(regionList);
 	const project: ProjectDump = {
 		project: details,
 		regions: regionList.flatten()
