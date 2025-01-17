@@ -36,6 +36,41 @@ const symbolmap = {
   other: { text: "?" },
 };
 
+/**
+ * Visualisation data object used by Haowen's original code
+ */
+type VisGate = {
+	type: string
+	locked_by: number
+}
+
+type VisCell = {
+	type: string
+}
+
+type VisDataLayer = {
+	board: Map<number, VisCell>
+	gates: Map<number, VisGate>
+}
+
+type VisRegion = {
+	name: string
+	loc_tl: [number, number]
+	loc_br: [number, number]
+
+}
+
+type VisFactory = {	
+	loc_tl: [number, number]
+	loc_br: [number, number]
+}
+
+type VisInputObj = {
+	regions: Array<VisRegion>
+	factories: Array<VisFactory>
+	layers: Array<VisDataLayer>
+
+}
 
 class SVGObjFactory {
 	static CELL_SIZE: number = 100;
@@ -139,6 +174,57 @@ class SchedulerControls extends React.Component<
 	SchedulerControlsData, 
 	SchedulerControlState> {
 
+	playGroup: Array<SchedButtonData> = [
+		{ 
+			btnText: "Prev",
+			data: {},
+			onClickTrigger: (data: any) => {
+
+			}
+		},
+		{ 
+			btnText: "Play",
+			data: {},
+			onClickTrigger: (data: any) => {
+
+			}
+		},
+		{ 
+			btnText: "Pause",
+			data: {},
+			onClickTrigger: (data: any) => {
+
+			}
+		},
+		{ 
+			btnText: "Next",
+			data: {},
+			onClickTrigger: (data: any) => {
+
+			}
+		},
+	]
+
+	resetGroup: Array<SchedButtonData> = [
+		{
+			btnText: "Reset Position",
+			data: {},
+			onClickTrigger: (data: any) => {
+
+			}
+		}
+	];
+
+	saveGroup: Array<SchedButtonData> =[
+		{
+			btnText: "Reset Position",
+			data: {},
+			onClickTrigger: (data: any) => {
+
+			}
+		}	
+	];
+
 		
 	render() {
 
@@ -170,6 +256,7 @@ type SchedulerDisplayData = {
 
 }
 
+
 class SchedulerDisplay extends React.Component<SchedulerDisplayData, 
 	SchedulerDisplayStateData> {
 
@@ -185,7 +272,13 @@ class SchedulerDisplay extends React.Component<SchedulerDisplayData,
 		svgObj: (<svg></svg>)
 	}
 
+	drawLayer(layer) {
+		
+	}
 	
+	draw() {
+
+	}
 
 	getViewBox() {
 
@@ -197,8 +290,10 @@ class SchedulerDisplay extends React.Component<SchedulerDisplayData,
 		  function updateViewBoxBounds() {
 		    //var deltaScale = Math.pow(2, deltaZoom / 100);
 		    //deltaZoom = 0;
-		    /*viewBox.x = wheelPosition.x * (1 - deltaScale) + viewBox.x * deltaScale;
-		    viewBox.y = wheelPosition.y * (1 - deltaScale) + viewBox.y * deltaScale;
+		    /*viewBox.x = wheelPosition.x * 
+		     * (1 - deltaScale) + viewBox.x * deltaScale;
+		    viewBox.y = wheelPosition.y *
+		    	(1 - deltaScale) + viewBox.y * deltaScale;
 		    viewBox.height *= deltaScale;
 		    viewBox.width *= deltaScale;*/
 		  }
@@ -236,11 +331,11 @@ type SchedulerVisualiserState = {
 
 export class SchedulerVisualiser extends React.Component {
 
-	
+		
 
 	render() {
 		return (
-			<div>
+			<div className={style.schedulerVisualiser}>
 				<SchedulerDisplay />
 				<SchedulerControls />
 			</div>

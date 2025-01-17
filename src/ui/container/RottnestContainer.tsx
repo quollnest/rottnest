@@ -150,9 +150,18 @@ class RottnestContainer
 			'use_arch', (_) => {
 				let someMsg = appService.dequeue();
 				let arch_id = someMsg?.getJSON();
-				appService.runResult(new RottRunResultMSG(arch_id));
+				appService.runResult(
+					new RottRunResultMSG(arch_id));
 			}
 		);
+		appService.registerReciverKinds(
+			'err', (_) => {
+				let someMsg = appService.dequeue();
+
+				let json = someMsg?.getJSON();
+				console.error(json);
+			}
+		);;
 	}
 
 	getProjectAssembly(): ProjectAssembly {
