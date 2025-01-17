@@ -5,6 +5,7 @@ import {RegionData } from '../model/RegionData';
 import RottnestContainer from './container/RottnestContainer';
 
 import {
+	CloseOutlined,
 	EyeOutlined,
 	EyeInvisibleOutlined
 } from '@ant-design/icons'
@@ -51,9 +52,15 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
 		const isVisible = data.isVisible;
 
 
-		const onSelect = (_: React.MouseEvent<HTMLLIElement>) => {
+		const onSelect = (_: React.MouseEvent<HTMLSpanElement>) => {
 			const pluKind = RegionData.PluraliseKind(kind);
 			rottContainer.selectCurrentRegion(pluKind, idx);
+		}
+		
+		const regDelete = (_: React.MouseEvent<HTMLSpanElement>) => {
+
+			const pluKind = RegionData.PluraliseKind(kind);
+			rottContainer.deleteSelectedRegion(pluKind, idx);
 		}
 
 		const visToggle = data.setVisibility;
@@ -67,8 +74,15 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
 				<span>{name}</span>
 				<span className={styles.regionItemBtn}
 					onClick={visToggle}>
-				{isVisible ? <EyeOutlined className={styles.regionItemBtn} /> : 
-					<EyeInvisibleOutlined className={styles.regionItemBtn} />}
+				{isVisible ? 
+					<EyeOutlined className={styles.regionItemBtn} /> 
+					: <EyeInvisibleOutlined 
+						className={styles.regionItemBtn} />}
+				</span>
+				<span className={styles.regionItemBtn}
+					onClick={regDelete}>
+					<CloseOutlined className={styles.regionItemBtn} />
+
 				</span>
 			</li>
 		);

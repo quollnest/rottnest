@@ -259,7 +259,19 @@ class RottnestContainer
 		this.triggerUpdate();
 	}
 	
-	//TODO: Bug exists when called from region list...
+	deleteSelectedRegion(kind: string, idx: number) {
+
+		const selectedObj = this.getRegionList()
+			.retrieveByIdx(kind, idx);
+		if(selectedObj) {
+			//1. Add onto the undo stack
+			this.onRegion();
+			
+			//2. Delete
+			selectedObj.markAsDead();	
+		}
+	}
+
 	selectCurrentRegion(kind: string, idx: number) {
 		const selectedObj = this.getRegionList()
 			.retrieveByIdx(kind, idx);
