@@ -639,8 +639,8 @@ export class RegionData {
 		return {
 			x: minX,
 			y: minY,
-			width: maxX - minX,
-			height: maxY - minY
+			width: maxX - minX + 1,
+			height: maxY - minY + 1
 		}
 	}
 
