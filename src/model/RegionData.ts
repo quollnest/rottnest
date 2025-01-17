@@ -51,6 +51,10 @@ export type FlatRegionData = {
 	regionKind: string
 	subTypeKind: string
 	cells: Array<[string, RegionCell]>
+	connectionSet: boolean
+	connectionToKind: string | null
+	connectionToIdx: number | null
+	connectionDir: number
 }
 
 export type RegionEdge = {
@@ -308,7 +312,13 @@ export class RegionData {
 				this.regionKind : 'NoKind',
 			subTypeKind: this.subTypeKind !== null ?
 				this.subTypeKind : 'NoKind',
-			cells: flatMap }
+			cells: flatMap,
+			connectionToIdx: this.connectionToIdx,
+			connectionToKind: this.connectionToKind,
+			connectionSet: this.connectionSet,
+			connectionDir: this.connectionDir,
+
+		}
 	}
 
 	matchConnection(kind: string, idx: number) {
