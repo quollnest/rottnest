@@ -98,7 +98,7 @@ class WorkspaceZone extends React.Component<WorkspaceZoneData, {}> {
 		const tabTitles = data.tabTitles;
 		const availableTabs = data.availableTabs;
 		const selectedTab = data.selectedTab;
-
+		
 		const tabComp = this.tabComponents[selectedTab 
 			% this.tabComponents.length]	
 		

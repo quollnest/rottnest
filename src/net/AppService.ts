@@ -54,6 +54,10 @@ export class AppServiceClient {
 		return null;
 	}
 
+	reconnect() {
+		this.connect();
+	}
+
 	close(): boolean {
 		if(this.socket !== null) {
 			if(this.isConnected()) {

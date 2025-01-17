@@ -12,6 +12,7 @@ import ZoomOutEvent from './global/ZoomOut.ts';
 import SettingsEvent from './global/Settings.ts';
 import NewProjectEvent from './global/NewProject.ts';
 import RunEvents from './global/Run.ts';
+import ReconnectEvent from './global/ReconnectEvent.ts';
 import NullEvents from './global/NullEvents.ts';
 
 import {  
@@ -24,7 +25,8 @@ import {
 	SettingOutlined,
 	FlagOutlined,
 	PlusSquareOutlined,
-	PlaySquareOutlined
+	PlaySquareOutlined,
+	RollbackOutlined
 } from '@ant-design/icons'
 
 import styles from './styles/GlobalBar.module.css';
@@ -182,6 +184,15 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			iconComponent: <></>
 		},
 		{ 
+			id: 200, 
+			name: "Reconnect", 
+			toolTip: "Access Help", 
+			image: "HelpImage",
+			events: ReconnectEvent,
+			style: styles.help,
+			iconComponent: <RollbackOutlined />
+		},
+		{ 
 			id: 10, 
 			name: "Run", 
 			toolTip: "Run App (Experiment)", 
@@ -245,6 +256,7 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			style: styles.help,
 			iconComponent: <FlagOutlined />
 		},
+		
 		];
 
 	render() {
