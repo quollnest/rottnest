@@ -939,14 +939,19 @@ export class RegionDataList {
 		};
 		
 		regions.bus = this.regions.bus
+			.filter((rd) => !rd.isDead())
 			.map((rd) => rd.flatten());
 		regions.registers = this.regions.registers
+			.filter((rd) => !rd.isDead())
 			.map((rd) => rd.flatten());
 		regions.bellstates = this.regions.bellstates
+			.filter((rd) => !rd.isDead())
 			.map((rd) => rd.flatten());
 		regions.factories = this.regions.factories
+			.filter((rd) => !rd.isDead())
 			.map((rd) => rd.flatten());
 		regions.buffers = this.regions.buffers
+			.filter((rd) => !rd.isDead())
 			.map((rd) => rd.flatten());
 		
 		return regions;
