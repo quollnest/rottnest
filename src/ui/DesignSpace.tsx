@@ -162,7 +162,6 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			const y = relY;
 			newGS.selectionRect.x2 += x;
 			newGS.selectionRect.y2 += y;
-			console.log(newGS.selectionRect);
 			this.setState(newGS);
 		} 
 
@@ -176,7 +175,6 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			const y = newY;
 			newGS.selectionRect.x2 = x;
 			newGS.selectionRect.y2 = y;
-			console.log(newGS.selectionRect);
 			this.setState(newGS);
 		} 
 	}
@@ -537,7 +535,6 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 			});
 		
 		const svprops = this.getSelectionData();
-		console.log(zoomValue);	
 
 		return (
 			<div draggable={false} className={

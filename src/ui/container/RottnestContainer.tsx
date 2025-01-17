@@ -6,7 +6,7 @@ import {ProjectDetails,
 	ProjectDump,
 	ProjectAssembly} 
 	from '../../model/Project';
-import { RegionData, Regions } from '../../model/RegionData';
+import { RegionCell, RegionData, Regions } from '../../model/RegionData';
 import WorkspaceContainer from './RowContainer';
 import SettingsForm from './SettingsForm';
 
@@ -483,7 +483,7 @@ class RottnestContainer
 	 * current regionlist and move on.
 	 */	
 	applyRDBuffer() {
-		const oldBuffer = this.currentRDBuffer;
+		const oldBuffer: RegionData = this.currentRDBuffer;
 		this.currentRDBuffer = new RegionData();
 		//The index 6, is currently the unselect,
 		//this is *not good*
@@ -499,16 +499,42 @@ class RottnestContainer
 			this.triggerUpdate();
 		} else {
 			const rkey = this.toolToRegionKey();
+			
 			if(rkey) {
+				const pkey = RegionData
+					.SingularKind(rkey);
+				const subkindFor 
+				= this.state
+				.subTypes[
+				pkey as keyof RottnestKindMap];
+
+				const kSubKindDefault 
+				= subkindFor[(subkindFor.length-1)
+				 % subkindFor.length];
+				oldBuffer.setSubKind(
+					kSubKindDefault.name);
+
 				this.onRegion();
-				
+					
 				this.state.regionList
 					.addData(oldBuffer, rkey);
-				//Trigger a resolution here
-				//
+				
 				this.state.regionList
-					.resolveConnectionsFromTraversal(
+				.resolveConnectionsFromTraversal(
 						false);
+				let res: RegionCell | undefined 
+					= oldBuffer.cells
+					.values()
+					.next().value;
+				if(res) {	
+					const { x, y }: 
+					{ x: number
+					  y: number } 
+						= res;	
+					this
+					.updateSelectedRegion(x, y);
+					
+				}
 				this.triggerUpdate();
 			}
 		}
@@ -548,7 +574,7 @@ class RottnestContainer
 	 */
 	saveProject() {
 		RottnestService.SaveToLocalStorage('rottnest', 
-					this.state.projectDetails);	
+					this.state.projectDetails);
 	}
 
 

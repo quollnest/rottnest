@@ -11,9 +11,13 @@ type WorkspaceData = {
 	container: RottnestContainer
 	toolKind: number
 	zoomValue: number	
-	designSpace: { width: number, height: number }
+	designSpace: { 
+		width: number 
+		height: number 
+	}
 	selectedTab: number
 	tabTitles: Array<string>
+	subTypes: Array<string>
 	availableTabs: Array<boolean>
 }
 
@@ -82,7 +86,9 @@ class WorkspaceZone extends React.Component<WorkspaceZoneData, {}> {
 				height: this.props.workspaceData.designSpace.height,
 				container: this.props.workspaceData.container,
 				toolKind: this.props.workspaceData.toolKind,
-				zoomValue: this.props.workspaceData.zoomValue
+				zoomValue: this.props.workspaceData.zoomValue,
+				subTypes: this.props.workspaceData.container
+					.state.subTypes
 			}
  		} />) },
 		() => { return (<WidgetView />) },

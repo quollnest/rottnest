@@ -682,7 +682,6 @@ export class RegionDataList {
 			const kindKey = 
 				RegionData.PluraliseKind(
 					kindList[idx]) as keyof Regions;
-			console.log(kindKey);
 			let regDataIdx = -1;
 			for(let i = 0; i < 
 			    this.regions[kindKey].length;
@@ -914,7 +913,6 @@ export class RegionDataList {
 			
 		this.cleanupIntersections(data)		
 		//Gets added
-		//console.log(this.regions);
 		//Check freelist
 		data.regionKind = pkey;
 		if(this.freeStack.availableOnKind(pkey)) {
@@ -929,7 +927,6 @@ export class RegionDataList {
 		} else {
 			this.regions[pkey].push(data);
 		}
-		console.log('Buffer applied');
 	}
 
 	flatten(): FlatRegions {

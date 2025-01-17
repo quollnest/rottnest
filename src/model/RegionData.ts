@@ -279,6 +279,10 @@ export class RegionData {
 			'NoKind';
 	}
 
+	setSubKind(kind: string) {
+		this.subTypeKind = kind;
+	}
+
 	cmpRef(other: RegionData): boolean {
 		return this === other;
 	}

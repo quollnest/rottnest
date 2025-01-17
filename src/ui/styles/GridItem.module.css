@@ -17,7 +17,6 @@
 	box-sizing: border-box;
 	background-color: #96f0b444;
 	border: 1px solid #94faa9 !important;
-	width: inherit;
 	z-index: 5;
 }
 
