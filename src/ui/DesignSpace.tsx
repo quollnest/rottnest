@@ -3,8 +3,8 @@ import { GridCell } from './grid/GridItem.tsx'
 import SelectionVisual from './grid/SelectionVisual.tsx';
 
 import styles from './styles/DesignSpace.module.css'
-import RottnestContainer from './container/RottnestContainer.tsx';
 import {RegionCell} from '../model/RegionData.ts';
+import {Workspace, WorkspaceData} from './workspace/Workspace.ts';
 
 /**
  * Selection Box
@@ -38,7 +38,6 @@ type GridState = {
  *
  * The updateCell is nullable, was reserved for
  * something else
- * TODO: Evaluate if updateCell still needs to exist
  */
 type CellInfo = {
 	taggedKind: number
@@ -60,24 +59,34 @@ type RegionCellAggr = {
  * created.
  */
 export type GridData = {
-	zoomValue: number
-	container: RottnestContainer
-	toolKind: number
-	width: number
-	height: number
+	workspaceData: WorkspaceData
 }
 
 /**
  * DesignSpace will display the grid and have
  * a reference to regions that are placed on it. 
  */
-export class DesignSpace extends React.Component<GridData, GridState> {
-	toolKind = this.props.toolKind;
-	parentContainer = this.props.container;
+export class DesignSpace extends React.Component<GridData, GridState> 
+	implements Workspace {
+		
+	toolKind = this.props.workspaceData
+		.container
+		.getToolIndex();
+	parentContainer = this.props
+		.workspaceData
+		.container;
+	
 
 	state: GridState = {
-		cells: DesignSpace.FillCells(this.props.width, 
-					     this.props.height),
+		cells: DesignSpace.FillCells(this.props
+					     .workspaceData
+					     .container
+					     .getProjectDetails().width,
+
+					     this.props
+					     .workspaceData
+					     .container
+					     .getProjectDetails().height),
 		gridPosition: [0, 0],
 		middleIsDown: false,
 		leftIsDown: false,
@@ -270,7 +279,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	onSelectFinish() {
 		
 		let newGS = {...this.state};	
-		const container = this.props.container;
+		const container = this.parentContainer;
 		this.tagSelectedData();	
 		
 		if(container.getCurrentRDBuffer().empty()) {
@@ -290,7 +299,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	
 	tagSelectedData() {
 		const cells = this.selectCells();
-		const container = this.props.container;
+		const container = this.parentContainer;
 		
 		for(let [_, v] of cells) {
 			container.getCurrentRDBuffer()
@@ -351,11 +360,12 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	}
 
 	onWheelTrigger(e: React.WheelEvent<HTMLUListElement>) {
-		const container = this.props.container;
+		const container = this.parentContainer;
 		if(e.deltaY < 0) {
 			container.zoomIn(25);
 		} else if(e.deltaY > 0) {
-			if(this.props.zoomValue >= 50) {
+			if(this.parentContainer.state
+			   .appStateData.zoomValue >= 50) {
 				container.zoomIn(-25);
 			}
 		}
@@ -365,7 +375,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	selectCells(): Map<string, RegionCellAggr> {
 
 		const box = this.getCoordsFromSelectionData();
-		const width = this.props.width;
+		const width = this.parentContainer.getProjectDetails().width;
 		let items: Map<string, RegionCellAggr> = new Map();
 		//if((box.x1 - box.x2 != 0 || box.y1 - box.y2 != 0)
 		//  && 
@@ -414,12 +424,17 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 	}
 
 	render() {
-		this.toolKind = this.props.toolKind;
-		this.parentContainer = this.props.container;
 		const gref = this;
-		const container = this.props.container;
-		const zoomValue = this.props.zoomValue;
-		const gwidth = gref.props.width;
+		
+		this.parentContainer = this.props
+			.workspaceData.container;
+		this.toolKind = this.props.workspaceData.container
+			.getToolIndex();
+		const container = this.parentContainer;
+		const zoomValue = this.parentContainer.
+			state.appStateData.zoomValue;
+		const gwidth = this.parentContainer
+			.getProjectDetails().width;
 		const paintMode = this.state.paintMode;
 
 		container.registerDesignSpace(gref);
@@ -523,7 +538,7 @@ export class DesignSpace extends React.Component<GridData, GridState> {
 					gref.state.middleIsDown
 				}
 				toolKind={
-					gref.props.container
+					gref.parentContainer
 					.getToolIndex()
 				}
 				

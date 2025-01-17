@@ -10,6 +10,11 @@
 	border-bottom: 1px #35332f solid; 
 }
 
-.paintMode {
-	margin-top: 1em;
+.toolSegment {
+
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	background-color: #232122;
+	border: 1px #35332f solid;
+	text-align: center;
 }

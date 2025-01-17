@@ -44,13 +44,14 @@ class PaintModeTool extends React.Component<PaintModeProps, {}> {
 		const upfn = this.props.pmodeUpdate;
 
 		return (
-			<>
+			<div className={styles.toolSegment}>
 			<input className={styles.paintMode}
 				name="paintmode" type="checkbox" 
 				checked={pmode} 
 				onChange={() => upfn(!pmode)} />
-			<label >Enable Paint Mode (Experimental)</label>
-			</>
+			<label>Enable Paint Mode (Experimental)
+			</label>
+			</div>
 		)
 	}
 }

@@ -1,17 +1,19 @@
 
 .settingsForm {
 	box-shadow: 0px 5px 20px #111111;
+	
 	padding: 4em;
 	padding-top: 0.5em;
 	display: block;
 	grid-template-columns: repeat(2, 1fr);
 	left: 10%;
-	background-color: #313130;
+	background-color: #2f2f2e;
 	position:absolute;
 	z-index: 3;
 	width: 30%;
 	overflow-y:scroll;
 	overflow-x:hidden;
+	border: 1px #484642 solid;
 	border-radius: 1em;
 }
 
@@ -44,6 +46,7 @@
 .settingsForm .settingsApply {
 	margin-left: auto;
 	justify-items: flex-end;
+	color: rgba(255, 255, 255, 0.87);
 }
 
 .settingsCancel {

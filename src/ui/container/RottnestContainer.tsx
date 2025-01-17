@@ -6,20 +6,27 @@ import {ProjectDetails,
 	ProjectDump,
 	ProjectAssembly} 
 	from '../../model/Project';
-import { RegionCell, RegionData, Regions } from '../../model/RegionData';
+
+import { RegionCell, RegionData, Regions } 
+	from '../../model/RegionData';
+
 import WorkspaceContainer from './RowContainer';
 import SettingsForm from './SettingsForm';
 
-import { RegionsSnapshotStack } from '../../model/RegionSnapshotStack';
+import { RegionsSnapshotStack } 
+	from '../../model/RegionSnapshotStack';
 
 import styles from '../styles/RottnestContainer.module.css';
 import {DesignSpace} from '../DesignSpace';
 import NewProjectForm from './NewProjectForm';
 import { RottnestKindMap } from '../../model/KindMap.ts'
+
 import {AppServiceClient} 
 	from '../../net/AppService.ts';
+
 import AppServiceModule from '../../net/AppServiceModule.ts';
 import {RottRunResultMSG} from '../../net/Messages.ts';
+import {HelpContainer, HelpBoxData} from './HelpContainer.tsx';
 
 /**
  * At the moment, nothing interesting
@@ -97,7 +104,30 @@ class RottnestContainer
 	commData: AppCommData = {
 		appService: AppServiceModule
 			.GetAppServiceInstance()
-	}
+	};
+
+	helpData: Array<HelpBoxData> = [
+		{
+			title: "Toolbox",
+			content: `
+			Tool used to mark different regions and select
+			existing regions
+			`,
+			coords: [70, 70],
+
+		},
+		/*{
+			title: "Region List",
+			content: `
+			Lists the regions that have been marked
+			by the user
+			`,
+			coords: [550, 90],
+			rightPointer: true
+
+		},*/
+
+	];
 
 	state: RottnestState = {
 		projectDetails: {
@@ -124,7 +154,7 @@ class RottnestContainer
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, false, false],
+			availableTabs: [true, true, true],
 			tabNames: ['Architecture', 'Widget', 
 				'Visualiser']
 		},
@@ -145,7 +175,8 @@ class RottnestContainer
 				let kinds = appService
 					.retrieveSubTypes();
 				if(kinds) {
-					selfRef.updateSubTypes(kinds);
+					selfRef
+					.updateSubTypes(kinds);
 				}
 			}
 		);
@@ -154,7 +185,7 @@ class RottnestContainer
 				let someMsg = appService.dequeue();
 				let arch_id = someMsg?.getJSON();
 				appService.runResult(
-					new RottRunResultMSG(arch_id));
+				new RottRunResultMSG(arch_id));
 			}
 		);
 		appService.registerReciverKinds(
@@ -171,7 +202,8 @@ class RottnestContainer
 				
 				let json = someMsg?.getJSON();
 				selfRef.state.visData = json;
-				selfRef.state.tabData.availableTabs[2]
+				selfRef.state.tabData
+				.availableTabs[2]
 					= true;
 				selfRef.triggerUpdate();
 			}
@@ -200,7 +232,6 @@ class RottnestContainer
 	}
 	
 
-	//Methods
 
 	/**
 	 * Calls into the selected region and retrieves the
@@ -233,7 +264,7 @@ class RottnestContainer
 						name: kindP,
 						listIdx: ar.ownIdx 
 						!== null ?
-							ar.ownIdx : -1,
+						ar.ownIdx : -1,
 						connectorId: idx+1,
 						direction: ar.dir
 					})
@@ -270,6 +301,12 @@ class RottnestContainer
 			//2. Delete
 			selectedObj.markAsDead();	
 		}
+	}
+
+	toggleHelp() {
+		const v = this.state.appStateData.helpActive; 
+		this.state.appStateData.helpActive = !v;
+		this.triggerUpdate();
 	}
 
 	selectCurrentRegion(kind: string, idx: number) {
@@ -360,7 +397,8 @@ class RottnestContainer
 
 		const getSelectedKeyStr = this.state.appStateData
 			.componentData.selectedRegionType;
-		console.log(getSelectedIdx, getSelectedKeyStr, regData);
+		console.log(getSelectedIdx, getSelectedKeyStr, 
+			    regData);
 		this.getRegionList()
 			.updateByIdx(getSelectedKeyStr, 
 				     getSelectedIdx, 
@@ -663,7 +701,8 @@ class RottnestContainer
 		const newState = {...this.state};
 		const dspace = this.monitorComponent.designSpace;
 		if(dspace) {
-			dspace.redoCells(newState.projectDetails.width,
+			dspace.redoCells(newState
+					 .projectDetails.width,
 				newState.projectDetails.height);
 		}
 		this.setState(newState);
@@ -729,7 +768,6 @@ class RottnestContainer
 	render() {
 		const rottContainer = this;
 		const updateables = new Map();
-		const toolKind = 0;
 		const zoomValue = this.state.appStateData.zoomValue;
 		
 		const settingsisActive = !this.state.appStateData
@@ -755,6 +793,19 @@ class RottnestContainer
 				}));
 		}
 		
+		const helpComponent = this.state
+			.appStateData.helpActive ?
+				<HelpContainer 
+					helperData={this.helpData}
+					toggleOff={
+					() => {
+						rottContainer
+						.toggleHelp()
+					}
+				}
+				/> :
+				<></>
+
 		return (
 			<div className={styles.rottnest}>
 				<SettingsForm rootContainer={
@@ -764,34 +815,12 @@ class RottnestContainer
 						.projectDetails}
 					/>
 				{newProjectElement}
-
+				{helpComponent}
 				<GlobalBar componentMap={updateables}
 				container={rottContainer} />
-
+				
 				<WorkspaceContainer 
-					designSpace={
-						{
-						width: 
-						this.state
-						.projectDetails
-							.width,
-						height: 
-						this.state
-						.projectDetails
-							.height,
-						}
-					}
-					selectedTab={this.state
-						.tabData
-						.selectedTabIndex}
-					tabTitles={this.state
-						.tabData
-						.tabNames}
-					availableTabs={this.state
-						.tabData.availableTabs}
-					zoomValue={zoomValue}
-					container={rottContainer}
-					toolKind={toolKind} />
+					container={rottContainer}/>
 			</div>
 		)
 	}

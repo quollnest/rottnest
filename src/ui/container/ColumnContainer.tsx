@@ -6,18 +6,17 @@ import ErrorList from '../ErrorList';
 
 import toolStyle from '../styles/ToolContainer.module.css'
 import regionStyle from '../styles/RegionContainer.module.css'
-import RottnestContainer from './RottnestContainer';
 import RegionSettings from '../RegionSettings';
 import {RottnestKindMap} from '../../model/KindMap';
 import {RegionData} from '../../model/RegionData';
+import {Workspace, WorkspaceProps} from '../workspace/Workspace';
 
 const ContainerDefaults = {
 	toolbox: { 
 		headerName: "Toolbox",
 		selectedToolIndex: 0,
 	},
-	options: {
-		
+	options: {	
 		headerName: "Tool Options",
 		toolKind: 0,
 	},
@@ -30,18 +29,16 @@ const ContainerDefaults = {
 
 }
 
-type ToolContainerProps = {
-	container: RottnestContainer
-}
-
 /**
  * Region Container that is a column container
  * that contains both region list and errors
  */
 export class ToolContainer extends 
-	React.Component<ToolContainerProps, {}> {	
+	React.Component<WorkspaceProps, {}> 
+	implements Workspace {	
 	render() {
-		const container = this.props.container;
+		const container = this.props
+			.workspaceData.container;
 		return (
 			<div className={toolStyle.toolContainer}
 				onMouseMove={
@@ -57,8 +54,7 @@ export class ToolContainer extends
 						.toolbox.headerName 
 						} 
 					} 
-					container={this
-						.props.container}/>
+					container={container}/>
 				<ToolboxOptions  
 					headerName={"Options"}
 					container={container}
@@ -69,20 +65,18 @@ export class ToolContainer extends
 
 }
 
-
-type RegionContainerProps = {
-	container: RottnestContainer
-}
-
 /**
  * Region Container that is a column container
  * that contains both region list and errors
  */
 export class RegionContainer 
-	extends React.Component<RegionContainerProps, {}> {
+	extends React.Component<WorkspaceProps, {}> 
+	implements Workspace {	
+
 
 	render() {
-		const container = this.props.container;
+		const container = this.props.workspaceData
+			.container;
 		const regionList = container.getRegionList();
 		
 		const regListInfo = container.getRegionListData();
@@ -104,10 +98,12 @@ export class RegionContainer
 		let connectedKind = null;
 		if(regData) {
 			if(regData.connectionToIdx !== null) {
-				connectedIdx = regData.connectionToIdx;
+				connectedIdx = regData
+				.connectionToIdx;
 			}		
 			if(regData.connectionToKind!== null) {
-				connectedKind = regData.connectionToKind;
+				connectedKind = regData
+				.connectionToKind;
 			}
 		} 
 		

@@ -112,7 +112,8 @@ class RegionList extends React.Component<RegionListProps,
 		const headerName = 'Regions';
 		const regions = this.props.regions;
 		const container = this.props.container;
-		const [selIdx, selKind] = container.getRegionSelectionData();
+		const [selIdx, selKind] = container
+			.getRegionSelectionData();
 		const updateVisibility = (regionData: RegionData) => {
 			container.updateVisibility(regionData,
 				!regionData.isVisible());

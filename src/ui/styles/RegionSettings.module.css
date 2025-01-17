@@ -14,13 +14,38 @@
 }
 
 .subTypeComp {
-	padding-top: 1em;
 	text-align: left;
-	margin-left: 1em;
+	background-color: #232122;
+	padding-left: 0.25em;
+	padding-bottom: 0.25em;
+	padding-right: 0.25em;
+	border-bottom: 1px #35332f solid; 
 }
 .connectionsComp {
 	text-align: left;
-	padding-top: 0.5em;
-	margin-left: 1em;
+	padding-top: 0.25em;
+	padding-bottom: 0.25em;
+	background-color: #232122;
+	padding-left: 0.25em;
+	padding-right: 0.25em;
+
+	border-bottom: 1px #35332f solid; 
+}
+
+.connectionsComp select {
+	border: 2px #35332f solid;
+	border-radius: 5px;
+	width: 100%;
+	color: rgba(255, 255, 255, 0.87);
+	background-color: #232122;
+}
+
+.subTypeComp select {
+	border: 2px #35332f solid;
+	border-radius: 5px;
+	color: rgba(255, 255, 255, 0.87);
+	background-color: #232122;
+
+	width: 100%;
 
 }
