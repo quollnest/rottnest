@@ -12,6 +12,22 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* CHROME */
+::-webkit-scrollbar {
+  width: 0.2rem;
+  height: 0rem;
+  scrollbar-color: #242424;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 30px;
+}
+
 a {
   font-weight: 500;
   color: #646cff;

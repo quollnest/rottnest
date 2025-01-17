@@ -124,8 +124,9 @@ class RottnestContainer
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, false, true],
-			tabNames: ['Architecture', 'Widget', 'Visualiser']
+			availableTabs: [true, false, false],
+			tabNames: ['Architecture', 'Widget', 
+				'Visualiser']
 		},
 		visData: {}
 	};
@@ -167,9 +168,11 @@ class RottnestContainer
 		appService.registerReciverKinds(
 			'run_result', (_) => {
 				let someMsg = appService.dequeue();
-
+				
 				let json = someMsg?.getJSON();
 				selfRef.state.visData = json;
+				selfRef.state.tabData.availableTabs[2]
+					= true;
 				selfRef.triggerUpdate();
 			}
 		);
@@ -370,7 +373,7 @@ class RottnestContainer
 		};
 		this.state.tabData = {
 			selectedTabIndex: 0,
-			availableTabs: [true, false, true],
+			availableTabs: [true, false, false],
 			tabNames: ['Architecture', 'Widget', 
 				'Visualiser']
 		};
