@@ -957,7 +957,7 @@ export class RegionDataList {
 
 	static fromFlatten(fdata: FlatRegions): RegionDataList {
 		let rDataList = new RegionDataList();
-
+		
 		let regions: Regions = {
 			bus: [],
 			registers: [],
