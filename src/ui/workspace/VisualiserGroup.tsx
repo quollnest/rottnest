@@ -1,7 +1,7 @@
 
 import {RegionContainer, ToolContainer} 
 	from "../container/ColumnContainer"
-import {SchedulerVisualiser} from "../SchedulerIFrame";
+import {SchedulerVisualiser} from "../SchedulerVisualiser";
 import { WorkspaceGroup, WorkspaceProps } from "./Workspace"
 import {ReactElement} from "react";
 import {WorkspaceZone} from "./WorkspaceZone";
@@ -11,9 +11,10 @@ export class VisualiserGroup implements WorkspaceGroup {
 	MakeGroup(data: WorkspaceProps): Array<ReactElement> {
 		
 		const svisSpace = <SchedulerVisualiser  {...{
-				container: data
-				.workspaceData.container 
-			}} />;
+				workspaceData: data
+				.workspaceData }} 
+				/>;
+
 		const group = [
 			<ToolContainer key={"arch_toolcontainer"} 
 				{...data} />,
