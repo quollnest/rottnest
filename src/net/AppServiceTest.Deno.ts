@@ -1,4 +1,4 @@
-import { AppServiceClient } from "./AppService.ts";
+/*import { AppServiceClient } from "./AppService.ts";
 import * as readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 
@@ -36,4 +36,4 @@ async function Start() {
 
 }
 
-Start().then(console.log);
+Start().then(console.log);*/

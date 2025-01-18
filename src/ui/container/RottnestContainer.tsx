@@ -1,12 +1,10 @@
 import React from 'react';
 import GlobalBar from '../GlobalBar';
-import RottnestService from '../../service/RottnestService';
-import {ProjectDetails, 
-	RegionDataList,
-	ProjectDump,
-	ProjectAssembly} 
+import {ProjectDetails,
+	ProjectAssembly,
+	ProjectDump} 
 	from '../../model/Project';
-
+import {RegionDataList } from '../../model/RegionDataList';
 import { RegionCell, RegionData, Regions } 
 	from '../../model/RegionData';
 
@@ -19,7 +17,7 @@ import { RegionsSnapshotStack }
 import styles from '../styles/RottnestContainer.module.css';
 import {DesignSpace} from '../DesignSpace';
 import NewProjectForm from './NewProjectForm';
-import { RottnestKindMap } from '../../model/KindMap.ts'
+import { RottnestKindMap } from '../../model/RegionKindMap.ts'
 
 import {AppServiceClient} 
 	from '../../net/AppService.ts';
@@ -621,23 +619,7 @@ class RottnestContainer
 		);
 	}
 
-	/**
-	 * Saves a project by triggering a service
-	 * event, this event is triggered by GlobalBar
-	 */
-	saveProject() {
-		RottnestService.SaveToLocalStorage('rottnest', 
-					this.state.projectDetails);
-	}
 
-
-	/**
-	 * Loads a project by triggering a service event,
-	 * this event is triggered by GlobalBar
-	 */
-	loadProject(project: string) {
-		RottnestService.LoadFromLocalStorage(project);
-	}
 
 	/**
 	 * Retrieves the current tool index that

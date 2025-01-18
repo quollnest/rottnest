@@ -1,5 +1,4 @@
 
-
 /**
  * RegionCell that has coordinates and direction
  * of connectivity
@@ -10,9 +9,14 @@ export type RegionCell = {
 	cdir?: number
 	cnKind?: number
 	manualSet?: boolean
-
 }
 
+/**
+ * Dimensions of the region, since it is assumed
+ * that they are rectangular, we just need to
+ * record the top-left point and the
+ * width and height
+ */
 export type RegionDimension = {
 	x: number
 	y: number
@@ -26,8 +30,8 @@ export type RegionDimension = {
  */
 export type RegionCellAggr = {
 	toolKind: number
-	cell: RegionCell | null
 	visible: boolean
+	cell: RegionCell | null
 }
 	
 
@@ -45,7 +49,9 @@ export type RegionOutputSegment = {
 }
 
 /**
- * A flattened version used by RegionData
+ * A flattened version used by RegionData,
+ * Used for saving to json and also
+ * sending over a network.
  */
 export type FlatRegionData = {
 	regionKind: string
@@ -57,6 +63,11 @@ export type FlatRegionData = {
 	connectionDir: number
 }
 
+/**
+ * Used as part of AABB detection
+ * within pathing/traversal/recommendations
+ * of connections within the space.
+ */
 export type RegionEdge = {
 	x1: number 
 	x2: number
@@ -64,6 +75,10 @@ export type RegionEdge = {
 	y2: number
 }
 
+/**
+ * Surrounding edge coordinates of a
+ * region, used as part of AABB detection
+ */
 export type RegionDataEdges = {
 	top: RegionEdge
 	bottom: RegionEdge
@@ -72,7 +87,7 @@ export type RegionDataEdges = {
 }
 
 /**
- *
+ * Different regions listed in this aggregate
  */
 export type Regions = {
 	bus: Array<RegionData>
@@ -97,12 +112,15 @@ export type RegionNode = {
 	dir: number
 }
 
+/**
+ * A connection pair tuple, has the index
+ * and kind
+ */
 type RegionConPair = {
 	kind: string
 	idx: number
 }
 
-const CellOutputDir = ["None", "Up", "Right", "Left", "Down"];  
 
 /**
  * RegionData, this is the base type that holds
@@ -124,6 +142,8 @@ export class RegionData {
 	
 	visible: boolean = true;
 	
+	static CellConnectionDirection = 
+		["None", "Up", "Right", "Left", "Down"];  
 
 	static fromFlatten(data: FlatRegionData): RegionData {
 		const rdata = new RegionData();
@@ -229,7 +249,7 @@ export class RegionData {
 	}
 	
 	static GetDirectionStrings(): Array<string> {
-		return CellOutputDir;
+		return RegionData.CellConnectionDirection;
 	}
 
 	static SingularKind(regKind: string): string {
@@ -682,5 +702,4 @@ export class RegionData {
 		}
 		return this.cells.size;
 	}
-
-	}
+}

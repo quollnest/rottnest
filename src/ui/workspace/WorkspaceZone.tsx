@@ -64,39 +64,6 @@ export class WorkspaceZone
 	extends React.Component<WorkspaceZoneData, {}> 
 	implements Workspace {
 
-
-	/*tabComponents = [
-
-		() => { return (<DesignSpace {...
-			{ 
-				width: this.props
-					.workspaceData
-					.designSpace.width,
-				height: this.props
-					.workspaceData
-					.designSpace.height,
-				container: this.props
-					.workspaceData
-					.container,
-				toolKind: this.props
-					.workspaceData
-					.toolKind,
-				zoomValue: this.props
-					.workspaceData
-					.zoomValue,
-				subTypes: this.props
-					.workspaceData
-					.container
-					.state.subTypes
-			}
- 		} />) },
-		() => { return (<WidgetView />) },
-		() => { return ( <SchedulerVisualiser 
-			visData={this.props
-		.workspaceData.container.state.visData}/>) }
-
-	];*/
-
 	render() {
 
 		const component = this.props.wsComponent;	

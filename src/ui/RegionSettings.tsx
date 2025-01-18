@@ -2,7 +2,7 @@ import React from "react";
 import styles from './styles/RegionSettings.module.css';
 import RottnestContainer from "./container/RottnestContainer";
 import {RegionData} from "../model/RegionData";
-import {SubKind} from "../model/KindMap";
+import {SubKind} from "../model/RegionKindMap";
 
 
 type RegionConnection = {
@@ -26,11 +26,12 @@ type RegionConnectorData = {
 class RegionConnectorOptions extends React.Component
 	<RegionConnectorData, {}> {
 	
-	static MatchInConnections(connections: Array<RegionConnection>,
-				  idx: number, kind: string): number {
+	static MatchInConnections(
+		connections: Array<RegionConnection>,
+		idx: number, kind: string): number {
 		for(let i = 0; i < connections.length; i++) {
 			const c = connections[i];
-			if(c.name === kind && c.listIdx === idx) {
+			if(c.name === kind && c.listIdx=== idx) {
 				return i;
 			}
 		}
@@ -41,16 +42,22 @@ class RegionConnectorOptions extends React.Component
 		
 		const props = this.props;
 		const settings = props.container;
-		const connections = props.connectionList.connections;
-		const connectedIdx = props.connectionList.connectedIdx;
-		const connectedKind = props.connectionList.connectedKind;
+		const connections = props.connectionList
+			.connections;
+		const connectedIdx = props.connectionList
+			.connectedIdx;
+		const connectedKind = props.connectionList
+			.connectedKind;
 			
 		const selectedIdx = RegionConnectorOptions
-			.MatchInConnections(connections, connectedIdx,
-					   connectedKind === null ? '' :
+			.MatchInConnections(connections, 
+					    connectedIdx,
+					   connectedKind
+					   === null ? '' :
 					   connectedKind);
 		const dirStrs = RegionData.GetDirectionStrings();
-		const renderedOptions = connections.length === 0 ?
+		const renderedOptions = 
+			connections.length === 0 ?
 			<option value={"Not Selected"}>
 			Not Selected
 			</option> :
@@ -65,23 +72,30 @@ class RegionConnectorOptions extends React.Component
 		});
 		
 		const regionSelect = (e: 
-			React.ChangeEvent<HTMLSelectElement>) => {
+			React.ChangeEvent<HTMLSelectElement>)=> {
 			if(e.target.value !== 'Not Selected') {
 
 				//TODO: Below are two bugs
-				const conIdx = Number(e.target.value);
-				const regTup = connections[conIdx];
+				const conIdx = Number(e
+						.target.value);
+				const regTup = 
+					connections[conIdx];
 				if(regTup) {
-					const conDir = regTup.listIdx
-					const kindKey = regTup.name;
-					const dirIndex = regTup.direction;
+					const conDir = regTup
+						.listIdx
+					const kindKey = regTup
+						.name;
+					const dirIndex = regTup
+						.direction;
 
 				
 					console.log(dirIndex);
-					//TODO: May need pluralised key
-					const kindPlu = RegionData
-						.PluraliseKind(kindKey);
-					settings.updateDirOfSelected(
+					const kindPlu = 
+						RegionData
+						.PluraliseKind(
+							kindKey);
+					settings
+					.updateDirOfSelected(
 						conDir, 
 						kindPlu,
 						dirIndex);
@@ -93,7 +107,8 @@ class RegionConnectorOptions extends React.Component
 			<div className={styles.connectionsComp}>
 			<label>Connections</label>
 			<select name="connections" 
-			value={selectedIdx} onChange={regionSelect}>
+			value={selectedIdx} onChange={
+				regionSelect}>
 				{renderedOptions}
 			</select>
 			</div>
@@ -116,16 +131,12 @@ type RegionSubTypeComponentData = {
 	selectedSubKind: string
 }
 
-type RegionSubState = {
-	
-}
-
 /**
  * List of subtypes of a region that
  * impact the configuration and how it is to be compiled
  */
 class RegionSubTypeList extends React.Component
-	<RegionSubTypeComponentData, RegionSubState> {
+	<RegionSubTypeComponentData, {}> {
 	
 	subKindKeyToIdx(subList: Array<SubKind>, kind: string): 
 		number {
@@ -155,15 +166,15 @@ class RegionSubTypeList extends React.Component
 			Not Selected</option> :
 			subtypes.map((rc, idx) => {
 			return (
-				<option value={rc.name} key={idx}>
+				<option value={rc.name} 
+				key={idx}>
 				{rc.name}
 				</option>
 			)
 		});
 
 		const regionSelect = (e: 
-			React.ChangeEvent<HTMLSelectElement>) => {
-			console.log(e.target.value);
+			React.ChangeEvent<HTMLSelectElement>)=> {
 			if(e.target.value !== 'Not Selected') {
 				settings.updateSubTypeOfSelected(
 					e.target.value);
@@ -198,7 +209,8 @@ type RegionFactoryKindState = {
  * that can be changed for that region
  *
  */
-class RegionBellStateSettings extends React.Component<RegionFactoryKindData,
+class RegionBellStateSettings 
+	extends React.Component<RegionFactoryKindData,
 	RegionFactoryKindState> {
 
 	state = {
@@ -217,10 +229,14 @@ class RegionBellStateSettings extends React.Component<RegionFactoryKindData,
 		return ( 
 			<div className={styles.subTypeComp}>
 			<label>Bell State Counter</label>
-				<input type="text" onChange={(e) => {
-					const vStr = e.target.value;
-					const vNum = Number(vStr);
-					rbss.changeBStateValue(vNum);
+				<input type="text" 
+				onChange={(e) => {
+					const vStr = e
+						.target.value;
+					const vNum = 
+						Number(vStr);
+					rbss
+					.changeBStateValue(vNum);
 				}}></input>
 			</div>
 		)	}
@@ -242,7 +258,8 @@ type RegionSettingsData = {
  * that can be changed for that region
  *
  */
-class RegionSettings extends React.Component<RegionSettingsData, {}> {
+class RegionSettings extends React
+	.Component<RegionSettingsData, {}> {
 
 	rottContainer: RottnestContainer = this.props.container;
 	
@@ -265,26 +282,28 @@ class RegionSettings extends React.Component<RegionSettingsData, {}> {
 			    dir: number) {
 		const currentObj = this.rottContainer
 			.getSelectedRegionData();
-		const regList = this.rottContainer.getRegionList();
+		const regList = this.rottContainer
+			.getRegionList();
 		if(currentObj) {
 			let regData: RegionData = currentObj
 				.shallowDuplicate();
 			let regKind = regData.getKind();
-			//TODO: Check in to see what is happening
-			//here
-			//Check to see if the selectionHas changed
 			if(regData.getSubKind() !== conKind) {
-				const encKind = regList.getConnectKindIndex(
+				const encKind = regList
+					.getConnectKindIndex(
 					regKind, conKind);
-				console.log(encKind);
 
-				regData.setConnectionInformation(conKind, 
-							 conDirIdx, dir);
+				regData
+				.setConnectionInformation(
+					conKind, 
+					conDirIdx, 
+					dir);
 
 				regData.updateManuallySet(true);
-				regData.setDirectionOnCells(dir, 
-							    encKind);
-				this.rottContainer.updateSelectedRegionData(
+				regData.setDirectionOnCells(dir,
+							encKind);
+				this.rottContainer
+				.updateSelectedRegionData(
 					regData);
 			}
 		}
@@ -305,26 +324,34 @@ class RegionSettings extends React.Component<RegionSettingsData, {}> {
 		
 		//TODO: Refactor this to provide non-null guarantee
 		let currentSubKey = ''; 
-		if(selectedRegion !== null && selectedRegion !== undefined) {
-			currentSubKey = selectedRegion.subTypeKind === null ?
-				'' : selectedRegion.subTypeKind;
+		if(selectedRegion !== null && 
+		   selectedRegion !== undefined) {
+			currentSubKey = selectedRegion
+				.subTypeKind === null ?
+				'' : selectedRegion
+				.subTypeKind;
 		} 		 
-		const isVisible = selectedRegion !== null;
+		const isVisible = selectedRegion 
+			!== null;
 		return (
 			<div className={styles.regionSettings}
-				style={{visibility: isVisible ? 'visible' : 'hidden'}}>
+				style={{visibility: isVisible 
+				? 'visible' : 'hidden'}}>
 				<header className={styles
-						.regionSettingsHeader}>
+					.regionSettingsHeader}>
 					{headerName}
 				</header>
 				<RegionConnectorOptions
 					connectionList={
 						connectionsList}
-					container={parentContainer} />
+					container={
+					parentContainer} />
 				<RegionSubTypeList 
 					dataList={subList}
-					container={parentContainer}
-					selectedSubKind={currentSubKey}
+					container={
+					parentContainer}
+					selectedSubKind={
+					currentSubKey}
 				/>
 			</div>
 		)

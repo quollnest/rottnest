@@ -6,9 +6,9 @@ export const APP_URL: string = "ws://localhost:8080/websocket";
 
 const WS_ONMESSAGE: string = "message";
 const WS_ONSEND: string = "send";
-const WS_ONERROR: string = "error";
 const WS_ONOPEN: string = "open";
-const WS_ONCLOSE: string = "close";
+//const WS_ONERROR: string = "error";
+//const WS_ONCLOSE: string = "close";
 
 //TODO: Remove the fucking hack
 export type WSConnectFns = {

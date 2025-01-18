@@ -1,13 +1,7 @@
 
+import { RottnestKindMap } from '../model/RegionKindMap.ts'
+import { TSchedData } from '../model/TSchedData.ts';
 import { DeRott } from './Serialisation'
-
-import { RottnestKindMap } from '../model/KindMap.ts'
-import {TSchedData} from '../model/TSchedData.ts';
-//This is used to current convert between front and
-//backend
-//
-
-//Normalisation via keys
 
 export class RottArchMSG {
 	
@@ -82,7 +76,7 @@ export class RottSubTypesMSG implements DeRott  {
 				if(keyChk === null) {
 					console.log(lowerKey);
 					console.error(
-						"Unable to convert");
+					 "Unable to convert");
 
 					return null;
 				} else {

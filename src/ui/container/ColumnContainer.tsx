@@ -7,7 +7,7 @@ import ErrorList from '../ErrorList';
 import toolStyle from '../styles/ToolContainer.module.css'
 import regionStyle from '../styles/RegionContainer.module.css'
 import RegionSettings from '../RegionSettings';
-import {RottnestKindMap} from '../../model/KindMap';
+import {RottnestKindMap} from '../../model/RegionKindMap';
 import {RegionData} from '../../model/RegionData';
 import {Workspace, WorkspaceProps} from '../workspace/Workspace';
 
@@ -81,11 +81,13 @@ export class RegionContainer
 		
 		const regListInfo = container.getRegionListData();
 		const selected = regListInfo.selectedKind;
-		const regKeyVal = regListInfo.selectedKind !== null ?
+		const regKeyVal = regListInfo.selectedKind 
+			!== null ?
 			regListInfo.selectedKind : 'NA';
 		const regSingular = RegionData.SingularKind(
 			regKeyVal);
-		const regKind = regSingular as keyof RottnestKindMap;
+		const regKind = 
+			regSingular as keyof RottnestKindMap;
 		const subtypesCol = selected === '' || 
 			selected === null ? [] :
 			regListInfo.subTypes[regKind]
@@ -108,7 +110,8 @@ export class RegionContainer
 		} 
 		
 		return (
-			<div className={regionStyle.regionContainer}
+			<div className={regionStyle
+				.regionContainer}
 				onMouseMove={
 					(_) => {
 						container
@@ -124,20 +127,20 @@ export class RegionContainer
 					subTypes={
 						{
 						subtypes: 
-							subtypesCol,
+						 subtypesCol,
 						currentlySelected: 
-							regListInfo
-							.selectedIdx
+						 regListInfo
+						 .selectedIdx
 						}
 					} 
 					connections={
 						{
 						connections: 
-							connRecs,
+						 connRecs,
 						connectedIdx: 
-							connectedIdx,
+						 connectedIdx,
 						connectedKind:
-							connectedKind
+						 connectedKind
 						}
 					} />
 					

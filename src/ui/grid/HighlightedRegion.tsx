@@ -1,4 +1,4 @@
-import React from 'react';
+/*import React from 'react';
 import style from '../styles/HighlightedRegion.module.css';
 import {DesignSpace} from '../DesignSpace';
 
@@ -45,4 +45,4 @@ export default class HighlightedRegion
 
 
 }
-
+*/

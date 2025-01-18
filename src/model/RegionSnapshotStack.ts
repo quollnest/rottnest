@@ -1,5 +1,5 @@
 
-import {RegionDataList}  from './Project';
+import {RegionDataList}  from './RegionDataList';
 /**
  * This allows for undo and redo functionality
  * within the container system

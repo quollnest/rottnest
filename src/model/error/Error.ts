@@ -1,14 +1,14 @@
 import RegionList from "../../ui/RegionList"
 
 
-type ErrorPresentation = {
+export type ErrorPresentation = {
 	erroPrefix: string
 	errorCode: number
 	description: string
 	ruleKey: string
 }
 
-type ErrorValidation = {
+export type ErrorValidation = {
 	ruleKey: string
 	apply: (regionList: RegionList) => boolean;
 }

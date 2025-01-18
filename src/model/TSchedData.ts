@@ -24,5 +24,4 @@ export type TSchedData = {
 	width: number
 	height: number
 	regions: Array<TSchedDataNode>
-
 }

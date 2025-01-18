@@ -2,9 +2,7 @@ import React from "react";
 import {WorkspaceData} from "./workspace/Workspace";
 
 
-type WidgetViewState = {
-	data: any
-}
+type WidgetViewState = { data: any }
 
 export class WidgetSpace extends 
 	React.Component<WorkspaceData, WidgetViewState> {

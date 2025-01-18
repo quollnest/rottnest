@@ -1,7 +1,5 @@
 import React, {ReactElement} from 'react';
 
-import { RottnestProject } from '../model/Project.ts';
-
 import HelpEvent from './global/Help.ts';
 import LoadEvent, { hiddenInputProc } from './global/Load.ts';
 import SaveEvent from './global/Save.ts';
@@ -30,7 +28,9 @@ import {
 } from '@ant-design/icons'
 
 import styles from './styles/GlobalBar.module.css';
-import RottnestContainer from './container/RottnestContainer.tsx';
+import RottnestContainer 
+	from './container/RottnestContainer.tsx';
+import {ProjectDetails} from '../model/Project.ts';
 
 
 /**
@@ -40,7 +40,8 @@ import RottnestContainer from './container/RottnestContainer.tsx';
  */
 type GlobalBarProps = {
 	container: RottnestContainer
-	componentMap: Map<number, [string, RottnestProject]>
+	componentMap: Map<number, [string, 
+		ProjectDetails]>
 }
 
 
@@ -75,7 +76,7 @@ type BarItemDescription = {
 type BarItemData = {
 	containerRef: RottnestContainer
 	description: BarItemDescription
-	updatable?: [string, RottnestProject]
+	updatable?: [string, ProjectDetails]
 }
 
 
@@ -102,7 +103,7 @@ class BarItem extends React.Component<BarItemData, {}> {
 		return (
 			<li key={ident}
 				onClick={ (_) => { 
-					events.leftClick(container) } }
+				events.leftClick(container) } }
 				className={data.description.style}>
 				{ico} <div>{val ? val : name}</div>
 			</li>
@@ -220,7 +221,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			iconComponent: 
 				<>
 				<UploadOutlined />
-				<input className={styles.hiddenFile} 
+				<input className={styles
+					.hiddenFile} 
 					type="file" 
 					onChange={(e) => {
 						hiddenInputProc(e, 

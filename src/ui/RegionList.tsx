@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './styles/RegionList.module.css';
-import {RegionDataList} from '../model/Project';
+import {RegionDataList} from '../model/RegionDataList';
 import {RegionData } from '../model/RegionData';
 import RottnestContainer from './container/RottnestContainer';
 
