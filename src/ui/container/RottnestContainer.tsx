@@ -17,7 +17,7 @@ import { RegionsSnapshotStack }
 import styles from '../styles/RottnestContainer.module.css';
 import {DesignSpace} from '../DesignSpace';
 import NewProjectForm from './NewProjectForm';
-import { RottnestKindMap, SubKind } from '../../model/RegionKindMap.ts'
+import { RottnestKindMap, RottnestRouterKindMap, SubKind } from '../../model/RegionKindMap.ts'
 
 import {AppServiceClient} from '../../net/AppService.ts';
 
@@ -49,7 +49,6 @@ type RottnestAppState = {
 	}
 }
 
-
 let RottnestSubKinds: RottnestKindMap = {
 	bus: [{ name: 'Not Selected' }],	
 	register: [{ name: 'Not Selected'}],
@@ -58,6 +57,13 @@ let RottnestSubKinds: RottnestKindMap = {
 	buffer: [{ name: 'Not Selected' }]	
 }
 
+let RottnestRouterKinds: RottnestRouterKindMap = {
+	bus: [{ name: 'Not Selected' }],	
+	register: [{ name: 'Not Selected'}],
+	bellstate: [{ name: 'Not Selected'}],
+	factory: [{ name: 'Not Selected'}],
+	buffer: [{ name: 'Not Selected' }]	
+}
 
 /**
  * Maintains state information related to
@@ -68,9 +74,11 @@ type RottnestState = {
 	appStateData: RottnestAppState
 	regionList: RegionDataList
 	subTypes: RottnestKindMap
+	routerList: RottnestRouterKindMap
 	tabData: TabViewStateData
 	subTypesRecvd: boolean
 	visData: any
+	routerListRcvd: boolean
 }
 
 type ComponentMonitor = {
@@ -137,7 +145,9 @@ class RottnestContainer
 		},
 		regionList: new RegionDataList(),
 		subTypes: RottnestSubKinds,	
+		routerList: RottnestRouterKinds,
 		subTypesRecvd: false,
+		routerListRcvd: false,
 		appStateData: {
 			settingsActive: false,
 			newProjectActive: false,
@@ -153,7 +163,7 @@ class RottnestContainer
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, true, true],
+			availableTabs: [true, false, false],
 			tabNames: ['Architecture', 'Widget', 
 				'Visualiser']
 		},
@@ -194,7 +204,7 @@ class RottnestContainer
 				let json = someMsg?.getJSON();
 				console.error(json);
 			}
-		);;
+		);
 		appService.registerReciverKinds(
 			'run_result', (_) => {
 				let someMsg = appService.dequeue();
@@ -205,6 +215,17 @@ class RottnestContainer
 				.availableTabs[2]
 					= true;
 				selfRef.triggerUpdate();
+			}
+		);
+		appService.registerReciverKinds(
+			'routers', (_) => {
+				let kinds = appService
+					.retrieveRouters();
+				if(kinds) {
+					selfRef
+					.updateRouterList(kinds);
+				}
+
 			}
 		);
 	}
@@ -276,6 +297,11 @@ class RottnestContainer
 				}));
 		} 
 		return adjacentList;
+	}
+	updateRouterList(routers: RottnestRouterKindMap) {
+		this.state.routerList = routers;
+		this.state.routerListRcvd = true;
+		this.triggerUpdate();
 	}
 
 	updateSubTypesFromService() {

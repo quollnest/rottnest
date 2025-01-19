@@ -9,6 +9,18 @@ export type SubKind = {
 	name: string
 }
 
+export type RegionRouterKind = {
+	name: string
+}
+
+export type RottnestRouterKindMap = {
+	bus: Array<RegionRouterKind> 
+	register: Array<RegionRouterKind>
+	bellstate: Array<RegionRouterKind>	
+	factory: Array<RegionRouterKind>	
+	buffer: Array<RegionRouterKind>
+}
+
 /**
  * Singularised phrasing of kinds
  * that is given to the front end

@@ -164,6 +164,22 @@ export class AppServiceClient {
 		}
 	}
 
+	retrieveRouters() {
+		const data = this.dequeue();
+		if(data) {
+			const msgContainer =
+				new RottRouterTypesMSG();
+			data.parseData();
+			const realData = data
+				.parseDataTo(msgContainer);
+			if(realData) {
+				return realData.regionKinds;
+			}
+		}
+
+		return null;
+	}
+
 	runResult(runMsg: RottRunResultMSG) {
 		
 		if(this.socket) {

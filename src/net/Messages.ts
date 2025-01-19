@@ -1,5 +1,5 @@
 
-import { RottnestKindMap } from '../model/RegionKindMap.ts'
+import { RottnestKindMap, RottnestRouterKindMap } from '../model/RegionKindMap.ts'
 import { TSchedData } from '../model/TSchedData.ts';
 import { DeRott } from './Serialisation'
 
@@ -35,8 +35,7 @@ export class RottRunResultMSG {
 	}
 }
 
-
-export class RottSubTypesMSG implements DeRott  {
+export class RottRouterTypesMSG implements DeRott  {
 	
 	regionKinds: RottnestKindMap = {
 		bus: [{ name: 'Not Selected' }],	
@@ -70,6 +69,65 @@ export class RottSubTypesMSG implements DeRott  {
 			const lowerK = k.toLowerCase();
 			let lowerKey = 
 				lowerK as keyof RottnestKindMap
+			if(!(lowerKey in this.regionKinds)) {
+				const keyChk = this.fuzzyMatch(
+					lowerK);
+				if(keyChk === null) {
+					console.log(lowerKey);
+					console.error(
+					 "Unable to convert");
+
+					return null;
+				} else {
+					lowerKey = keyChk;
+				}
+			}
+
+			for(const v of data[k]) {
+				this.regionKinds[lowerKey]
+					.push({ name: v });
+			}
+		}
+
+		return this;
+	}
+}
+
+
+export class RottSubTypesMSG implements DeRott  {
+	
+	regionKinds: RottnestKindMap = {
+		bus: [{ name: 'Not Selected' }],	
+		register: [{ name: 'Not Selected'}],
+		bellstate: [{ name: 'Not Selected'}],
+		factory: [{ name: 'Not Selected'}],
+		buffer: [{ name: 'Not Selected' }]		
+	}
+	
+	//This is not used
+	fromStr(_: string) {
+		return null;
+	}
+	
+	fuzzyMatch(ky: string): keyof RottnestKindMap | null {
+		const fuzzies: Map<string, string> = new Map([
+			['bell', 'bellstate']
+		]);
+
+		if(fuzzies.has(ky)) {
+			const r = fuzzies.get(ky); 
+			return  r as keyof RottnestKindMap;
+		} else {
+			return null;
+		}
+	}
+
+	fromJSON(mdata: any) {
+		const data = mdata['routers'];
+			for(const k in data) {
+			const lowerK = k.toLowerCase();
+			let lowerKey = 
+				lowerK as keyof RottnestRouterKindMap 
 			if(!(lowerKey in this.regionKinds)) {
 				const keyChk = this.fuzzyMatch(
 					lowerK);
