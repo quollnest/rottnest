@@ -117,7 +117,54 @@ class RegionConnectorOptions extends React.Component
 
 }
 
+type RegionRouterData = {
+	container: RegionSettings
+	routerList: Array<[number, string]>
+	currentlySelected: number
+}
 
+class RegionRouterList extends React.Component<RegionRouterData, {}> {
+	
+	render() {
+		const props = this.props;
+		const settings = props.container;
+		const routerList = props.routerList;
+		const selectedRouter = props.currentlySelected;	
+
+		const renderedOptions = routerList.length === 0 ? 
+			<option value={"Not Selected"}>
+			Not Selected</option> :
+			routerList.map((rc, idx) => {
+			const [ rIdx, rName ] = rc;
+
+			return (
+				<option value={rIdx} 
+				key={rIdx}>
+				{rName}
+				</option>
+			)
+		});
+
+		const regionSelect = (e: 
+			React.ChangeEvent<HTMLSelectElement>)=> {
+			if(e.target.value !== 'Not Selected') {
+				settings.updateSubTypeOfSelected(
+					e.target.value);
+			}
+		}
+		return ( 
+			<div className={styles.subTypeComp}>
+			<label>Region Type</label>
+			<select name="connections" 
+			onChange={regionSelect} 
+			value={selectedRouter}>
+				{renderedOptions}
+			</select>
+			</div>
+		)	
+	}
+
+}
 
 
 type RegionSubTypeDataList = {
