@@ -2,6 +2,8 @@ import React from "react";
 import style from "./styles/SchedulerVisual.module.css"
 import {Workspace, WorkspaceData} from "./workspace/Workspace";
 
+import data_json from '../assets/example_visual.json';
+
 /**
  * SymbolKindMap
  */
@@ -42,11 +44,6 @@ type PatchData = {
 /**
  * Visualisation data object used by Haowen's original code
  */
-type VisGate = {
-	type: string
-	locked_by: number
-	holds: Array<[number, number]>
-}
 
 /**
  * 
@@ -55,13 +52,31 @@ type VisCell = {
 	type: string
 }
 
+
+type VisCellLock = {
+	type: string
+	locked_by: number
+}
+
+type VisCellAggr = VisCell | VisCellLock;
+
+type VisGateActive = {
+	id: number
+	type: string
+	active_time: number	
+	holds: Array<[number, number]>
+} 
+
+
+type VisGate = VisGateActive;
+
 /**
  * 
  */
 type VisDataLayer = {
-	board: Array<Array<VisCell>>
+	board: Array<Array<VisCellAggr>>
 	gates: Array<VisGate>
-	factories: Array<VisFactory>
+	//factories?: Array<VisFactory>
 }
 
 /**
@@ -69,8 +84,8 @@ type VisDataLayer = {
  */
 type VisRegion = {
 	name: string
-	loc_tl: [number, number]
-	loc_br: [number, number]
+	loc_tl: Array<number>
+	loc_br: Array<number>
 	factories?: Array<VisRegion>
 }
 
@@ -78,10 +93,16 @@ type VisRegion = {
  * 
  */
 type VisFactory = {	
-	loc_tl: [number, number]
-	loc_br: [number, number]
+	loc_tl: Array<number> 
+	loc_br: Array<number>
 }
 
+type VisRunResult = {
+	width: number
+	height: number
+	layers: any	
+	regions: Array<VisRegion>
+}
 
 
 /**
@@ -241,17 +262,13 @@ class SchedulerControls extends React.Component<
 }
 
 type SchedulerDisplayStateData = {
-	svgObj: React.ReactElement
-	schedulerDisplayData: SchedulerDisplayData
+	//svgObj: React.ReactElement
+	//schedulerDisplayData: SchedulerDisplayData
 }
 
 type SchedulerDisplayData = {
-	svgData: {
-		svgWidth: number | string
-		svgHeight: number | string
-		//svgDefObjects: Array<React.ReactSVGElement>
-	}
 
+	data: any
 }
 
 
@@ -535,7 +552,8 @@ class SchedulerRenderer extends React.Component<
 	}
 
 	drawLayer(layer: VisDataLayer) {
-		for (const [rowIdx, row] of layer.board
+		let board: Array<Array<VisCellAggr>> = layer.board
+		for (const [rowIdx, row] of board
 		     .entries()) {
 			
 			for (const [colIdx, cell] of 
@@ -677,7 +695,7 @@ type SchedulerVisualiserProps = {
 
 
 type SchedulerVisualiserState = {
-	data: any
+	data: VisRunResult | null
 	displayState: any 
 	controlState: any 
 }
@@ -695,19 +713,27 @@ export class SchedulerVisualiser extends
 	}
 
 	render() {
+		let data: VisRunResult = {
+			width: data_json.payload.width,
+			height: data_json.payload.height,
+			//TODO: Resolve the type info here
+			layers: data_json.payload.layers,
+			regions: data_json.payload.regions,
 
-		let data = this.props.data;
+		}
+
+		//let data = this.props.data;
 
 		if(this.state.data != null) {
 			data = this.state.data;
 		} else {
 			this.state.data = data;
 		}
-
+		
+		console.log(data);
 		return (
 			<div className={style.schedulerVisualiser}>
-				<SchedulerRenderer 
-				{...data} />
+				<SchedulerRenderer data={data} />
 			</div>
 
 		)

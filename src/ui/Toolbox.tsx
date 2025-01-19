@@ -111,8 +111,20 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 		//the design space
 		this.state.container.
 			state.appStateData
-			.componentData.selectedTool = idx;
+			.componentData
+			.selectedTool = idx;
 		
+		const { subTypes } = this.state.container
+			.getSubTypesAndSelected()
+		//TODO: Make a setter in the container, this
+		//is gross
+		this.state.container
+			.state.appStateData
+			.componentData
+			.selectedSubTool = subTypes.length === 0 ?
+				0 :
+				subTypes.length-1;
+
 		this.setState({
 			selectedToolIndex: idx,
 			container: this.state.container

@@ -84,6 +84,7 @@ class SettingsForm extends React.Component<SettingsProps,
 			let newState: SettingsState = {
 				...this.state, 
 			};
+
 			newState.project = {...newState.project,
 				...partial}
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from './styles/ToolboxOptions.module.css';
 import RottnestContainer from './container/RottnestContainer';
+import {SubKind} from '../model/RegionKindMap';
 
 
 
@@ -25,7 +26,6 @@ type ToolboxOptionsProps = {
  *
  */
 type ToolboxOptionsState = {
-	selectedToolIndex: number
 	paintMode: boolean
 }
 
@@ -57,6 +57,93 @@ class PaintModeTool extends React.Component<PaintModeProps, {}> {
 }
 
 /**
+ * 
+ */
+type ToolSubTypeDataList = {
+	subTypes: Array<SubKind>
+	currentlySelected: number
+}
+
+/**
+ * 
+ */
+type ToolSubTypeComponentData = {
+	dataList: ToolSubTypeDataList
+	container: ToolboxOptions
+}
+
+/**
+ * List of subtypes of a region that
+ * impact the configuration and how it is to be compiled
+ */
+class ToolSubTypeList extends React.Component
+	<ToolSubTypeComponentData, {}> {
+	
+	subKindKeyToIdx(subList: Array<SubKind>, kind: number): 
+		string {
+		let m: string = 'Not Selected';
+		if(subList) {	
+			for(let i = 0; i < subList.length; i++) {
+				if(i === kind) {
+					m = subList[i].name;
+					break;
+				}
+			}
+		}
+		return m;
+	}
+
+	render() {
+		const props = this.props;
+		const settings = props.container;
+
+		const toolSubKind = this.props.dataList
+			.currentlySelected;
+
+		const subtypes = props.dataList
+			.subTypes;
+
+		const getSelectedKind = this
+			.subKindKeyToIdx(subtypes, toolSubKind);
+		
+		const renderedOptions = subtypes.length === 0 ? 
+			<option value={"Not Selected"}>
+			Not Selected</option> :
+			subtypes.map((rc, idx) => {
+			return (
+				<option value={rc.name} 
+				key={idx}>{rc.name}</option>
+			)
+		});
+
+		const regionSelect = (e: 
+			React.ChangeEvent<HTMLSelectElement>)=> {
+			if(e.target.value !== 'Not Selected') {
+				settings
+				.updateSubType(
+					Number(e
+					       .currentTarget
+					       .selectedIndex)
+				);
+			}
+		}
+
+		return ( 
+			<div className={styles.toolOption}>
+			<label>Region Type</label>
+			<select name="toolSubKinds" 
+			onChange={regionSelect} 
+			value={getSelectedKind}>
+				{renderedOptions}
+			</select>
+			</div>
+		)	
+	}
+}
+
+
+
+/**
  * Designed to hold the current set of
  * tools and monitor the current event
  * states
@@ -67,35 +154,63 @@ class PaintModeTool extends React.Component<PaintModeProps, {}> {
  */
 class ToolboxOptions extends React.Component<ToolboxOptionsProps, 
 	ToolboxOptionsState> {
-	
-	state: ToolboxOptionsState = {
-		selectedToolIndex: 0,
-		paintMode: false,
 
+	rottContainer: RottnestContainer = this.props.container;
+	state: ToolboxOptionsState = {
+		paintMode: false,
+	}
+	
+	getSubToolIndex(): number {
+		return this
+			.rottContainer.getToolIndex();
+	}
+
+	updateSubType(subTypeIndex: number) {
+		this.rottContainer
+		.updateSelectedSubType(subTypeIndex);;
 	}
 
 	render() {
 	
-		const headerName = 'Options';
-
+		const headerName = 'Tool Options';
+		const optionsContainer = this;
 		const container = this.props.container;
 		const toolIndex = container.getToolIndex();
-		
-		const updateFn = (updat: boolean) => {
+
+		const { subTypes, 
+			selectedSubTypeTool } 
+			= container.getSubTypesAndSelected();
+
+		const updatePaintFn = (updat: boolean) => {
 
 			const nstate = {...this.state};
 			nstate.paintMode = updat;
 			this.setState(nstate);
 		}
 
+
 		const optionRender = toolIndex >= 1 && toolIndex <= 5 ?
+			<>
 			<PaintModeTool paintMode={this.state.paintMode} 
-				pmodeUpdate={updateFn} /> : <></> 
+				pmodeUpdate={updatePaintFn} />
+			<ToolSubTypeList 
+				dataList={ 
+					{ 
+						subTypes: subTypes,
+						currentlySelected:
+						selectedSubTypeTool
+					}
+				}
+				container={optionsContainer}
+			/> 
+			</>
+			: <></> 
 
 
 		return (
 			<div className={styles.toolboxOptions}>
-				<header className={styles.toolboxOptionsHeader}>
+				<header className={styles
+					.toolboxOptionsHeader}>
 					{headerName}</header>
 				{optionRender}
 			</div>

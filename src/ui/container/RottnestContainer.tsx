@@ -17,10 +17,9 @@ import { RegionsSnapshotStack }
 import styles from '../styles/RottnestContainer.module.css';
 import {DesignSpace} from '../DesignSpace';
 import NewProjectForm from './NewProjectForm';
-import { RottnestKindMap } from '../../model/RegionKindMap.ts'
+import { RottnestKindMap, SubKind } from '../../model/RegionKindMap.ts'
 
-import {AppServiceClient} 
-	from '../../net/AppService.ts';
+import {AppServiceClient} from '../../net/AppService.ts';
 
 import AppServiceModule from '../../net/AppServiceModule.ts';
 import {RottRunResultMSG} from '../../net/Messages.ts';
@@ -44,6 +43,7 @@ type RottnestAppState = {
 	zoomValue: number
 	componentData: {
 		selectedTool: number
+		selectedSubTool: number
 		selectedRegion: number
 		selectedRegionType: string | null 
 	}
@@ -146,6 +146,7 @@ class RottnestContainer
 			helpActive: false,
 			componentData: {
 				selectedTool: 0,
+				selectedSubTool: 0,
 				selectedRegion: -1,
 				selectedRegionType: null
 			},
@@ -321,6 +322,44 @@ class RottnestContainer
 			console.error("Unable set current region");
 		}
 	}
+	
+	getSubTypesAndSelected(): 
+		{ 
+			subTypes: Array<SubKind>
+			selectedSubTypeTool: number
+		}{
+		const keyObj = this.toolToRegionKey();
+		if(keyObj) {
+		const key = RegionData.SingularKind(
+			keyObj) as keyof RottnestKindMap;
+
+
+		if(key !== null) {
+			return {
+				subTypes: this.state
+					.subTypes[key]
+					.map((e) => 
+					{ return (
+						{ name: e.name }) 
+					}),
+				selectedSubTypeTool: this.state
+					.appStateData
+					.componentData
+					.selectedSubTool
+				}
+			}
+		} 
+		return {
+			subTypes: [
+				{ name: 'Not Selected' }
+			],	
+			selectedSubTypeTool: this.state
+				.appStateData
+				.componentData
+				.selectedSubTool
+		}
+
+	}
 
 	//TODO: Funny method, subTypes and selected might be
 	//messing with things
@@ -328,15 +367,26 @@ class RottnestContainer
 		return {
 			regionList: this.state.regionList,
 			selectedIdx: this.state.appStateData
-				.componentData.selectedRegion,
+				.componentData
+				.selectedRegion,
 			selectedKind: this.state.appStateData
-				.componentData.selectedRegionType,
+				.componentData
+				.selectedRegionType,
 			subTypes: this.state.subTypes,
 			connectionRecs: [{name: 'None/Invalid', 
 				connectorId: 0}]
 		}
 	}
 	
+
+	updateSelectedSubType(subTypeIndex: number) {
+		this.state.appStateData
+			.componentData
+			.selectedSubTool = subTypeIndex;
+
+		this.triggerUpdate();
+	}
+
 	updateSelectedRegion(x: number, y: number) {
 		const aggrData = this.state.regionList
 			.getRegionDataFromCoords(x, y); 
@@ -415,6 +465,7 @@ class RottnestContainer
 			helpActive: false,
 			componentData: {
 				selectedTool: 0,
+				selectedSubTool: 0,
 				selectedRegion: 0,
 				selectedRegionType: null
 			},
@@ -564,14 +615,27 @@ class RottnestContainer
 			if(rkey) {
 				const pkey = RegionData
 					.SingularKind(rkey);
+
 				const subkindFor 
 				= this.state
 				.subTypes[
 				pkey as keyof RottnestKindMap];
 
+				let kindex = this.state
+				.appStateData
+				.componentData.selectedSubTool;
+
+
+				if(kindex === 0) {
+					kindex = (subkindFor
+						  .length-1)
+					 % subkindFor.length;
+				}
+
 				const kSubKindDefault 
-				= subkindFor[(subkindFor.length-1)
-				 % subkindFor.length];
+				= subkindFor[kindex];
+				
+				
 				oldBuffer.setSubKind(
 					kSubKindDefault.name);
 
@@ -583,10 +647,12 @@ class RottnestContainer
 				this.state.regionList
 				.resolveConnectionsFromTraversal(
 						false);
+
 				let res: RegionCell | undefined 
 					= oldBuffer.cells
 					.values()
 					.next().value;
+
 				if(res) {	
 					const { x, y }: 
 					{ x: number
@@ -638,6 +704,11 @@ class RottnestContainer
 	getToolIndex() {
 		return this.state.appStateData.componentData
 			.selectedTool;
+	}
+
+	getSubToolIndex() {
+		return this.state.appStateData
+			.componentData.selectedSubTool;
 	}
 
 	/**

@@ -18,3 +18,20 @@
 	border: 1px #35332f solid;
 	text-align: center;
 }
+
+.toolOption {
+	text-align: left;
+	background-color: #232122;
+	padding-left: 0.25em;
+	padding-bottom: 0.25em;
+	padding-right: 0.25em;
+	border-bottom: 1px #35332f solid; 
+}
+
+.toolOption select {
+	border: 2px #35332f solid;
+	border-radius: 5px;
+	color: rgba(255, 255, 255, 0.87);
+	background-color: #232122;
+	width: 100%;
+}

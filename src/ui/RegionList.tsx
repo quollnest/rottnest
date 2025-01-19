@@ -52,20 +52,25 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
 		const isVisible = data.isVisible;
 
 
-		const onSelect = (_: React.MouseEvent<HTMLSpanElement>) => {
+		const onSelect = 
+			(_: React.MouseEvent<HTMLSpanElement>) => {
 			const pluKind = RegionData.PluraliseKind(kind);
 			rottContainer.selectCurrentRegion(pluKind, idx);
 		}
 		
-		const regDelete = (_: React.MouseEvent<HTMLSpanElement>) => {
+		const regDelete = 
+			(_: React.MouseEvent<HTMLSpanElement>) => {
 
-			const pluKind = RegionData.PluraliseKind(kind);
-			rottContainer.deleteSelectedRegion(pluKind, idx);
+			const pluKind = RegionData.PluraliseKind(
+				kind);
+			rottContainer.deleteSelectedRegion(pluKind, 
+							   idx);
 		}
 
 		const visToggle = data.setVisibility;
 
-		const isSelectedStyle = isSelected ? styles.regionSelected : '';
+		const isSelectedStyle = isSelected ? 
+			styles.regionSelected : '';
 
 		return (
 			<li key={name} className={`${styles.regionItem}
@@ -75,14 +80,17 @@ class RegionItemRender extends React.Component<RegionItemData, {}> {
 				<span className={styles.regionItemBtn}
 					onClick={visToggle}>
 				{isVisible ? 
-					<EyeOutlined className={styles.regionItemBtn} /> 
+					<EyeOutlined className={styles
+						.regionItemBtn} /> 	
 					: <EyeInvisibleOutlined 
-						className={styles.regionItemBtn} />}
+						className={styles
+						.regionItemBtn} />}
 				</span>
 				<span className={styles.regionItemBtn}
 					onClick={regDelete}>
-					<CloseOutlined className={styles.regionItemBtn} />
-
+					<CloseOutlined 
+					className={styles
+						.regionItemBtn} />
 				</span>
 			</li>
 		);
@@ -120,14 +128,16 @@ class RegionList extends React.Component<RegionListProps,
 		}
 		
 		const renderRegions = regions.flattenWithTags()
-			.filter((r, _) => !r.rdata.isDead())
+			.filter((r, _) => !r.rdata
+				.isDead())
 			.map(
 				(r, idx) => {
 				//TODO: Remove ternery
 				let selKindS = selKind !== null 
 					? selKind : '';
 				if(selKind) {
-					selKindS = RegionData.SingularKind(selKind);
+					selKindS = RegionData
+					.SingularKind(selKind);
 				}
 				return (<RegionItemRender 
 				tag={r.tag}
@@ -135,7 +145,8 @@ class RegionList extends React.Component<RegionListProps,
 				idx={r.idx}
 				rdata={r.rdata} 
 				isVisible={r.rdata.isVisible()}
-				setVisibility={() => updateVisibility(r.rdata)}
+				setVisibility={() => updateVisibility(
+					r.rdata)}
 				container={container}
 				isSelected={r.kind === selKindS 
 					&& r.idx == selIdx}
