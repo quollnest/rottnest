@@ -472,8 +472,18 @@ class RottnestContainer
 					RegionDataList.fromFlatten(
 						dump.regions);
 				
+				const newState = {...this.state};
+				const dspace = this.monitorComponent
+					.designSpace;
+				if(dspace) {
+					dspace.redoCells(newState
+						.projectDetails.width,
+						newState
+						.projectDetails.height);
+				}
+				this.setState(newState);
 
-				this.triggerUpdate();
+				//this.triggerUpdate();
 			}
 			
 		}
