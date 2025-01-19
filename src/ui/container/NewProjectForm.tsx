@@ -75,10 +75,15 @@ class NewProjectForm extends React.Component<NewSettingsProps,
 			key: 
 			keyof ProjectDetails) => {
 
+			let v: string | number = e.currentTarget.value;
+			if(key === 'width' || key ==='height') {
+				v = Number(v);
+			}
+
+
 			let partial: 
 			Partial<ProjectDetails> = {
-				[key]: 
-				Number(e.currentTarget.value)
+				[key]: v 
 			};
 
 			let newState: 

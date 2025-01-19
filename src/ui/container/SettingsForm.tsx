@@ -73,8 +73,12 @@ class SettingsForm extends React.Component<SettingsProps,
 			e: React.FormEvent<HTMLInputElement>,
 				key: keyof ProjectDetails) => {
 
+			let v: string | number = e.currentTarget.value;
+			if(key === 'width' || key ==='height') {
+				v = Number(v);
+			}
 			let partial: Partial<ProjectDetails> = {
-				[key]: e.currentTarget.value
+				[key]: v			
 			};
 
 			let newState: SettingsState = {
