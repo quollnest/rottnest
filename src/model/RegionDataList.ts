@@ -873,26 +873,64 @@ export class RegionDataList {
 			factories: [],
 			buffers: []
 		};
-		//TODO: Bug, we are removeing regions which
-		//are dead but the links are stale
-		// We need to fix this
+
+
+		const remapAndFilterFn = (rd: RegionData,
+					  _: number) => {
+			return !rd.isDead();
+		};
+
+		const flattenFn = (rd: RegionData) => {
+			return rd.flatten();	
+		};
+
+		/*const resolveConnectionsFn = (rd: FlatRegionData) => {
+			
+			if(rd.connectionToKind && rd.connectionToIdx) {
+				const ckind = rd.connectionToKind;
+				const cidx = rd.connectionToIdx;
+				const key = `${ckind}_${cidx}`;
+
+				const obj = connRemap.get(key);
+				if(obj !== undefined && obj !== null) {
+					const nkind = obj[0];
+					const nidx = obj[1];
+					rd.connectionToKind = nkind;
+					rd.connectionToIdx = nidx;
+
+				}
+			
+
+			}
+
+		};*/
 
 		regions.bus = this.regions.bus
-			.filter((rd) => !rd.isDead())
-			.map((rd) => rd.flatten());
+			.filter(remapAndFilterFn)
+			.map(flattenFn);
 		regions.registers = this.regions.registers
-			.filter((rd) => !rd.isDead())
-			.map((rd) => rd.flatten());
+			.filter(remapAndFilterFn)
+			.map(flattenFn);
+		regions.registers = this.regions.registers
+			.filter(remapAndFilterFn)
+			.map(flattenFn);
 		regions.bellstates = this.regions.bellstates
-			.filter((rd) => !rd.isDead())
-			.map((rd) => rd.flatten());
+			.filter(remapAndFilterFn)
+			.map(flattenFn);
 		regions.factories = this.regions.factories
-			.filter((rd) => !rd.isDead())
-			.map((rd) => rd.flatten());
+			.filter(remapAndFilterFn)
+			.map(flattenFn);
 		regions.buffers = this.regions.buffers
-			.filter((rd) => !rd.isDead())
-			.map((rd) => rd.flatten());
+			.filter(remapAndFilterFn)
+			.map(flattenFn);
 		
+		//2.
+		/*regions.bus.forEach(resolveConnectionsFn);
+		regions.registers.forEach(resolveConnectionsFn);
+		regions.bellstates.forEach(resolveConnectionsFn);
+		regions.factories.forEach(resolveConnectionsFn);
+		regions.buffers.forEach(resolveConnectionsFn);*/
+
 		return regions;
 	}
 

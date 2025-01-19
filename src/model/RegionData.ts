@@ -149,6 +149,10 @@ export class RegionData {
 		const rdata = new RegionData();
 		rdata.regionKind = data.regionKind;
 		rdata.subTypeKind = data.subTypeKind;
+		rdata.connectionToIdx = data.connectionToIdx;
+		rdata.connectionToKind = data.connectionToKind;
+		rdata.connectionSet = rdata.connectionSet;
+		rdata.connectionDir = rdata.connectionDir;
 		for(const [key, value] of data.cells) {
 			rdata.cells.set(key, value);	
 		}	
