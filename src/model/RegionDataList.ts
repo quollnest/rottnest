@@ -873,7 +873,10 @@ export class RegionDataList {
 			factories: [],
 			buffers: []
 		};
-		
+		//TODO: Bug, we are removeing regions which
+		//are dead but the links are stale
+		// We need to fix this
+
 		regions.bus = this.regions.bus
 			.filter((rd) => !rd.isDead())
 			.map((rd) => rd.flatten());

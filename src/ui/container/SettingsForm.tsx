@@ -115,14 +115,14 @@ class SettingsForm extends React.Component<SettingsProps,
 						{inputChangeFn(e, 
 						'author')}}/>
 				<label>Width & Height</label>
-				<input type="text" name="width"
+				<input type="number" name="width"
 					className={styles.inputMult}
 					value={this.state
 						.project.width} 
 					onChange={(e) => 
 						{inputChangeFn(e, 
 						'width')}}/>x 
-				<input type="text" name="height"
+				<input type="number" name="height"
 					className={styles
 						.inputMult}	
 					value={this.state
