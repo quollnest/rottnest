@@ -59,7 +59,7 @@ export const RegionKindMap: RegionKindKeyMap = {
 	bus: ['registers', 'buffers', 'bus'], 
 	registers: [],
 	bellstates: ['bus'],	
-	factories: ['bus', 'buffers'],
+	factories: ['bus'],
 	buffers: ['bus'],
 	untagged: [], 
 }
