@@ -37,7 +37,7 @@ export class RottRunResultMSG {
 
 export class RottRouterTypesMSG implements DeRott  {
 	
-	regionKinds: RottnestKindMap = {
+	regionKinds: RottnestRouterKindMap = {
 		bus: [{ name: 'Not Selected' }],	
 		register: [{ name: 'Not Selected'}],
 		bellstate: [{ name: 'Not Selected'}],
@@ -50,25 +50,26 @@ export class RottRouterTypesMSG implements DeRott  {
 		return null;
 	}
 	
-	fuzzyMatch(ky: string): keyof RottnestKindMap | null {
+	fuzzyMatch(ky: string): keyof RottnestRouterKindMap | null {
 		const fuzzies: Map<string, string> = new Map([
 			['bell', 'bellstate']
 		]);
 
 		if(fuzzies.has(ky)) {
 			const r = fuzzies.get(ky); 
-			return  r as keyof RottnestKindMap;
+			return  r as keyof RottnestRouterKindMap;
 		} else {
 			return null;
 		}
 	}
 
 	fromJSON(mdata: any) {
-		const data = mdata['subtypes'];
-			for(const k in data) {
+		const data = mdata['payload'];
+		for(const k in data) {
 			const lowerK = k.toLowerCase();
 			let lowerKey = 
-				lowerK as keyof RottnestKindMap
+				lowerK as keyof RottnestRouterKindMap
+			console.log(lowerKey);
 			if(!(lowerKey in this.regionKinds)) {
 				const keyChk = this.fuzzyMatch(
 					lowerK);
@@ -82,7 +83,7 @@ export class RottRouterTypesMSG implements DeRott  {
 					lowerKey = keyChk;
 				}
 			}
-
+			console.log(k);
 			for(const v of data[k]) {
 				this.regionKinds[lowerKey]
 					.push({ name: v });
@@ -116,18 +117,19 @@ export class RottSubTypesMSG implements DeRott  {
 
 		if(fuzzies.has(ky)) {
 			const r = fuzzies.get(ky); 
-			return  r as keyof RottnestKindMap;
+			return r as keyof RottnestKindMap;
 		} else {
 			return null;
 		}
 	}
 
 	fromJSON(mdata: any) {
-		const data = mdata['routers'];
+		const data = mdata['subtypes'];
 			for(const k in data) {
 			const lowerK = k.toLowerCase();
 			let lowerKey = 
-				lowerK as keyof RottnestRouterKindMap 
+			lowerK as keyof RottnestRouterKindMap;
+
 			if(!(lowerKey in this.regionKinds)) {
 				const keyChk = this.fuzzyMatch(
 					lowerK);

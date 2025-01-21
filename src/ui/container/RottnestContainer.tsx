@@ -79,6 +79,7 @@ type RottnestState = {
 	subTypesRecvd: boolean
 	visData: any
 	routerListRcvd: boolean
+	selectedRouterIndex: number
 }
 
 type ComponentMonitor = {
@@ -148,6 +149,7 @@ class RottnestContainer
 		routerList: RottnestRouterKinds,
 		subTypesRecvd: false,
 		routerListRcvd: false,
+		selectedRouterIndex: 0,
 		appStateData: {
 			settingsActive: false,
 			newProjectActive: false,
@@ -163,7 +165,7 @@ class RottnestContainer
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, false, false],
+			availableTabs: [true, true, false],
 			tabNames: ['Architecture', 'Widget', 
 				'Visualiser']
 		},
@@ -177,8 +179,15 @@ class RottnestContainer
 
 	constructor(props: RottnestProperties) {
 		super(props);
+	}
+	
+	readyAppService() {
+		const appReady = AppServiceModule.ConnectionReady();
+		const appService = AppServiceModule
+			.GetAppServiceInstance();
+		if(appReady) { return; }		
 		const selfRef = this;
-		const appService = this.commData.appService;
+
 		appService.registerReciverKinds(
 			'subtype', (_) => {
 				let kinds = appService
@@ -191,15 +200,20 @@ class RottnestContainer
 		);
 		appService.registerReciverKinds(
 			'use_arch', (_) => {
-				let someMsg = appService.dequeue();
-				let arch_id = someMsg?.getJSON();
+				let someMsg = appService
+					.dequeue();
+				if(someMsg) {
+				let arch_id = someMsg
+					.getJSON();
 				appService.runResult(
 				new RottRunResultMSG(arch_id));
+				}
 			}
 		);
 		appService.registerReciverKinds(
 			'err', (_) => {
-				let someMsg = appService.dequeue();
+				let someMsg = appService
+				.dequeue();
 
 				let json = someMsg?.getJSON();
 				console.error(json);
@@ -207,7 +221,8 @@ class RottnestContainer
 		);
 		appService.registerReciverKinds(
 			'run_result', (_) => {
-				let someMsg = appService.dequeue();
+				let someMsg = appService
+					.dequeue();
 				
 				let json = someMsg?.getJSON();
 				selfRef.state.visData = json;
@@ -218,32 +233,74 @@ class RottnestContainer
 			}
 		);
 		appService.registerReciverKinds(
-			'routers', (_) => {
+			'get_router', (_) => {
 				let kinds = appService
 					.retrieveRouters();
+				console.log(kinds);
 				if(kinds) {
-					selfRef
-					.updateRouterList(kinds);
+				selfRef
+				.updateRouterList(kinds);
 				}
 
 			}
 		);
+		appService.registerReciverKinds(
+			'get_args', (_) => {
+				/*let kinds = appService
+					.retrieveArgs();
+				if(kinds) {
+				selfRef
+				.updateArgsList(kinds);
+				
+				}*/
+
+			}
+		);
+		appService.registerOpenFn(() => {
+			if(appService.isConnected()) {	
+				appService.sendObj('subtype','');
+				appService.sendObj('get_router'
+					,'');
+				appService.sendObj('get_args'
+					,'');
+			}
+			//AppServiceModule.MarkInstance();
+			//appService.sendObj('args','');
+			//}
+		});
+		//Send out data
+		//if(!this.state.subTypesRecvd) {
+		this.commData.appService.connect();
+
 	}
 
 	getProjectAssembly(): ProjectAssembly {
 		return {
-			projectDetails: this.state.projectDetails,
+			projectDetails: this.state
+				.projectDetails,
 			regionList: this.state.regionList
 		}
 	}
 
 	componentDidMount() {
+		this.readyAppService();
 
-		const appService = AppServiceModule
-			.GetAppServiceInstance();
-		if(!appService.isConnected()) {
-			appService.connect();
-		}
+		//const appService = AppServiceModule
+		//	.GetAppServiceInstance();
+		//if(!appService.isConnected()) {
+		//	appService.connect();
+			//TODO: Fix this ASAP, 
+			//this is really gross
+			//const appService = AppServiceModule
+			//.GetAppServiceInstance();
+					/*appService.sendMsg(
+				JSON.stringify(
+				{
+					cmd: 'subtype',
+				}));
+			}*/
+
+		//}
 	}
 
 	monitorComponent: ComponentMonitor = {
@@ -267,7 +324,8 @@ class RottnestContainer
 			}
 		]
 		const regionList = this.state.regionList;
-		const selectedRegion = this.getSelectedRegionData();
+		const selectedRegion = this
+			.getSelectedRegionData();
 
 		if(selectedRegion) {
 			const edges = selectedRegion.edgeAABBs();
@@ -278,26 +336,37 @@ class RottnestContainer
 				.push(...aregs.map((ar, idx) =>{
 					const kindP = RegionData
 						.PluraliseKind(ar
-							.regionData
-						       .getKind())
+						.regionData
+						.getKind())
 					return ({
 						name: kindP,
-						listIdx: ar.ownIdx 
+						listIdx: 
+							ar.ownIdx
 						!== null ?
 						ar.ownIdx : -1,
-						connectorId: idx+1,
+						connectorId: 
+							idx+1,
 						direction: ar.dir
 					})
 				})
 				.filter((ar, _) => {
 					return regionList
-						.canConnectToKind(
+					.canConnectToKind(
 							selKind, 
 							ar.name);
 				}));
 		} 
 		return adjacentList;
 	}
+
+	getRouterList() {
+		return this.state.routerList;
+	}
+
+	getSelectedRouterIndex() {
+		return this.state.selectedRouterIndex;
+	}
+
 	updateRouterList(routers: RottnestRouterKindMap) {
 		this.state.routerList = routers;
 		this.state.routerListRcvd = true;
@@ -345,7 +414,8 @@ class RottnestContainer
 			
 			this.triggerUpdate();
 		} else {
-			console.error("Unable set current region");
+			console
+			.error("Unable set current region");
 		}
 	}
 	
@@ -443,10 +513,13 @@ class RottnestContainer
 		const getSelectedIdx = this.state.appStateData
 			.componentData.selectedRegion;
 		const selKey = this.state.appStateData
-			.componentData.selectedRegionType !== null ?
+			.componentData.selectedRegionType 
+			!== null ?
 			this.state.appStateData
-			.componentData.selectedRegionType  : 'NA';
-		const getSelectedKeyStr = RegionData.PluraliseKind(
+			.componentData.selectedRegionType  
+				: 'NA';
+		const getSelectedKeyStr = RegionData
+			.PluraliseKind(
 			selKey);
 
 
@@ -531,13 +604,15 @@ class RottnestContainer
 				const dump: ProjectDump =
 				{
 					project: 
-						partialDump.project 
+						partialDump
+						.project 
 						!= null ?
 						jsonRep.project :
 						this.state
 						.projectDetails,
 					regions:
-						partialDump.regions
+						partialDump
+						.regions
 						!= null ?
 						jsonRep.regions :
 						this.state
@@ -546,17 +621,21 @@ class RottnestContainer
 				this.state.projectDetails =
 					dump.project;
 				this.state.regionList = 
-					RegionDataList.fromFlatten(
+					RegionDataList
+					.fromFlatten(
 						dump.regions);
 				
 				const newState = {...this.state};
-				const dspace = this.monitorComponent
+				const dspace = this
+					.monitorComponent
 					.designSpace;
 				if(dspace) {
 					dspace.redoCells(newState
-						.projectDetails.width,
+						.projectDetails
+						.width,
 						newState
-						.projectDetails.height);
+						.projectDetails
+						.height);
 				}
 				this.setState(newState);
 
@@ -594,7 +673,8 @@ class RottnestContainer
 		return null;
 	}
 	
-	static ToolNumberToRegionKey(tnum: number): string | null {
+	static ToolNumberToRegionKey(tnum: number)
+		: string | null {
 		switch(tnum) {
 			case 1:
 				return 'buffers';
@@ -621,13 +701,15 @@ class RottnestContainer
 	 * current regionlist and move on.
 	 */	
 	applyRDBuffer() {
-		const oldBuffer: RegionData = this.currentRDBuffer;
+		const oldBuffer: RegionData = 
+			this.currentRDBuffer;
 		this.currentRDBuffer = new RegionData();
 		//The index 6, is currently the unselect,
 		//this is *not good*
 		if(this.getToolIndex() === 6) {
 			//Clean up
-			//TODO: We need to have callbacks for this
+			//TODO: We need to have callbacks 
+			//for this
 			//I have littered the code with
 			//too much rubbish
 
@@ -668,7 +750,8 @@ class RottnestContainer
 				this.onRegion();
 					
 				this.state.regionList
-					.addData(oldBuffer, rkey);
+					.addData(oldBuffer, 
+						 rkey);
 				
 				this.state.regionList
 				.resolveConnectionsFromTraversal(
@@ -685,7 +768,8 @@ class RottnestContainer
 					  y: number } 
 						= res;	
 					this
-					.updateSelectedRegion(x, y);
+					.updateSelectedRegion(x,
+							      y);
 					
 				}
 				this.triggerUpdate();
@@ -857,7 +941,8 @@ class RottnestContainer
 	render() {
 		const rottContainer = this;
 		const updateables = new Map();
-		const zoomValue = this.state.appStateData.zoomValue;
+		const zoomValue = this.state
+			.appStateData.zoomValue;
 		
 		const settingsisActive = !this.state.appStateData
 			.settingsActive;
@@ -866,26 +951,20 @@ class RottnestContainer
 
 
 		const newProjectElement = newProjectActive ? 
-			<NewProjectForm rootContainer={rottContainer}
+			<NewProjectForm rootContainer={
+				rottContainer}
 				/> :
 			<></>
 		
-		updateables.set(100, [`${zoomValue}%`, rottContainer]);
+		updateables.set(100, [`${zoomValue}%`, 
+				rottContainer]);
 		
-		//TODO: Fix this ASAP, this is really gross
-		const appService = AppServiceModule
-			.GetAppServiceInstance();
-		if(!this.state.subTypesRecvd) {
-			appService.sendMsg(JSON.stringify(
-				{
-					cmd: 'subtype',
-				}));
-		}
 		
 		const helpComponent = this.state
 			.appStateData.helpActive ?
 				<HelpContainer 
-					helperData={this.helpData}
+					helperData={this
+						.helpData}
 					toggleOff={
 					() => {
 						rottContainer
@@ -894,12 +973,13 @@ class RottnestContainer
 				}
 				/> :
 				<></>
-
+		
 		return (
 			<div className={styles.rottnest}>
 				<SettingsForm rootContainer={
 					rottContainer}
-					isHidden={settingsisActive} 
+					isHidden={
+					settingsisActive} 
 					projectDetails={this.state
 						.projectDetails}
 					/>

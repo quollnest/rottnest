@@ -9,6 +9,7 @@ import {FactoryToolOperations} from './tools/FactoryRegionToolItem.ts';
 import {BellStateToolOperations} from './tools/BellStateToolItem.ts';
 import {SelectorToolOperations} from './tools/SelectorToolItem.ts';
 import {UnselectToolOperations} from './tools/UnselectToolItem.ts';
+import {PanToolOperations} from './tools/PanTool.ts';
 import RottnestContainer from './container/RottnestContainer.tsx';
 
 
@@ -102,6 +103,13 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 			imageUrl: 'unselector_img.svg',
 			events: UnselectToolOperations,
 			description: "Use the unselect tool"
+		},
+		{
+			kind : 7,
+			kindName: 'Pan',
+			imageUrl: 'pantool_img.svg',
+			events: PanToolOperations,
+			description: "Use the pan tool"
 		},
 	]
 

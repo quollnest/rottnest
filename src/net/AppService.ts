@@ -1,6 +1,6 @@
 
 import { AppServiceMessage } from "./AppServiceMessage.ts"; 
-import {RottArchMSG, RottRunResultMSG, RottSubTypesMSG} from "./Messages.ts";
+import {RottArchMSG, RottRouterTypesMSG, RottRunResultMSG, RottSubTypesMSG} from "./Messages.ts";
 
 export const APP_URL: string = "ws://localhost:8080/websocket";
 
@@ -10,11 +10,8 @@ const WS_ONOPEN: string = "open";
 //const WS_ONERROR: string = "error";
 //const WS_ONCLOSE: string = "close";
 
-//TODO: Remove the fucking hack
-export type WSConnectFns = {
-	onOpenFn: (aps: AppServiceClient) => void
-	onMessageFn: (aps: AppServiceClient) => void
-}
+export type ASOpenCallback 
+	= () => void;
 
 export type ASRecvCallback 
 	= (data: string | Uint8Array) => void;
@@ -26,7 +23,9 @@ export class AppServiceClient {
 	buffer: Array<AppServiceMessage> = [];
 	bufferCapacity: number = 256;
 	
-	receiveTriggers: Map<string, ASRecvCallback> = new Map();
+	receiveTriggers: Map<string, 
+		ASRecvCallback> = new Map();
+	onOpenTrigger: ASOpenCallback | null = null;
 
 	constructor(url: string | null) {
 		this.url = url;
@@ -60,8 +59,7 @@ export class AppServiceClient {
 
 	close(): boolean {
 		if(this.socket !== null) {
-			if(this.isConnected()) {
-			
+			if(this.isConnected()) {	
 				return true;
 			}
 		}
@@ -86,6 +84,17 @@ export class AppServiceClient {
 		}
 	}
 
+	sendObj(cmd: string, payload: string) {
+			
+		if(this.socket) {
+			this.socket.send(
+				JSON.stringify({
+					cmd,
+					payload
+				})	
+			);
+		}
+	}
 	
 	sendMsg(msg: string) {
 		if(this.socket) {
@@ -107,7 +116,8 @@ export class AppServiceClient {
 			return true;
 		}
 		const onMsgHandler = (e: any) => {
-			const asm = new AppServiceMessage(e.data);
+			const asm = 
+				new AppServiceMessage(e.data);
 			self.queue(asm);
 			asm.parseData();
 			const jsmsg = asm.getJSON();
@@ -121,7 +131,11 @@ export class AppServiceClient {
 			}
 		}
 		const onSendHandler = (_: any) => {}
-		const onOpenHandler = (_: any) => {}
+		const onOpenHandler = (_: any) => {
+			if(self.onOpenTrigger) {
+				self.onOpenTrigger();
+			}
+		}
 		if(this.url) {
 			this.socket = new WebSocket(this.url);
 			//Attach the events
@@ -139,6 +153,10 @@ export class AppServiceClient {
 	registerReciverKinds(evKind: string, 
 			     callback: ASRecvCallback) {
 		this.receiveTriggers.set(evKind, callback);
+	}
+
+	registerOpenFn(openFn: ASOpenCallback) {
+		this.onOpenTrigger = openFn;	
 	}
 
 	retrieveSubTypes() {
@@ -165,6 +183,22 @@ export class AppServiceClient {
 	}
 
 	retrieveRouters() {
+		const data = this.dequeue();
+		if(data) {
+			const msgContainer =
+				new RottRouterTypesMSG();
+			data.parseData();
+			const realData = data
+				.parseDataTo(msgContainer);
+			if(realData) {
+				return realData.regionKinds;
+			}
+		}
+
+		return null;
+	}
+
+	retrieveArgs() {
 		const data = this.dequeue();
 		if(data) {
 			const msgContainer =

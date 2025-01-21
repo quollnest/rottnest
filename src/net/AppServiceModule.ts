@@ -15,5 +15,17 @@ function CloseAppService() {
 	appService = null;
 }
 
+function ConnectionReady(): boolean {
 
-export default { GetAppServiceInstance, CloseAppService }
+	if(appService !== null) {
+		return appService.isConnected();
+	} else {
+		return false;
+	}
+}
+
+export default { 
+	GetAppServiceInstance, 
+	CloseAppService, 
+	ConnectionReady 
+}
