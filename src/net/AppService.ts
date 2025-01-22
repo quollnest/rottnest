@@ -1,4 +1,5 @@
 
+import {RottnestKindMap} from "../model/RegionKindMap.ts";
 import { AppServiceMessage } from "./AppServiceMessage.ts"; 
 import {RottArchMSG, RottRouterTypesMSG, RottRunResultMSG, RottSubTypesMSG} from "./Messages.ts";
 
@@ -14,7 +15,7 @@ export type ASOpenCallback
 	= () => void;
 
 export type ASRecvCallback 
-	= (data: string | Uint8Array) => void;
+	= (asm: AppServiceMessage) => void;
 
 export class AppServiceClient {
 	
@@ -25,6 +26,7 @@ export class AppServiceClient {
 	
 	receiveTriggers: Map<string, 
 		ASRecvCallback> = new Map();
+
 	onOpenTrigger: ASOpenCallback | null = null;
 
 	constructor(url: string | null) {
@@ -115,10 +117,12 @@ export class AppServiceClient {
 		if(this.isConnected()) {
 			return true;
 		}
+		//TODO: Handle processing message
+		//effectively
 		const onMsgHandler = (e: any) => {
 			const asm = 
 				new AppServiceMessage(e.data);
-			self.queue(asm);
+
 			asm.parseData();
 			const jsmsg = asm.getJSON();
 			if(jsmsg) {
@@ -126,7 +130,7 @@ export class AppServiceClient {
 				let fn = this.receiveTriggers
 					.get(mtype);
 				if(fn) {
-					fn(e.data);
+					fn(asm);
 				}
 			}
 		}
@@ -159,20 +163,16 @@ export class AppServiceClient {
 		this.onOpenTrigger = openFn;	
 	}
 
-	retrieveSubTypes() {
+	retrieveSubTypes(data: any) {
 				
-		const data = this.dequeue();
-		if(data) {
-			const msgContainer =
-				new RottSubTypesMSG();
-			data.parseData();
-			const realData = data
-				.parseDataTo(msgContainer);
-			if(realData) {
-				return realData.regionKinds;
-			}
+		const msgContainer =
+			new RottSubTypesMSG();
+		data.parseData();
+		const realData = data
+			.parseDataTo(msgContainer);
+		if(realData) {
+			return realData.regionKinds;
 		}
-
 		return null;
 	}
 	
@@ -182,34 +182,28 @@ export class AppServiceClient {
 		}
 	}
 
-	retrieveRouters() {
-		const data = this.dequeue();
-		if(data) {
-			const msgContainer =
-				new RottRouterTypesMSG();
-			data.parseData();
-			const realData = data
-				.parseDataTo(msgContainer);
-			if(realData) {
-				return realData.regionKinds;
-			}
+	retrieveRouters(subTypes: RottnestKindMap, data: any) {
+		const msgContainer =
+			new RottRouterTypesMSG(subTypes);
+		data.parseData();
+		const realData = data
+			.parseDataTo(msgContainer);
+		if(realData) {
+			return realData;
 		}
-
 		return null;
 	}
 
-	retrieveArgs() {
-		const data = this.dequeue();
-		if(data) {
-			const msgContainer =
-				new RottRouterTypesMSG();
-			data.parseData();
-			const realData = data
-				.parseDataTo(msgContainer);
-			if(realData) {
-				return realData.regionKinds;
-			}
-		}
+	retrieveArgs(m: any) {
+
+		/*const msgContainer =
+			new RottSubTypesMSG();
+		data.parseData();
+		const realData = data
+			.parseDataTo(msgContainer);
+		if(realData) {
+			return realData.regionKinds;
+		}*/
 
 		return null;
 	}

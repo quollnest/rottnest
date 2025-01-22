@@ -35,25 +35,45 @@ export class RottRunResultMSG {
 	}
 }
 
+export type RouterAggr = {
+	options: Array<string>
+	default: number
+}
+
 export class RottRouterTypesMSG implements DeRott  {
 	
-	regionKinds: RottnestRouterKindMap = {
-		bus: [{ name: 'Not Selected' }],	
-		register: [{ name: 'Not Selected'}],
-		bellstate: [{ name: 'Not Selected'}],
-		factory: [{ name: 'Not Selected'}],
-		buffer: [{ name: 'Not Selected' }]		
+	subtypes: RottnestKindMap;
+	subtypeMap: Map<string, RouterAggr> = new Map();
+
+	constructor(subtypes: RottnestKindMap) {
+		this.subtypes = subtypes;
+		this.translateSubtypes();
 	}
-	
-	//This is not used
-	fromStr(_: string) {
-		return null;
+
+	translateSubtypes() {
+		
+		for(const k in this.subtypes) {
+			const key = k as keyof RottnestKindMap;
+			const vCol = this.subtypes[key];
+			
+			for(const v of vCol) {
+				this.subtypeMap
+					.set(v.name
+						.toLowerCase(), 
+						{
+							options: [],
+							default: -1
+						});
+			}
+		}
 	}
+
+	fromStr(_: string) { return null; }
 	
-	fuzzyMatch(ky: string): keyof RottnestRouterKindMap | null {
-		const fuzzies: Map<string, string> = new Map([
-			['bell', 'bellstate']
-		]);
+	fuzzyMatch(ky: string): keyof RottnestRouterKindMap 
+		| null {
+
+		const fuzzies: Map<string, string> = new Map([]);
 
 		if(fuzzies.has(ky)) {
 			const r = fuzzies.get(ky); 
@@ -64,33 +84,37 @@ export class RottRouterTypesMSG implements DeRott  {
 	}
 
 	fromJSON(mdata: any) {
+
 		const data = mdata['payload'];
 		for(const k in data) {
-			const lowerK = k.toLowerCase();
-			let lowerKey = 
-				lowerK as keyof RottnestRouterKindMap
-			console.log(lowerKey);
-			if(!(lowerKey in this.regionKinds)) {
-				const keyChk = this.fuzzyMatch(
-					lowerK);
-				if(keyChk === null) {
-					console.log(lowerKey);
-					console.error(
-					 "Unable to convert");
 
-					return null;
-				} else {
-					lowerKey = keyChk;
+			const key = k.toLowerCase();
+			const rDefName = data[k].default;
+			const rOptions = data[k].options;
+			
+			if(this.subtypeMap.has(key)) {
+
+				for(const v of rOptions) {
+					const rtrs = this
+						.subtypeMap.get(key);
+
+					if(rtrs) {
+						rtrs.options
+							.push(v);
+
+						if(rDefName === v) {
+							rtrs.default
+							= v;
+						}
+					}
 				}
+			} else {
+				console.error('Unable to '
+					 + 'decode message');
 			}
-			console.log(k);
-			for(const v of data[k]) {
-				this.regionKinds[lowerKey]
-					.push({ name: v });
-			}
-		}
 
-		return this;
+		}
+		return this.subtypeMap;
 	}
 }
 

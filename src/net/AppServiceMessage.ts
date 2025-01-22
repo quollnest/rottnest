@@ -1,11 +1,9 @@
 import {DeRott} from "./Serialisation";
 
-
 export class AppServiceMessage {
 	
 	rawData: string = '';
 	interpretedData: any | null = {};
-	
 	dataIsJson: boolean = false;
 	receivedData: boolean = false;
 
@@ -13,7 +11,6 @@ export class AppServiceMessage {
 		if(data) {
 			this.rawData = data;
 			this.receivedData = true;
-
 		}
 	}
 
@@ -42,7 +39,6 @@ export class AppServiceMessage {
 
 		const gData = this.interpretedData;
 		const res = container.fromJSON(gData);
-
 		return res;
 	}
 
