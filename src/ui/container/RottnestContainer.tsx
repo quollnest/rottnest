@@ -259,8 +259,8 @@ class RottnestContainer
 		appService.registerOpenFn(() => {
 			if(appService.isConnected()) {	
 				appService.sendObj('subtype','');
-				appService.sendObj('get_router'
-					,'');
+				//appService.sendObj('get_router'
+				//	,'');
 				/*appService.sendObj('get_args'
 					,'');*/
 			}
