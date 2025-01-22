@@ -22,7 +22,7 @@ import { RottnestKindMap, RottnestRouterKindMap, SubKind } from '../../model/Reg
 import {AppServiceClient} from '../../net/AppService.ts';
 
 import AppServiceModule from '../../net/AppServiceModule.ts';
-import {RottRunResultMSG} from '../../net/Messages.ts';
+import {RottRunResultMSG, RouterAggr} from '../../net/Messages.ts';
 import {HelpContainer, HelpBoxData} from './HelpContainer.tsx';
 
 /**
@@ -57,13 +57,6 @@ let RottnestSubKinds: RottnestKindMap = {
 	buffer: [{ name: 'Not Selected' }]	
 }
 
-let RottnestRouterKinds: RottnestRouterKindMap = {
-	bus: [{ name: 'Not Selected' }],	
-	register: [{ name: 'Not Selected'}],
-	bellstate: [{ name: 'Not Selected'}],
-	factory: [{ name: 'Not Selected'}],
-	buffer: [{ name: 'Not Selected' }]	
-}
 
 /**
  * Maintains state information related to
@@ -74,7 +67,7 @@ type RottnestState = {
 	appStateData: RottnestAppState
 	regionList: RegionDataList
 	subTypes: RottnestKindMap
-	routerList: RottnestRouterKindMap
+	routerList: Map<string, RouterAggr>
 	tabData: TabViewStateData
 	subTypesRecvd: boolean
 	visData: any
@@ -117,8 +110,9 @@ class RottnestContainer
 		{
 			title: "Toolbox",
 			content: `
-			Tool used to mark different regions and select
-			existing regions
+			Tool used to mark different `+
+				`regions and select` +
+			`existing regions
 			`,
 			coords: [70, 70],
 
@@ -126,7 +120,8 @@ class RottnestContainer
 		/*{
 			title: "Region List",
 			content: `
-			Lists the regions that have been marked
+			Lists the regions that have 
+			been marked
 			by the user
 			`,
 			coords: [550, 90],
@@ -146,7 +141,7 @@ class RottnestContainer
 		},
 		regionList: new RegionDataList(),
 		subTypes: RottnestSubKinds,	
-		routerList: RottnestRouterKinds,
+		routerList: new Map(),
 		subTypesRecvd: false,
 		routerListRcvd: false,
 		selectedRouterIndex: 0,
@@ -182,16 +177,34 @@ class RottnestContainer
 	}
 	
 	readyAppService() {
-		const appReady = AppServiceModule.ConnectionReady();
+		const appReady = AppServiceModule
+			.ConnectionReady();
 		const appService = AppServiceModule
 			.GetAppServiceInstance();
+
 		if(appReady) { return; }		
 		const selfRef = this;
 
 		appService.registerReciverKinds(
-			'subtype', (_) => {
+			'subtype', (m: any) => {
 				let kinds = appService
-					.retrieveSubTypes();
+					.retrieveSubTypes(m);
+				if(kinds) {
+					selfRef
+					.updateSubTypes(kinds);
+
+					appService
+					.sendObj('get_router'
+					,'');
+				}
+			}
+		);
+		appService.registerReciverKinds(
+			'get_router', (m: any) => {
+				let kinds = appService
+					.retrieveRouters(
+						this.state.subTypes,
+						m);
 				if(kinds) {
 					selfRef
 					.updateSubTypes(kinds);
@@ -199,32 +212,27 @@ class RottnestContainer
 			}
 		);
 		appService.registerReciverKinds(
-			'use_arch', (_) => {
-				let someMsg = appService
-					.dequeue();
+			'use_arch', (m: any) => {
+				let someMsg = m.data 
 				if(someMsg) {
-				let arch_id = someMsg
-					.getJSON();
-				appService.runResult(
-				new RottRunResultMSG(arch_id));
+					let arch_id = someMsg
+						.getJSON();
+					appService.runResult(
+					new RottRunResultMSG(
+						arch_id));
 				}
 			}
 		);
 		appService.registerReciverKinds(
-			'err', (_) => {
-				let someMsg = appService
-				.dequeue();
-
-				let json = someMsg?.getJSON();
-				console.error(json);
+			'err', (m: any) => {
+				let someMsg = m.data; 
+				console.error(someMsg);
 			}
 		);
 		appService.registerReciverKinds(
-			'run_result', (_) => {
-				let someMsg = appService
-					.dequeue();
+			'run_result', (m: any) => {
 				
-				let json = someMsg?.getJSON();
+				let json = m.data; 
 				selfRef.state.visData = json;
 				selfRef.state.tabData
 				.availableTabs[2]
@@ -232,22 +240,26 @@ class RottnestContainer
 				selfRef.triggerUpdate();
 			}
 		);
+
 		appService.registerReciverKinds(
-			'get_router', (_) => {
+			'get_router', (m: any) => {
 				let kinds = appService
-					.retrieveRouters();
-				console.log(kinds);
+					.retrieveRouters(
+					this.state.subTypes,
+						m);
 				if(kinds) {
-				selfRef
-				.updateRouterList(kinds);
+					selfRef
+					.updateRouterList(kinds);
 				}
 
 			}
 		);
+
 		appService.registerReciverKinds(
-			'get_args', (_) => {
+			'get_args', (m: any) => {
+
 				/*let kinds = appService
-					.retrieveArgs();
+					.retrieveArgs(m);
 				if(kinds) {
 				selfRef
 				.updateArgsList(kinds);
@@ -256,20 +268,18 @@ class RottnestContainer
 
 			}
 		);
+
 		appService.registerOpenFn(() => {
 			if(appService.isConnected()) {	
-				appService.sendObj('subtype','');
-				//appService.sendObj('get_router'
-				//	,'');
+				appService
+					.sendObj('subtype','');
 				/*appService.sendObj('get_args'
 					,'');*/
 			}
-			//AppServiceModule.MarkInstance();
-			//appService.sendObj('args','');
-			//}
 		});
+
 		//Send out data
-		//if(!this.state.subTypesRecvd) {
+		
 		this.commData.appService.connect();
 
 	}
@@ -367,16 +377,12 @@ class RottnestContainer
 		return this.state.selectedRouterIndex;
 	}
 
-	updateRouterList(routers: RottnestRouterKindMap) {
+	updateRouterList(routers: Map<string, RouterAggr>) {
 		this.state.routerList = routers;
 		this.state.routerListRcvd = true;
 		this.triggerUpdate();
 	}
 
-	updateSubTypesFromService() {
-		const apserv = this.commData.appService;
-		apserv.retrieveSubTypes();
-	}
 
 	updateSubTypes(subTypes: RottnestKindMap) {
 		this.state.subTypes = subTypes;
@@ -388,6 +394,7 @@ class RottnestContainer
 
 		const selectedObj = this.getRegionList()
 			.retrieveByIdx(kind, idx);
+
 		if(selectedObj) {
 			//1. Add onto the undo stack
 			this.onRegion();
@@ -538,19 +545,20 @@ class RottnestContainer
 
 	}
 
-	updateSelectedRegionData(regData: RegionData) {
+	updateSelectedRegionDataNoUpdate(regData: RegionData) {
 		const getSelectedIdx = this.state.appStateData
 			.componentData.selectedRegion;
 
 		const getSelectedKeyStr = this.state.appStateData
 			.componentData.selectedRegionType;
-		console.log(getSelectedIdx, getSelectedKeyStr, 
-			    regData);
 		this.getRegionList()
 			.updateByIdx(getSelectedKeyStr, 
 				     getSelectedIdx, 
 				     regData);
+	}
 
+	updateSelectedRegionData(regData: RegionData) {
+		this.updateSelectedRegionDataNoUpdate(regData);	
 		this.triggerUpdate();
 	}
 

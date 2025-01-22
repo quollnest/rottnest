@@ -18,6 +18,10 @@ export interface WorkspaceGroup {
 	MakeGroup(data: WorkspaceProps): Array<React.ReactElement>
 }
 
+export type WorkspaceContainerProps = {
+	container: RottnestContainer
+}
+
 export type WorkspaceData = {
 	container: RottnestContainer
 	bufferMap: WorkspaceBufferMap

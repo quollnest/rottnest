@@ -128,13 +128,19 @@ type RegionRouterData = {
 
 class RegionRouterList extends 
 	React.Component<RegionRouterData, {}> {
-	
+
+	checkIfNullAndUpdate(settings: RegionSettings,
+			    kind: string) {
+		settings.updateRouterOfSelectedChkNull(kind);
+	}
+
 	render() {
 		const props = this.props;
 		const settings = props.container;
 		const routerList = props.routerList;
 		const selectedRouter = props
-			.currentlySelected;	
+			.currentlySelected;
+		 
 		const renderedOptions = routerList
 			.length === 0 ? 
 			<option value={"Not Selected"}>
@@ -149,16 +155,22 @@ class RegionRouterList extends
 				</option>
 			)
 		});
-
+		if(routerList.length > 0) {
+			const name = routerList[0][1];
+		
+			this.checkIfNullAndUpdate(settings,
+					 name);
+		}
 		const regionSelect = (e: 
 			React
 			.ChangeEvent<HTMLSelectElement>)=> {
 			if(e.target.value !== 'Not Selected') {
 				settings
-				.updateSubTypeOfSelected(
+				.updateRouterOfSelected(
 					e.target.value);
 			}
 		}
+
 		return ( 
 			<div className={styles.subTypeComp}>
 			<label>Router Type</label>
@@ -221,6 +233,7 @@ class RegionSubTypeList extends React.Component
 			<option value={"Not Selected"}>
 			Not Selected</option> :
 			subtypes.map((rc, idx) => {
+
 			return (
 				<option value={rc.name} 
 				key={idx}>
@@ -323,9 +336,48 @@ class RegionSettings extends React
 	rottContainer: RottnestContainer = this.props
 		.container;
 	
+	updateRouterOfSelectedChkNull(subTypeKey: string) {
+		const currentObj = this.rottContainer
+			.getSelectedRegionData();
+		if(currentObj !== null && currentObj !== undefined 
+		   && currentObj.routerKind === null) {
+			
+			console.log(currentObj);
+			
+			let regData: RegionData = currentObj
+				.shallowDuplicate();
+			regData.setRouterKind(subTypeKey);
+		
+			this.rottContainer
+			.updateSelectedRegionDataNoUpdate(regData);
+		}
+
+	}
+
+	updateRouterOfSelected(subTypeKey: string) {
+
+		const currentObj = this.rottContainer
+			.getSelectedRegionData();
+		if(currentObj !== null 
+		   && currentObj !== undefined) {
+			
+			console.log(currentObj);
+			
+			let regData: RegionData = currentObj
+				.shallowDuplicate();
+			console.log(subTypeKey);
+			regData.setRouterKind(subTypeKey);
+		
+			this.rottContainer
+			.updateSelectedRegionData(regData);
+		}
+		
+	}
+
 	updateSubTypeOfSelected(subTypeKey: string) {
 		const currentObj = this.rottContainer
 			.getSelectedRegionData();
+
 		if(currentObj) {
 			let regData: RegionData = currentObj
 				.shallowDuplicate();
@@ -348,7 +400,9 @@ class RegionSettings extends React
 		if(currentObj) {
 			let regData: RegionData = currentObj
 				.shallowDuplicate();
+
 			let regKind = regData.getKind();
+
 			if(regData.getSubKind() !== conKind) {
 				const encKind = regList
 					.getConnectKindIndex(
@@ -388,22 +442,21 @@ class RegionSettings extends React
 			.getRouterList();
 		let routerList: Array<[number, string]> = [];
 		if(selectedRegion) {
-			let kstr = RegionData.SingularKind(
-				selectedRegion.getKind());
+			let kstr = 
+				RegionData.SingularKind(
+				selectedRegion.getSubKind())
+				.toLowerCase();
 
-			let rkind = kstr as keyof
-				RottnestRouterKindMap;
-			
-			routerList = 
-				routerMap[rkind]
-				.map((rv, idx) => {
-					return [idx, rv.name];
-				});
-			console.log(routerList);
+			const rtrs = routerMap.get(kstr);
+			if(rtrs) {
+				routerList = 
+					rtrs.options
+					.map((rv, idx) => {
+						return [idx, 
+							rv];
+					});
+			}
 		}
-
-		//TODO: Refactor this to 
-		//provide non-null guarantee	
 
 		let currentSubKey = ''; 
 		if(selectedRegion !== null && 
@@ -412,10 +465,10 @@ class RegionSettings extends React
 				.subTypeKind === null ?
 				'' : selectedRegion
 				.subTypeKind;
-		} 		 
+		}
+
 		const isVisible = selectedRegion 
 			!== null;
-
 		const currentRouter = this.props.container
 			.getSelectedRouterIndex();
 		

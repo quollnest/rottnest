@@ -1,12 +1,13 @@
 import React from "react";
 
 import styles from '../styles/WorkspaceContainer.module.css';
-import {WorkspaceData, WorkspaceGroup, WorkspaceProps} 
+import {WorkspaceContainerProps, WorkspaceGroup, WorkspaceProps} 
 	from "../workspace/Workspace";
 import {ArchGroup} from "../workspace/ArchGroup";
 import {VisualiserGroup} from "../workspace/VisualiserGroup";
 import {WidgetGroup} from "../workspace/WidgetGroup";
-import {BufferMapTrigger, WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
+import {BufferMapTrigger, WorkspaceBufferMap} 
+	from "../workspace/WorkspaceBufferMap";
 
 
 type WorkspaceContainerState = {
@@ -18,7 +19,8 @@ type WorkspaceContainerState = {
  * workspace components, including tools, regions and design space
  */
 class WorkspaceContainer 
-	extends React.Component<WorkspaceData, {}> 
+	extends React.Component<WorkspaceContainerProps, 
+		WorkspaceContainerState> 
 	implements BufferMapTrigger
 	{
 	
