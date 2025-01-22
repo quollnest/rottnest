@@ -6,19 +6,37 @@ import {WorkspaceData, WorkspaceGroup, WorkspaceProps}
 import {ArchGroup} from "../workspace/ArchGroup";
 import {VisualiserGroup} from "../workspace/VisualiserGroup";
 import {WidgetGroup} from "../workspace/WidgetGroup";
+import {BufferMapTrigger, WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
 
+
+type WorkspaceContainerState = {
+	bufferMap: WorkspaceBufferMap
+}
 
 /**
  * Workspace Container holds the main
  * workspace components, including tools, regions and design space
  */
-class WorkspaceContainer extends React.Component<WorkspaceData, {}> {
+class WorkspaceContainer 
+	extends React.Component<WorkspaceData, {}> 
+	implements BufferMapTrigger
+	{
 	
+	state: WorkspaceContainerState = {
+		bufferMap: new WorkspaceBufferMap(this)
+	}
+
 	workspaceGroups: Array<WorkspaceGroup> = [
 		new ArchGroup(),
 		new WidgetGroup(),
-		new VisualiserGroup
+		new VisualiserGroup()
 	]
+	
+	refresh() {
+		const nState = {...this.state};
+		this.setState(nState);
+	}
+
 
 	render() {
 		const data = this.props;
@@ -28,8 +46,10 @@ class WorkspaceContainer extends React.Component<WorkspaceData, {}> {
 		
 		const wdata : WorkspaceProps = { 
 			workspaceData: {
-			container: data.container
-		}};
+				container: data.container,
+				bufferMap: this.state.bufferMap
+			}
+		};
 
 		const comps = group.MakeGroup(wdata);
 
@@ -38,7 +58,6 @@ class WorkspaceContainer extends React.Component<WorkspaceData, {}> {
 				{comps}
 			</div>
 		)
-
 	}
 }
 

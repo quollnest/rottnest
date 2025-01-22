@@ -22,7 +22,10 @@ export class ArchGroup implements WorkspaceGroup {
 				wsComponent={desSpace}
 				workspaceData={{
 					container: data.workspaceData
-					.container
+					.container,
+					bufferMap: data
+						.workspaceData
+						.bufferMap
 				}} />,
 			<RegionContainer 
 				key={"arch_region_container"}

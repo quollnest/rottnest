@@ -83,7 +83,7 @@ export class WorkspaceZone
 				selectedTab={selTab} 
 				availableTabs={availableTabs}
 				/>
-				{component};	
+				{component}
 			</div>);
 			
 	}
