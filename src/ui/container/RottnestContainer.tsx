@@ -261,8 +261,8 @@ class RottnestContainer
 				appService.sendObj('subtype','');
 				appService.sendObj('get_router'
 					,'');
-				appService.sendObj('get_args'
-					,'');
+				/*appService.sendObj('get_args'
+					,'');*/
 			}
 			//AppServiceModule.MarkInstance();
 			//appService.sendObj('args','');
