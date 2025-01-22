@@ -719,22 +719,35 @@ export class RegionDataList {
 			}>= [];
 		
 
-		flatArray.push(...regs.bus.map((v, i) => 
+		const deadFilterFn = (rd: RegionData) => {
+			return !rd.isDead();
+		};
+
+		flatArray.push(...regs.bus
+			       .filter(deadFilterFn).map((v, i) => 
 			 { return {kind: 'bus', tag: `bus${i}`, 
 				 rdata: v, idx: i} }));
-		flatArray.push(...regs.registers.map((v, i) => 
+		flatArray.push(...regs.registers
+			       .filter(deadFilterFn)
+			       .map((v, i) => 
 			 { return {kind: 'register', 
 				 tag: `registers${i}`, 
 				 rdata: v, idx: i} }));
-		flatArray.push(...regs.bellstates.map((v, i) => 
+		flatArray.push(...regs.bellstates
+				.filter(deadFilterFn)
+			       .map((v, i) => 
 			 { return {kind: 'bellstate', 
 			tag: `bellstates${i}`, rdata: v, idx: i}}));
 				 
-		flatArray.push(...regs.factories.map((v, i) => 
+		flatArray.push(...regs.factories
+			       .filter(deadFilterFn)
+			       .map((v, i) => 
 			 { return {kind: 'factory', 
 				 tag: `factories${i}`, 
 				 rdata: v, idx: i} }));
-		flatArray.push(...regs.buffers.map((v, i) => 
+		flatArray.push(...regs.buffers
+			       .filter(deadFilterFn)
+			       .map((v, i) => 
 			 { return {kind: 'buffer', tag: `buffers${i}`, 
 				 rdata: v, idx: i} }));
 

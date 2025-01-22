@@ -61,6 +61,7 @@ export type FlatRegionData = {
 	connectionToKind: string | null
 	connectionToIdx: number | null
 	connectionDir: number
+	routerKind: string | null
 }
 
 /**
@@ -137,6 +138,7 @@ export class RegionData {
 
 	regionKind: string | null = null;
 	subTypeKind: string | null = null;
+	routerKind: string | null = null;
 
 	deadRegion: boolean = false;
 	
@@ -151,13 +153,22 @@ export class RegionData {
 		rdata.subTypeKind = data.subTypeKind;
 		rdata.connectionToIdx = data.connectionToIdx;
 		rdata.connectionToKind = data.connectionToKind;
-		rdata.connectionSet = rdata.connectionSet;
-		rdata.connectionDir = rdata.connectionDir;
+		rdata.connectionSet = data.connectionSet;
+		rdata.connectionDir = data.connectionDir;
+		rdata.routerKind = data.routerKind;
 		for(const [key, value] of data.cells) {
 			rdata.cells.set(key, value);	
 		}	
 
 		return rdata;
+	}
+
+	setRouterKind(kind: string) {
+		this.routerKind = kind;
+	}
+
+	getRouterKind() {
+		return this.routerKind;
 	}
 
 	replaceWith(rep: RegionData) {
@@ -207,7 +218,7 @@ export class RegionData {
 		regData.connectionToKind = this.connectionToKind;
 		regData.connectionToIdx = this.connectionToIdx;
 		regData.connectionDir = this.connectionDir;
-		
+		regData.routerKind = this.routerKind;	
 		regData.deadRegion = this.deadRegion;
 
 		for(let [key, value] of this.cells) {
@@ -341,6 +352,7 @@ export class RegionData {
 			subTypeKind: this.subTypeKind !== null ?
 				this.subTypeKind : 'NoKind',
 			cells: flatMap,
+			routerKind: this.routerKind,
 			connectionToIdx: this.connectionToIdx,
 			connectionToKind: this.connectionToKind,
 			connectionSet: this.connectionSet,
