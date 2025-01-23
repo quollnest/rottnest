@@ -31,6 +31,7 @@ import styles from './styles/GlobalBar.module.css';
 import RottnestContainer 
 	from './container/RottnestContainer.tsx';
 import {ProjectDetails} from '../model/Project.ts';
+import LogoEvents from './global/LogoEvents.ts';
 
 
 /**
@@ -126,7 +127,7 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			name: "", 
 			toolTip: "Logo", 
 			image: "",
-			events: NullEvents,
+			events: LogoEvents,
 			style: styles.containerLogo,
 			iconComponent: <div>Test Build</div>
 		},
