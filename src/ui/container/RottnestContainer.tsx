@@ -217,7 +217,6 @@ class RottnestContainer
 		appService.registerReciverKinds(
 			'use_arch', (m: any) => {
 				let someMsg = m 
-				console.log(m);
 				if(someMsg) {
 					let arch_id = someMsg
 						.getJSON();

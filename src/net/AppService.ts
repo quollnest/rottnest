@@ -11,11 +11,19 @@ const WS_ONOPEN: string = "open";
 //const WS_ONERROR: string = "error";
 //const WS_ONCLOSE: string = "close";
 
+export interface ASContextHook {
+	//callbackMap(): Map<string, ASRecvContextCallback>
+	serviceHook(asm: AppServiceMessage): void
+}
+
 export type ASOpenCallback 
 	= () => void;
 
 export type ASRecvCallback 
 	= (asm: AppServiceMessage) => void;
+
+export type ASRecvContextCallback 
+	= (ctx: ASContextHook, asm: AppServiceMessage) => void;
 
 export class AppServiceClient {
 	
@@ -97,6 +105,7 @@ export class AppServiceClient {
 			);
 		}
 	}
+
 	
 	sendMsg(msg: string) {
 		if(this.socket) {
@@ -161,6 +170,13 @@ export class AppServiceClient {
 		this.receiveTriggers.set(evKind, callback);
 	}
 
+	hookContext(ctx: ASContextHook, evKind: string) {
+		const cbWrapper: ASRecvCallback = (asm) => {
+			ctx.serviceHook(asm); 
+		}
+		this.receiveTriggers.set(evKind, cbWrapper);
+	}
+
 	registerOpenFn(openFn: ASOpenCallback) {
 		this.onOpenTrigger = openFn;	
 	}
@@ -202,7 +218,7 @@ export class AppServiceClient {
 		const realData = data
 			.parseDataTo(msgContainer);
 		if(realData) {
-			return realData;
+			return realData.subTypeMap;
 		}
 		return null;
 	}
@@ -222,7 +238,7 @@ export class AppServiceClient {
 	}
 
 	runResult(runMsg: RottRunResultMSG) {
-		
+		console.log(runMsg);	
 		if(this.socket) {
 			this.socket.send(runMsg.toJsonStr());
 		}

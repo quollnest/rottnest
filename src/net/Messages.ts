@@ -1,7 +1,7 @@
 
 import { RottnestKindMap, RottnestRouterKindMap } from '../model/RegionKindMap.ts'
 import { TSchedData } from '../model/TSchedData.ts';
-import {WGraphEntry, WidgetGraph} from '../model/WidgetGraph.ts';
+import {CUReqResult, CUReqResultDummy, WGraphEntry, WidgetGraph} from '../model/WidgetGraph.ts';
 import { DeRott } from './Serialisation'
 
 export class RottArchMSG {
@@ -70,6 +70,27 @@ export class RottGraphMSG implements DeRott  {
 			this.graph.graphIndex = gid;
 			this.graph.rootIndex = rootIndex;
 		}
+
+		return this;
+	}
+}
+
+export class RottStatusResponseMSG implements DeRott {
+
+	curesult: CUReqResult = CUReqResultDummy();
+
+	fromStr(_: string) { return null; }
+
+	fromJSON(obj: any) {
+		
+		const data = obj['payload'];
+		this.curesult.volumes = data.volumes;
+		this.curesult.t_source = data.t_source;
+		this.curesult.status = data.status;
+		this.curesult.cu_id = data.cu_id;
+		this.curesult.vis_obj = data.vis_obj === undefined ?
+			null : data.vis_obj;
+		
 
 		return this;
 	}
@@ -150,7 +171,7 @@ export class RottRouterTypesMSG implements DeRott  {
 			}
 
 		}
-		return this.subtypeMap;
+		return this;
 	}
 }
 

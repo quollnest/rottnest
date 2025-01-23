@@ -2,9 +2,15 @@ import React from "react";
 import {WorkspaceData} from "../workspace/Workspace";
 import styles from '../styles/WidgetSpace.module.css'
 import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
-import {WidgetGraph} from "../../model/WidgetGraph";
+import {CUReqResult, WidgetGraph} from "../../model/WidgetGraph";
+import {ASContextHook} from "../../net/AppService";
+import {AppServiceMessage} from "../../net/AppServiceMessage";
+import {RottStatusResponseMSG} from "../../net/Messages";
 
-type WidgetViewState = { data: any }
+type WidgetViewState = { 
+	data: any
+
+}
 
 type LineStackEntry = {
 	x1: number
@@ -100,13 +106,48 @@ class WidgetObject extends React.Component<WidgetDispData,
 		}));	
 		this.data.bufferMap.commit();
 	}
-	
 
-	
-	onNodeClick(e: React.MouseEvent<HTMLDivElement>) {
+	onNodeMove(e: React.MouseEvent<HTMLDivElement>) {
+		if(this.state.moveMode) {
+			
+			const nx = e.clientX;
+			const ny = e.clientY;
+
+			let nState = {...this.state};
+			nState.x = nx;
+			nState.y = ny;
+			this.setState(nState);
+		}
+	}
+
+	onNodeMouseUp(e: React.MouseEvent<HTMLDivElement>) {
+
 		const btn = e.button;
-		//left click
-		if(btn === 0) {
+		if(btn === 1) {
+			console.log('release');
+			let nState = {...this.state};
+			nState.moveMode = false;
+			this.setState(nState);
+		}
+	}
+
+	onNodeMouseDown(e: React.MouseEvent<HTMLDivElement>) {
+		const btn = e.button;
+
+		if(btn === 1) {
+			console.log('moving');
+			//TODO: Move on right click
+			const nx = e.clientX;
+			const ny = e.clientY;
+			let nState = {...this.state};
+			nState.x = nx;
+			nState.y = ny;
+			nState.moveMode = true;
+			console.log(nx, ny, nState.moveMode);
+
+			this.setState(nState);
+
+		} else if(btn === 0) {
 			if(this.data.idx !== this.data.selectedIdx) {
 				let nnode = {
 					idx: this.data.idx
@@ -120,20 +161,9 @@ class WidgetObject extends React.Component<WidgetDispData,
 						nstr);	
 				this.data.bufferMap.commit();
 			}
-			//right click
-		} else if(btn === 2) {
-			//TODO: Move on right click
-			const nx = e.clientX;
-			const ny = e.clientY;
-			let nState = {...this.state};
-			nState.x = nx;
-			nState.y = ny;
-			nState.moveMode = true;
+		}	
 
-			this.setState(nState);
-
-		}
-	}
+	}		
 
 
 	render() {
@@ -145,23 +175,24 @@ class WidgetObject extends React.Component<WidgetDispData,
 		const widget = this.props.wdaggr
 			.graph.graph[index];
 		
-		const x = this.props.x;
-		const y = this.props.y;
+		const x = this.state.x;
+		const y = this.state.y;
 		return (
 			<div style={{marginLeft: 
 				`calc(${x}% - 25px)`,top: `${y}%`}}
 				className={styles.widgetObject}
 				onMouseEnter={(_) => { 
 					this.onHoverTrigger()}}
-				onClick={(e) => {
-					this.onNodeClick(e)
-				}}>
+				onMouseDown={(e) => { this
+					.onNodeMouseDown(e)}}
+				onMouseUp={(e) => {this
+					.onNodeMouseUp(e)}}>
 					
 				<header 
 					className={
 						styles
 						.widgetObjectHeader}>
-					{widget.name}
+					{widget.cu_id}
 				</header>
 				<div className={styles
 					.widgetObjectBody}>
@@ -176,69 +207,36 @@ class WidgetObject extends React.Component<WidgetDispData,
 
 
 export class WidgetSpace extends 
-	React.Component<WorkspaceData, WidgetViewState> {
+	React.Component<WorkspaceData, WidgetViewState> 
+	implements ASContextHook {
 
-	//This is currently dummy data
-	/*widgetData: { 
-		collection: Array<WidgetData>
-		selectedIndex: number
-	} = {
-		collection: [
-			{
-				name: 'comp1',
-				description: 'comp1 desc',
-				children: [1, 2, 3]
-			},
-			{
-				name: 'comp2',
-				description: 'desc',
-				children: [4]
-			},
+	cuMap: Map<string, CUReqResult> = new Map();
 
-			{
-				name: 'comp3',
-				description: 'desc',
-				children: [5]
-			},
-			{
-				name: 'comp4',
-				description: 'desc',
-				children: []
-			},
-			{
-				name: 'comp5',
-				description: 'desc',
-				children: [6, 7]
-			},
-			{
-				name: 'comp6',
-				description: 'desc',
-				children: []
-			},
-			{
-				name: 'comp7',
-				description: 'desc',
-				children: []
-			},
-			{
-				name: 'comp8',
-				description: 'desc',
-				children: [8]
-			},
-			{
-				name: 'comp9',
-				description: 'desc',
-				children: []
-			},
-
-
-		],
-		selectedIndex: 0
-	}*/
-
-
-
-
+	constructor(props: any) {
+		super(props);
+		const container = this.props.container;
+		const aService = container.commData.appService;
+		aService.hookContext(this,'status_response');
+	}
+	
+	serviceHook(asm: AppServiceMessage): void {
+		const jsonObj = asm.getJSON()
+		//Your response here
+		//Turn it into a CUReqResult		
+		if(jsonObj) {
+			const containerMsg 
+				= new RottStatusResponseMSG();
+			const rData = asm
+				.parseDataTo(containerMsg);	
+			if(rData) {
+				const cuData = rData
+					.curesult;
+				this.cuMap
+					.set(cuData.cu_id,
+					     cuData);
+			}
+		}
+	}
 
 	traverseGraph(graph: WidgetGraph, 
 		      rootIdx: number)
@@ -339,7 +337,7 @@ export class WidgetSpace extends
 			.map((w: WidgetLayerEntry, idx: number) => {
 				const wname = waggr
 					.graph
-					.graph[w.entryIdx].name
+					.graph[w.entryIdx].cu_id
 					
 				const xperc = (100 / (wlLength*2));
 				const xdisp = (xperc * (idx +1)) + 
