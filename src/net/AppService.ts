@@ -217,8 +217,9 @@ export class AppServiceClient {
 		data.parseData();
 		const realData = data
 			.parseDataTo(msgContainer);
+
 		if(realData) {
-			return realData.subTypeMap;
+			return realData.subtypeMap;
 		}
 		return null;
 	}

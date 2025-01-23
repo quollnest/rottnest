@@ -2,14 +2,13 @@ import React from "react";
 import {WorkspaceData} from "../workspace/Workspace";
 import styles from '../styles/WidgetSpace.module.css'
 import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
-import {CUReqResult, WidgetGraph} from "../../model/WidgetGraph";
+import {CUReqResult, CUVolumeDummy, WidgetGraph} from "../../model/WidgetGraph";
 import {ASContextHook} from "../../net/AppService";
 import {AppServiceMessage} from "../../net/AppServiceMessage";
 import {RottStatusResponseMSG} from "../../net/Messages";
 
 type WidgetViewState = { 
-	data: any
-
+	cunitMap: Map<string, CUReqResult>
 }
 
 type LineStackEntry = {
@@ -32,8 +31,6 @@ type WidgetTreeLayerData = {
 
 
 type WidgetTreeDisplayData = {
-//	largestRowIdx: number
-//	largestRowChildren: number
 	layerData: Array<WidgetTreeLayerData>
 }
 
@@ -48,8 +45,6 @@ type WidgetTreeDisplayData = {
  *
  */
 type WidgetAggr = {
-	/*collection: Array<WGraphEntry>
-	selectedIndex: number*/
 	graph: WidgetGraph
 	workspaceData: WorkspaceData
 }
@@ -58,13 +53,16 @@ type WidgetDispData = {
 	wdaggr: WidgetAggr
 	index: number
 	selectedIdx: number
+	cuId: string
 	x: number
 	y: number
+	cuReqData: CUReqResult | null
 }
 
 type WidgetObjectData = {
 	x: number
 	y: number
+	actualPosition: boolean
 	moveMode: boolean
 }
 
@@ -73,10 +71,19 @@ type WidgetObjectData = {
  */
 class WidgetObject extends React.Component<WidgetDispData, 
 	WidgetObjectData> {
+	
+	cuIndex = this.props.index;
+	cuId = this.props.cuId
+	//TODO: Don't look, it is awful
+	apservice = this.props.wdaggr
+		.workspaceData.container
+		.commData.appService;
+
 
 	state: WidgetObjectData = {
 		x: this.props.x,
 		y: this.props.y,
+		actualPosition: false,
 		moveMode: false
 	}
 
@@ -110,9 +117,11 @@ class WidgetObject extends React.Component<WidgetDispData,
 	onNodeMove(e: React.MouseEvent<HTMLDivElement>) {
 		if(this.state.moveMode) {
 			
+			
+		
 			const nx = e.clientX;
 			const ny = e.clientY;
-
+			
 			let nState = {...this.state};
 			nState.x = nx;
 			nState.y = ny;
@@ -135,19 +144,24 @@ class WidgetObject extends React.Component<WidgetDispData,
 		const btn = e.button;
 
 		if(btn === 1) {
-			console.log('moving');
-			//TODO: Move on right click
+					
 			const nx = e.clientX;
 			const ny = e.clientY;
 			let nState = {...this.state};
 			nState.x = nx;
 			nState.y = ny;
 			nState.moveMode = true;
-			console.log(nx, ny, nState.moveMode);
-
+			nState.actualPosition = true;
+			
 			this.setState(nState);
 
 		} else if(btn === 0) {
+			if(this.props.cuReqData === null ||
+			  this.props.cuReqData.status !== 'complete') {
+				this.apservice.sendObj('get_status', {
+					'cu_id': this.cuId
+				});
+			}
 			if(this.data.idx !== this.data.selectedIdx) {
 				let nnode = {
 					idx: this.data.idx
@@ -158,7 +172,8 @@ class WidgetObject extends React.Component<WidgetDispData,
 						nstr);	
 				this.data.bufferMap
 					.insert('next_node',
-						nstr);	
+						nstr);
+
 				this.data.bufferMap.commit();
 			}
 		}	
@@ -175,19 +190,107 @@ class WidgetObject extends React.Component<WidgetDispData,
 		const widget = this.props.wdaggr
 			.graph.graph[index];
 		
-		const x = this.state.x;
-		const y = this.state.y;
+		const cuObj = this.props.cuReqData;
+		
+		let tsourceInfo = { 
+			contents: false,
+			info: 'No Info',
+			mappedData: new Map()
+		};
+		let cuVolume = CUVolumeDummy();
+		let cuDetailsReady = false;
+		let status = 'not_checked';
+		if(cuObj !== null) {
+			status = cuObj.status;
+			if(cuObj.status === 'complete') {
+				cuDetailsReady = true;
+				cuVolume = cuObj.volumes;
+				tsourceInfo.contents =  true;
+				tsourceInfo.info = 'Info';
+				for(const tkey in cuObj.t_source) {
+					tsourceInfo.mappedData.set(tkey,
+							cuObj.t_source[tkey]);
+
+				}
+			} else if(cuObj.status === 'not_found') {
+
+			} else if(cuObj.status === 'not_ready') {
+				status = 'not_ready';
+			}
+		}
+		let tdata = null;		
+		if(tsourceInfo.contents) {
+			tdata = tsourceInfo.mappedData
+				.entries()
+				.map((e) => {
+				const [ky, vl] = e; 
+				return (
+					<div>
+					{ky}:{vl}	
+					</div>
+				)
+
+			});
+		}
+		const tDisp = tdata === null ? 
+			<div>No Data Available</div> :
+			<div>
+				<header>T Source Info</header>
+				{tdata}
+			</div>
+
+		const volDisp = cuDetailsReady ? 
+			(<div>
+			 	<header>
+				{this.cuId}
+				</header>
+				<div>
+				Test Description
+				</div>
+			 	<header>
+				Volumes
+				</header>
+				<div>
+					<div><span>Reg.Vol: </span>
+					<span>{cuVolume.REGISTER_VOLUME}</span></div>
+					<div><span>Fac.Vol: </span>
+					<span>{cuVolume.FACTORY_VOLUME}</span></div>
+					<div><span>Rout.Vol: </span>
+					<span>{cuVolume.ROUTING_VOLUME}</span></div>
+					<div><span>TIdle.Vol: </span>
+					<span>{cuVolume.T_IDLE_VOLUME}</span></div>
+				</div>
+				{tDisp}
+			 </div>)
+			:
+			(<div>
+			 Data Not Ready
+			 </div>);
+
+		let x = `${this.state.x-25}`;
+		let y = `${this.state.y-25}`;
+		let sObj = { left: `${x}px`,top: `${y}px`,
+			position: 'fixed' };
+		if(!this.state.actualPosition) {
+
+			x = `${this.state.x}%`;
+			y = `${this.state.y}%`;
+			sObj = {
+				left: `calc(${x} - 25px)`,top: `${y}`,
+				position: 'absolute' }
+
+		} 
 		return (
-			<div style={{marginLeft: 
-				`calc(${x}% - 25px)`,top: `${y}%`}}
+			<div style={sObj}
 				className={styles.widgetObject}
 				onMouseEnter={(_) => { 
 					this.onHoverTrigger()}}
 				onMouseDown={(e) => { this
 					.onNodeMouseDown(e)}}
 				onMouseUp={(e) => {this
-					.onNodeMouseUp(e)}}>
-					
+					.onNodeMouseUp(e)}}
+				onMouseMove={(e) => this.onNodeMove(e)}>
+				
 				<header 
 					className={
 						styles
@@ -197,6 +300,10 @@ class WidgetObject extends React.Component<WidgetDispData,
 				<div className={styles
 					.widgetObjectBody}>
 				{widget.description}
+				</div>
+				<div className={
+						styles.cuStatus}>
+					{status}	
 				</div>
 			</div>
 		);
@@ -209,8 +316,10 @@ class WidgetObject extends React.Component<WidgetDispData,
 export class WidgetSpace extends 
 	React.Component<WorkspaceData, WidgetViewState> 
 	implements ASContextHook {
-
-	cuMap: Map<string, CUReqResult> = new Map();
+	
+	state = {	
+		cunitMap: new Map(),
+	}
 
 	constructor(props: any) {
 		super(props);
@@ -231,10 +340,15 @@ export class WidgetSpace extends
 			if(rData) {
 				const cuData = rData
 					.curesult;
-				this.cuMap
+				this.state.cunitMap	
 					.set(cuData.cu_id,
 					     cuData);
+				this.props.bufferMap.insert('node_column',
+							   JSON.stringify(cuData));
+				const nState = {...this.state}
+				this.setState(nState);
 			}
+			
 		}
 	}
 
@@ -257,6 +371,9 @@ export class WidgetSpace extends
 			const [depth, parentIdx, idx] = current;
 			console.log(graph);
 			const currentWidget = collection[idx];
+			if(currentWidget === undefined) {
+				return { layerData: [] };
+			}
 			const element = {
 				entryIdx: idx,
 				parentIdx
@@ -342,12 +459,19 @@ export class WidgetSpace extends
 				const xperc = (100 / (wlLength*2));
 				const xdisp = (xperc * (idx +1)) + 
 					(xperc * idx);
+
+				const cuVal = this.state.cunitMap.get(wname);
+				const distCU = cuVal !== null && cuVal !== undefined ?
+					cuVal : null;
+
 				const wdispData = {
 					wdaggr: waggr,
 					index: w.entryIdx,
 					x: xdisp,
 					y: wl.depth * 20,
-					selectedIdx: selectedIndex
+					selectedIdx: selectedIndex,
+					cuReqData: distCU,
+					cuId: wname,
 				};
 
 				//Compute line between child and parent
@@ -397,8 +521,8 @@ export class WidgetSpace extends
 		});
 
 		//Construct svg with lines
-		const svgLines = lineStack.map((l, _) => {
-			return <line 
+		const svgLines = lineStack.map((l, idx) => {
+			return <line key={`cu${idx}`} 
 				x1={`${l.x1}%`} 
 				x2={`${l.x2}%`} 
 				y1={`${l.y1}%`} 

@@ -94,24 +94,43 @@
 
 .widgetObjectBody {
 	
-	max-width: 60px;
-	max-height: 50px;
-	min-width: 60px;
+	max-width: 80px;
+	min-width: 80px;
 	min-height: 50px;
 }
 
 .widgetObjectHeader {
 	border-bottom: 1px #35332f solid;
-	max-width: 50px;
+	max-width: 80px;
 	max-height: 50px;
-	min-width: 60px;
+	min-width: 80px;
+}
+
+.dataSegment {
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	margin-top: 1em;
+	border-top: 1px #35332f solid;
+	border-bottom: 1px #35332f solid;
+}
+
+.vizButton {
+	margin-top: 1em;
+	width: 100%;
+	border-radius: 0;
+	border-top: 1px #35332f solid;
+	border-bottom: 1px #35332f solid;
+	color: white !important;
+}
+
+.cuStatus {
+	border-top: 1px #35332f solid;
 }
 
 .widgetObject {
 	position: absolute;
-	max-width: 50px;
-	max-height: 50px;
-	min-width: 60px;
+	max-width: 80px;
+	min-width: 80px;
 	min-height: 60px;
 	
 	background-color: #25231f;

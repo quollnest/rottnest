@@ -7,6 +7,7 @@ import {
 	ArrowLeftOutlined
 	} from '@ant-design/icons'
 import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
+import {CUReqResult, CUReqResultDummy, CUVolumeDummy} from "../../model/WidgetGraph";
 
 
 type NodeData = {
@@ -15,13 +16,12 @@ type NodeData = {
 }
 
 type WidgetNodeColumnData = {
-
 	workspaceData: WorkspaceData 
 }
 
 
 type WidgetNodeData = {
-
+	cuReqData: CUReqResult
 	workspaceData: WorkspaceData 
 	nodeData: NodeData | null
 }
@@ -29,15 +29,111 @@ type WidgetNodeData = {
 class WidgetSelectedNodeBox extends React.Component<WidgetNodeData, 
 	{}>  {
 
+	cuId: string = 'test';
+
+	gotoVisualiserWithData(data: any) {
+		console.log("Going to visualiser");
+		this.props.workspaceData.container.gotoVizWithData(data);
+	}
 
 	render() {
+
+
+
 		const ndata = this.props;
 		let innerContents = <span>Unselected</span>
+		
+		const cuObj = this.props.cuReqData;
+		
+		let tsourceInfo = { 
+			contents: false,
+			info: 'No Info',
+			mappedData: new Map()
+		};
+		let cuVolume = CUVolumeDummy();
+		let cuDetailsReady = false;
+		let status = 'not_checked';
+		if(cuObj !== null) {
+			status = cuObj.status;
+			if(cuObj.status === 'complete') {
+				cuDetailsReady = true;
+				cuVolume = cuObj.volumes;
+				tsourceInfo.contents =  true;
+				tsourceInfo.info = 'Info';
+				for(const tkey in cuObj.t_source) {
+					tsourceInfo.mappedData.set(tkey,
+							cuObj.t_source[tkey]);
+
+				}
+			} else if(cuObj.status === 'not_found') {
+
+			} else if(cuObj.status === 'not_ready') {
+				status = 'not_ready';
+			}
+		}
+		let tdata = null;		
+		if(tsourceInfo.contents) {
+			tdata = tsourceInfo.mappedData
+				.entries()
+				.map((e) => {
+				const [ky, vl] = e; 
+				return (
+					<div>
+					{ky}:{vl}	
+					</div>
+				)
+
+			});
+		}
+		const tDisp = tdata === null ? 
+			<div className={styles.dataSegment}>No Data Available</div> :
+			<div>
+				<header>T Source Info</header>
+				{tdata}
+			</div>
+
+		const renResult = !cuDetailsReady ? 
+			(<div>
+			 	<header>
+				{this.cuId}:{status}
+				</header>
+				<div>
+				Test Description
+				</div>
+				<div className={styles.dataSegment}>
+					<header>
+					Volumes:
+					</header>
+
+					<div><span>Reg.Vol: </span>
+					<span>{cuVolume.REGISTER_VOLUME}</span></div>
+					<div><span>Fac.Vol: </span>
+					<span>{cuVolume.FACTORY_VOLUME}</span></div>
+					<div><span>Rout.Vol: </span>
+					<span>{cuVolume.ROUTING_VOLUME}</span></div>
+					<div><span>TIdle.Vol: </span>
+					<span>{cuVolume.T_IDLE_VOLUME}</span></div>
+				</div>
+				{tDisp}
+				<div>
+					<button className={styles.vizButton}
+						onClick={(_) => {
+							this.gotoVisualiserWithData(cuObj)}}>
+						Run Visualisation</button>
+				</div>
+			 </div>)
+			:
+			(<div>
+			 Data Not Ready
+			 </div>);
+
+
+
 		if(ndata.nodeData !== null 
 		   && ndata.nodeData !== undefined) {
 			const nd = ndata.nodeData;
 			innerContents = (
-				<div>
+				<div className={styles.dataSegment}>
 				<div>Index: {nd.idx}</div>
 				<div>Kind: {nd.kind}</div>
 				</div>
@@ -47,7 +143,8 @@ class WidgetSelectedNodeBox extends React.Component<WidgetNodeData,
 
 		return (
 			<div className={styles.widgetBoxContent}>
-				{innerContents}	
+				{innerContents}
+				{renResult}
 			</div>
 		)
 	}
@@ -68,6 +165,7 @@ export class WidgetNodeColumn
 			idx = objDez.idx as number;
 		}
 
+		
 		return (
 			<div className={styles.widgetViewContainer}>
 				<header className={styles
@@ -79,6 +177,7 @@ export class WidgetNodeColumn
 						idx,
 						kind: 'test'
 					}}
+					cuReqData={CUReqResultDummy()}
 					workspaceData={
 						{...wsData}
 					}/>

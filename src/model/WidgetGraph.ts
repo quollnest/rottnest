@@ -39,7 +39,7 @@ export type CUReqResult = {
 	t_source: CUSource
 }
 
-function CUVolumeDummy() {
+export function CUVolumeDummy() {
 	return {	
 		REGISTER_VOLUME: 0,
 		FACTORY_VOLUME: 0,

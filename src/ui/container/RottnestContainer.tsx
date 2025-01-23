@@ -319,6 +319,13 @@ class RottnestContainer
 
 	}
 
+	gotoVizWithData(data: any) {
+		this.state.tabData.selectedTabIndex = 2;
+		this.state.tabData.availableTabs[2] = true;
+		this.state.visData = data;
+		this.triggerUpdate();
+	}
+
 	getProjectAssembly(): ProjectAssembly {
 		return {
 			projectDetails: this.state
