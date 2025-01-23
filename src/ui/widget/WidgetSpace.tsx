@@ -1,8 +1,8 @@
 import React from "react";
 import {WorkspaceData} from "../workspace/Workspace";
-import RottnestContainer from "../container/RottnestContainer";
 import styles from '../styles/WidgetSpace.module.css'
 import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
+import {WidgetGraph} from "../../model/WidgetGraph";
 
 type WidgetViewState = { data: any }
 
@@ -32,18 +32,8 @@ type WidgetTreeDisplayData = {
 }
 
 
-/**
- * We will assume that the data is a flat structure
- * with index links
- * I have opened it up to have fieldData that will
- * allow mapping for it
- */
-type WidgetData = {
-	name: string
-	children: Array<number>
-	description: string
-	//fieldData: Map<string, string>
-}
+
+
 
 /**
  * This will be aggregation of all the widget data,
@@ -52,8 +42,9 @@ type WidgetData = {
  *
  */
 type WidgetAggr = {
-	collection: Array<WidgetData>
-	selectedIndex: number
+	/*collection: Array<WGraphEntry>
+	selectedIndex: number*/
+	graph: WidgetGraph
 	workspaceData: WorkspaceData
 }
 
@@ -65,10 +56,23 @@ type WidgetDispData = {
 	y: number
 }
 
+type WidgetObjectData = {
+	x: number
+	y: number
+	moveMode: boolean
+}
+
 /**
  * WidgetObject, 
  */
-class WidgetObject extends React.Component<WidgetDispData, {}> {
+class WidgetObject extends React.Component<WidgetDispData, 
+	WidgetObjectData> {
+
+	state: WidgetObjectData = {
+		x: this.props.x,
+		y: this.props.y,
+		moveMode: false
+	}
 
 	data: {
 		bufferMap: WorkspaceBufferMap
@@ -76,9 +80,11 @@ class WidgetObject extends React.Component<WidgetDispData, {}> {
 		selectedIdx: number
 	} = {
 		bufferMap: this.props.wdaggr
-			.workspaceData.bufferMap,
+			.workspaceData
+			.bufferMap,
 		idx: this.props.index,
-		selectedIdx: this.props.selectedIdx
+		selectedIdx: this.props
+			.selectedIdx
 		
 	}
 
@@ -97,17 +103,35 @@ class WidgetObject extends React.Component<WidgetDispData, {}> {
 	
 
 	
-	onNodeClick() {
-		if(this.data.idx !== this.data.selectedIdx) {
-			let nnode = {
-				idx: this.data.idx
-			};
-			const nstr = JSON.stringify(nnode);
-			this.data.bufferMap
-				.insert('root_node',nstr);	
-			this.data.bufferMap
-				.insert('next_node',nstr);	
-			this.data.bufferMap.commit();
+	onNodeClick(e: React.MouseEvent<HTMLDivElement>) {
+		const btn = e.button;
+		//left click
+		if(btn === 0) {
+			if(this.data.idx !== this.data.selectedIdx) {
+				let nnode = {
+					idx: this.data.idx
+				};
+				const nstr = JSON.stringify(nnode);
+				this.data.bufferMap
+					.insert('root_node',
+						nstr);	
+				this.data.bufferMap
+					.insert('next_node',
+						nstr);	
+				this.data.bufferMap.commit();
+			}
+			//right click
+		} else if(btn === 2) {
+			//TODO: Move on right click
+			const nx = e.clientX;
+			const ny = e.clientY;
+			let nState = {...this.state};
+			nState.x = nx;
+			nState.y = ny;
+			nState.moveMode = true;
+
+			this.setState(nState);
+
 		}
 	}
 
@@ -119,7 +143,8 @@ class WidgetObject extends React.Component<WidgetDispData, {}> {
 		const index = this.props
 			.index;
 		const widget = this.props.wdaggr
-			.collection[index];
+			.graph.graph[index];
+		
 		const x = this.props.x;
 		const y = this.props.y;
 		return (
@@ -128,10 +153,9 @@ class WidgetObject extends React.Component<WidgetDispData, {}> {
 				className={styles.widgetObject}
 				onMouseEnter={(_) => { 
 					this.onHoverTrigger()}}
-				onClick={(_) => {
-					this.onNodeClick()
-				}}
-					>
+				onClick={(e) => {
+					this.onNodeClick(e)
+				}}>
 					
 				<header 
 					className={
@@ -155,7 +179,7 @@ export class WidgetSpace extends
 	React.Component<WorkspaceData, WidgetViewState> {
 
 	//This is currently dummy data
-	widgetData: { 
+	/*widgetData: { 
 		collection: Array<WidgetData>
 		selectedIndex: number
 	} = {
@@ -210,13 +234,16 @@ export class WidgetSpace extends
 
 		],
 		selectedIndex: 0
-	}
+	}*/
 
 
 
-	traverseGraph(collection: Array<WidgetData>, 
+
+
+	traverseGraph(graph: WidgetGraph, 
 		      rootIdx: number)
 		: WidgetTreeDisplayData {
+		const collection = graph.graph;
 		//depth, parentIdx, entryIdx	
 		let queue: Array<[number, number, number]> 
 			=[[0,-1, rootIdx]];
@@ -230,6 +257,7 @@ export class WidgetSpace extends
 			if(!current) { continue; }
 			
 			const [depth, parentIdx, idx] = current;
+			console.log(graph);
 			const currentWidget = collection[idx];
 			const element = {
 				entryIdx: idx,
@@ -279,10 +307,12 @@ export class WidgetSpace extends
 		//moving of the design space
 		let calcdHeight = 0;
 		const bmap = this.props.bufferMap;
-
+		//TODO: We need to retrieve the graph information
+		//	and update the details
+		const graphFromContainer = this.props.container
+			.getWidgetGraph();
 		const waggr: WidgetAggr = {
-			collection: this.widgetData.collection,
-			selectedIndex: this.widgetData.selectedIndex,
+			graph: graphFromContainer,
 			workspaceData: this.props
 		}
 
@@ -298,7 +328,7 @@ export class WidgetSpace extends
 		let lineStack: Array<LineStackEntry> = [];
 
 		const renderedWidgets = this.traverseGraph(
-			this.widgetData.collection, selectedIndex
+			graphFromContainer, selectedIndex
 		).layerData
 		.map((wl: WidgetTreeLayerData, _: number) => {
 			
@@ -308,7 +338,9 @@ export class WidgetSpace extends
 			const wlRes = wl.layerElements
 			.map((w: WidgetLayerEntry, idx: number) => {
 				const wname = waggr
-					.collection[w.entryIdx].name
+					.graph
+					.graph[w.entryIdx].name
+					
 				const xperc = (100 / (wlLength*2));
 				const xdisp = (xperc * (idx +1)) + 
 					(xperc * idx);

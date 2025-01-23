@@ -1,7 +1,7 @@
 
 import {RottnestKindMap} from "../model/RegionKindMap.ts";
 import { AppServiceMessage } from "./AppServiceMessage.ts"; 
-import {RottArchMSG, RottRouterTypesMSG, RottRunResultMSG, RottSubTypesMSG} from "./Messages.ts";
+import {RottArchMSG, RottGraphMSG, RottRouterTypesMSG, RottRunResultMSG, RottSubTypesMSG} from "./Messages.ts";
 
 export const APP_URL: string = "ws://localhost:8080/websocket";
 
@@ -86,7 +86,7 @@ export class AppServiceClient {
 		}
 	}
 
-	sendObj(cmd: string, payload: string) {
+	sendObj(cmd: string, payload: any) {
 			
 		if(this.socket) {
 			this.socket.send(
@@ -154,6 +154,8 @@ export class AppServiceClient {
 			this.isConnected();
 	}
 
+	
+
 	registerReciverKinds(evKind: string, 
 			     callback: ASRecvCallback) {
 		this.receiveTriggers.set(evKind, callback);
@@ -161,6 +163,17 @@ export class AppServiceClient {
 
 	registerOpenFn(openFn: ASOpenCallback) {
 		this.onOpenTrigger = openFn;	
+	}
+
+	decodeGraph(data: any) {
+		const msgContainer = new RottGraphMSG();
+		data.parseData();
+		const realData = data
+			.parseDataTo(msgContainer);
+		if(realData) {
+			return realData.graph;
+		}
+		return null;
 	}
 
 	retrieveSubTypes(data: any) {

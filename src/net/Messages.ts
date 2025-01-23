@@ -1,6 +1,7 @@
 
 import { RottnestKindMap, RottnestRouterKindMap } from '../model/RegionKindMap.ts'
 import { TSchedData } from '../model/TSchedData.ts';
+import {WGraphEntry, WidgetGraph} from '../model/WidgetGraph.ts';
 import { DeRott } from './Serialisation'
 
 export class RottArchMSG {
@@ -38,6 +39,40 @@ export class RottRunResultMSG {
 export type RouterAggr = {
 	options: Array<string>
 	default: number
+}
+
+export class RottGraphMSG implements DeRott  {
+
+	graph: WidgetGraph = {
+		graph: [],
+		rootIndex: 0,
+		graphIndex: -1
+	};
+
+	fromStr(_: string): this | null {
+		return null;
+	}
+
+	fromJSON(jsonObj: any): this | null {
+		
+		//Assume it is a JSON object
+		const data = jsonObj['payload'];
+		const gid = data['gid'];
+		const obj = data['graph_view'];
+		if(gid !== null && gid !== undefined &&
+		  obj !== null && obj != undefined) {
+
+			const graph = 
+				obj['graph'] as Array<WGraphEntry>;
+			const rootIndex = obj['root_index'];
+			
+			this.graph.graph = graph;
+			this.graph.graphIndex = gid;
+			this.graph.rootIndex = rootIndex;
+		}
+
+		return this;
+	}
 }
 
 export class RottRouterTypesMSG implements DeRott  {
@@ -83,6 +118,7 @@ export class RottRouterTypesMSG implements DeRott  {
 		}
 	}
 
+	//TODO: Fix this issue
 	fromJSON(mdata: any) {
 
 		const data = mdata['payload'];

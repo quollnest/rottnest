@@ -24,6 +24,7 @@ import {AppServiceClient} from '../../net/AppService.ts';
 import AppServiceModule from '../../net/AppServiceModule.ts';
 import {RottRunResultMSG, RouterAggr} from '../../net/Messages.ts';
 import {HelpContainer, HelpBoxData} from './HelpContainer.tsx';
+import {WidgetGraph, WidgetGraphDefault} from '../../model/WidgetGraph.ts';
 
 /**
  * At the moment, nothing interesting
@@ -73,6 +74,7 @@ type RottnestState = {
 	visData: any
 	routerListRcvd: boolean
 	selectedRouterIndex: number
+	graphViewData: WidgetGraph
 }
 
 type ComponentMonitor = {
@@ -164,6 +166,7 @@ class RottnestContainer
 			tabNames: ['Architecture', 'Widget', 
 				'Visualiser']
 		},
+		graphViewData: WidgetGraphDefault(),	
 		visData: {}
 	};
 	
@@ -231,13 +234,23 @@ class RottnestContainer
 		);
 		appService.registerReciverKinds(
 			'run_result', (m: any) => {
-				
+				//TODO Set the graph id for
+				//the msg to be sent for
+				//get_graph
+
 				let json = m.data; 
+				appService
+					.sendObj('get_graph','');
 				selfRef.state.visData = json;
 				selfRef.state.tabData
 				.availableTabs[2]
 					= true;
 				selfRef.triggerUpdate();
+
+
+
+				//This needs to trigger
+				//a retrieval on get_graph
 			}
 		);
 
@@ -268,11 +281,33 @@ class RottnestContainer
 
 			}
 		);
+		appService.registerReciverKinds(
+			'get_graph', (m: any) => {
+				let graph = appService
+					.decodeGraph(m);
+				if(graph) {
+					this.state.graphViewData
+					= graph;
+				}
+				
+				/*let kinds = appService
+					.retrieveArgs(m);
+				if(kinds) {
+				selfRef
+				.updateArgsList(kinds);
+				
+				}*/
 
+			}
+		);
 		appService.registerOpenFn(() => {
 			if(appService.isConnected()) {	
 				appService
 					.sendObj('subtype','');
+				appService
+					.sendObj('get_graph',{	
+						gid: 0
+					});
 				/*appService.sendObj('get_args'
 					,'');*/
 			}
@@ -367,6 +402,10 @@ class RottnestContainer
 				}));
 		} 
 		return adjacentList;
+	}
+	
+	getWidgetGraph() {
+		return this.state.graphViewData;
 	}
 
 	getRouterList() {
@@ -583,6 +622,7 @@ class RottnestContainer
 			tabNames: ['Architecture', 'Widget', 
 				'Visualiser']
 		};
+		this.state.graphViewData = WidgetGraphDefault(),	
 		this.state.visData = {};
 		this.regionStack = new RegionsSnapshotStack();
 		this.currentRDBuffer = new RegionData();
