@@ -216,7 +216,8 @@ class RottnestContainer
 		);
 		appService.registerReciverKinds(
 			'use_arch', (m: any) => {
-				let someMsg = m.data 
+				let someMsg = m 
+				console.log(m);
 				if(someMsg) {
 					let arch_id = someMsg
 						.getJSON();
@@ -239,8 +240,8 @@ class RottnestContainer
 				//get_graph
 
 				let json = m.data; 
-				appService
-					.sendObj('get_graph','');
+				//appService
+				//	.sendObj('get_graph','');
 				selfRef.state.visData = json;
 				selfRef.state.tabData
 				.availableTabs[2]
