@@ -7,7 +7,7 @@ export function SchedulerVisualiser(props: WorkspaceData) {
 	function iframeLoaded() {
 		iframeRef.current?.contentWindow?.postMessage(
 			props.container.state
-				.visData.payload, "*");
+				.visData.payload.vis_obj, "*");
 	}
 		
 	const iframeRef = useRef<HTMLIFrameElement>(null);
