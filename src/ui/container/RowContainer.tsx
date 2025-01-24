@@ -5,7 +5,7 @@ import {WorkspaceContainerProps, WorkspaceGroup, WorkspaceProps}
 	from "../workspace/Workspace";
 import {ArchGroup} from "../workspace/ArchGroup";
 import {VisualiserGroup} from "../workspace/VisualiserGroup";
-import {WidgetGroup} from "../workspace/WidgetGroup";
+import {CallGraphGroup} from "../workspace/CallGraphGroup";
 import {BufferMapTrigger, WorkspaceBufferMap} 
 	from "../workspace/WorkspaceBufferMap";
 
@@ -30,7 +30,7 @@ class WorkspaceContainer
 
 	workspaceGroups: Array<WorkspaceGroup> = [
 		new ArchGroup(),
-		new WidgetGroup(),
+		new CallGraphGroup(),
 		new VisualiserGroup()
 	]
 	

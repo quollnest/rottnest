@@ -17,14 +17,15 @@ import { RegionsSnapshotStack }
 import styles from '../styles/RottnestContainer.module.css';
 import {DesignSpace} from '../DesignSpace';
 import NewProjectForm from './NewProjectForm';
-import { RottnestKindMap, RottnestRouterKindMap, SubKind } from '../../model/RegionKindMap.ts'
+import { RottnestKindMap, SubKind } 
+	from '../../model/RegionKindMap.ts'
 
 import {AppServiceClient} from '../../net/AppService.ts';
 
 import AppServiceModule from '../../net/AppServiceModule.ts';
 import {RottRunResultMSG, RouterAggr} from '../../net/Messages.ts';
 import {HelpContainer, HelpBoxData} from './HelpContainer.tsx';
-import {WidgetGraph, WidgetGraphDefault} from '../../model/WidgetGraph.ts';
+import {RottCallGraph, RottCallGraphDefault} from '../../model/CallGraph.ts';
 
 /**
  * At the moment, nothing interesting
@@ -74,7 +75,7 @@ type RottnestState = {
 	visData: any
 	routerListRcvd: boolean
 	selectedRouterIndex: number
-	graphViewData: WidgetGraph
+	graphViewData:RottCallGraph 
 }
 
 type ComponentMonitor = {
@@ -163,10 +164,10 @@ class RottnestContainer
 		tabData: {
 			selectedTabIndex: 0,
 			availableTabs: [true, true, false],
-			tabNames: ['Architecture', 'Widget', 
+			tabNames: ['Architecture', 'Call Graph', 
 				'Visualiser']
 		},
-		graphViewData: WidgetGraphDefault(),	
+		graphViewData: RottCallGraphDefault(),	
 		visData: {}
 	};
 	
@@ -282,7 +283,7 @@ class RottnestContainer
 			}
 		);
 		appService.registerReciverKinds(
-			'get_graph', (m: any) => {
+			'get_root_graph', (m: any) => {
 				let graph = appService
 					.decodeGraph(m);
 				if(graph) {
@@ -305,9 +306,8 @@ class RottnestContainer
 				appService
 					.sendObj('subtype','');
 				appService
-					.sendObj('get_graph',{	
-						gid: 0
-					});
+					.sendObj('get_root_graph',
+						 {});
 				/*appService.sendObj('get_args'
 					,'');*/
 			}
@@ -411,7 +411,7 @@ class RottnestContainer
 		return adjacentList;
 	}
 	
-	getWidgetGraph() {
+	getCGGraph() {
 		return this.state.graphViewData;
 	}
 
@@ -626,10 +626,10 @@ class RottnestContainer
 		this.state.tabData = {
 			selectedTabIndex: 0,
 			availableTabs: [true, false, false],
-			tabNames: ['Architecture', 'Widget', 
+			tabNames: ['Architecture', 'Call Graph', 
 				'Visualiser']
 		};
-		this.state.graphViewData = WidgetGraphDefault(),	
+		this.state.graphViewData = RottCallGraphDefault(),	
 		this.state.visData = {};
 		this.regionStack = new RegionsSnapshotStack();
 		this.currentRDBuffer = new RegionData();

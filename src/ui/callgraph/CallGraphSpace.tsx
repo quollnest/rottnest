@@ -1,13 +1,23 @@
 import React from "react";
 import {WorkspaceData} from "../workspace/Workspace";
-import styles from '../styles/WidgetSpace.module.css'
+import styles from '../styles/CGSpace.module.css'
 import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
-import {CUReqResult, CUVolumeDummy, WidgetGraph} from "../../model/WidgetGraph";
+import {CUReqResult,
+	RottCallGraph,
+	RottCallGraphDefault,
+	RottCallGraphEntryDefault,
+	RottGraphEntry} from "../../model/CallGraph";
 import {ASContextHook} from "../../net/AppService";
 import {AppServiceMessage} from "../../net/AppServiceMessage";
 import {RottStatusResponseMSG} from "../../net/Messages";
 
-type WidgetViewState = { 
+type CGPositionData = {
+	x: number
+	y: number
+}
+
+type CGViewState = { 
+	positionMap: Map<string, CGPositionData> 
 	cunitMap: Map<string, CUReqResult>
 }
 
@@ -18,20 +28,19 @@ type LineStackEntry = {
 	y2: number
 }
 
-type WidgetLayerEntry = {
-	entryIdx: number
-	parentIdx: number
+type CGLayerEntry = {
+	entryIdx: string 
+	parentIdx: string
 }
 
-type WidgetTreeLayerData = {
+type CGTreeLayerData = {
 	depth: number
-	firstIdx: number
-	layerElements: Array<WidgetLayerEntry>
+	layerElements: Array<CGLayerEntry>
 }
 
 
-type WidgetTreeDisplayData = {
-	layerData: Array<WidgetTreeLayerData>
+type CGTreeDisplayData = {
+	layerData: Array<CGTreeLayerData>
 }
 
 
@@ -44,33 +53,35 @@ type WidgetTreeDisplayData = {
  * component to select it and represent it
  *
  */
-type WidgetAggr = {
-	graph: WidgetGraph
+type CGAggr = {
+	graph: RottCallGraph 
 	workspaceData: WorkspaceData
 }
 
-type WidgetDispData = {
-	wdaggr: WidgetAggr
-	index: number
-	selectedIdx: number
+type CGDispData = {
+	wdaggr: CGAggr
+	index: string 
+	selectedIdx: string
 	cuId: string
 	x: number
 	y: number
 	cuReqData: CUReqResult | null
 }
 
-type WidgetObjectData = {
+type CGObjectData = {
 	x: number
 	y: number
 	actualPosition: boolean
 	moveMode: boolean
+	cuReady: boolean
+	dataReady: boolean
 }
 
 /**
- * WidgetObject, 
+ * CGObject, 
  */
-class WidgetObject extends React.Component<WidgetDispData, 
-	WidgetObjectData> {
+class CGObject extends React.Component<CGDispData, 
+	CGObjectData> {
 	
 	cuIndex = this.props.index;
 	cuId = this.props.cuId
@@ -80,17 +91,19 @@ class WidgetObject extends React.Component<WidgetDispData,
 		.commData.appService;
 
 
-	state: WidgetObjectData = {
+	state: CGObjectData = {
 		x: this.props.x,
 		y: this.props.y,
 		actualPosition: false,
-		moveMode: false
+		moveMode: false,
+		cuReady: false,
+		dataReady: false,
 	}
 
 	data: {
 		bufferMap: WorkspaceBufferMap
-		idx: number
-		selectedIdx: number
+		idx: string 
+		selectedIdx: string 
 	} = {
 		bufferMap: this.props.wdaggr
 			.workspaceData
@@ -158,115 +171,38 @@ class WidgetObject extends React.Component<WidgetDispData,
 		} else if(btn === 0) {
 			if(this.props.cuReqData === null ||
 			  this.props.cuReqData.status !== 'complete') {
-				this.apservice.sendObj('get_status', {
-					'cu_id': this.cuId
+				this.apservice.sendObj('get_graph', {
+					'gid': this.data.idx
 				});
+				//TODO THIS IS A FAKE PART
+				this.state.cuReady = true;
+				this.state.dataReady = true;
+				//END OF FAKE PART
 			}
-			if(this.data.idx !== this.data.selectedIdx) {
-				let nnode = {
-					idx: this.data.idx
-				};
-				const nstr = JSON.stringify(nnode);
-				this.data.bufferMap
-					.insert('root_node',
-						nstr);	
-				this.data.bufferMap
-					.insert('next_node',
-						nstr);
+			let nnode = {
+				idx: this.data.idx
+			};
+			const nstr = JSON.stringify(nnode);
+			this.data.bufferMap
+				.insert('root_node',
+					nstr);	
+			this.data.bufferMap
+				.insert('next_node',
+					nstr);
 
-				this.data.bufferMap.commit();
-			}
+			this.data.bufferMap.commit();
 		}	
 
 	}		
 
 
 	render() {
-
-
-			
-		const index = this.props
-			.index;
-		const widget = this.props.wdaggr
-			.graph.graph[index];
+		let widgetObj = this.props.wdaggr
+			.graph.graph.get(
+			this.props.index);
+		const widget = widgetObj !== null ?
+			widgetObj : RottCallGraphEntryDefault();
 		
-		const cuObj = this.props.cuReqData;
-		
-		let tsourceInfo = { 
-			contents: false,
-			info: 'No Info',
-			mappedData: new Map()
-		};
-		let cuVolume = CUVolumeDummy();
-		let cuDetailsReady = false;
-		let status = 'not_checked';
-		if(cuObj !== null) {
-			status = cuObj.status;
-			if(cuObj.status === 'complete') {
-				cuDetailsReady = true;
-				cuVolume = cuObj.volumes;
-				tsourceInfo.contents =  true;
-				tsourceInfo.info = 'Info';
-				for(const tkey in cuObj.t_source) {
-					tsourceInfo.mappedData.set(tkey,
-							cuObj.t_source[tkey]);
-
-				}
-			} else if(cuObj.status === 'not_found') {
-
-			} else if(cuObj.status === 'not_ready') {
-				status = 'not_ready';
-			}
-		}
-		let tdata = null;		
-		if(tsourceInfo.contents) {
-			tdata = tsourceInfo.mappedData
-				.entries()
-				.map((e) => {
-				const [ky, vl] = e; 
-				return (
-					<div>
-					{ky}:{vl}	
-					</div>
-				)
-
-			});
-		}
-		const tDisp = tdata === null ? 
-			<div>No Data Available</div> :
-			<div>
-				<header>T Source Info</header>
-				{tdata}
-			</div>
-
-		const volDisp = cuDetailsReady ? 
-			(<div>
-			 	<header>
-				{this.cuId}
-				</header>
-				<div>
-				Test Description
-				</div>
-			 	<header>
-				Volumes
-				</header>
-				<div>
-					<div><span>Reg.Vol: </span>
-					<span>{cuVolume.REGISTER_VOLUME}</span></div>
-					<div><span>Fac.Vol: </span>
-					<span>{cuVolume.FACTORY_VOLUME}</span></div>
-					<div><span>Rout.Vol: </span>
-					<span>{cuVolume.ROUTING_VOLUME}</span></div>
-					<div><span>TIdle.Vol: </span>
-					<span>{cuVolume.T_IDLE_VOLUME}</span></div>
-				</div>
-				{tDisp}
-			 </div>)
-			:
-			(<div>
-			 Data Not Ready
-			 </div>);
-
 		let x = `${this.state.x-25}`;
 		let y = `${this.state.y-25}`;
 		let sObj = { left: `${x}px`,top: `${y}px`,
@@ -276,10 +212,23 @@ class WidgetObject extends React.Component<WidgetDispData,
 			x = `${this.state.x}%`;
 			y = `${this.state.y}%`;
 			sObj = {
-				left: `calc(${x} - 25px)`,top: `${y}`,
+				left: `calc(${x} - 25px)`,
+				top: `${y}`,
 				position: 'absolute' }
 
-		} 
+		}
+		let description = 'Compiling';
+		let cuId = 'X_X';
+		let compName = 'Compiling';
+		if(widget) {
+			console.log(widget);
+			compName = widget.name;
+			cuId = widget.id;
+			if(widget.description) {
+				description = widget.description;
+			}
+		}
+
 		return (
 			<div style={sObj}
 				className={styles.widgetObject}
@@ -289,21 +238,21 @@ class WidgetObject extends React.Component<WidgetDispData,
 					.onNodeMouseDown(e)}}
 				onMouseUp={(e) => {this
 					.onNodeMouseUp(e)}}
-				onMouseMove={(e) => this.onNodeMove(e)}>
-				
+				onMouseMove={(e) => this
+					.onNodeMove(e)}>
 				<header 
 					className={
 						styles
 						.widgetObjectHeader}>
-					{widget.cu_id}
+					{cuId}
 				</header>
 				<div className={styles
 					.widgetObjectBody}>
-				{widget.description}
+				{description}	
 				</div>
 				<div className={
 						styles.cuStatus}>
-					{status}	
+					{compName}	
 				</div>
 			</div>
 		);
@@ -313,12 +262,13 @@ class WidgetObject extends React.Component<WidgetDispData,
 
 
 
-export class WidgetSpace extends 
-	React.Component<WorkspaceData, WidgetViewState> 
+export class CallGraphSpace extends 
+	React.Component<WorkspaceData, CGViewState> 
 	implements ASContextHook {
 	
 	state = {	
 		cunitMap: new Map(),
+		positionMap: new Map(),
 	}
 
 	constructor(props: any) {
@@ -326,42 +276,83 @@ export class WidgetSpace extends
 		const container = this.props.container;
 		const aService = container.commData.appService;
 		aService.hookContext(this,'status_response');
+		aService.hookContext(this,'get_graph');
 	}
 	
 	serviceHook(asm: AppServiceMessage): void {
+		const cgspace = this;	
+		const container = this.props.container;
+		const appService = container.commData.appService;
+
 		const jsonObj = asm.getJSON()
 		//Your response here
-		//Turn it into a CUReqResult		
+		//Turn it into a CUReqResult
+		console.log(jsonObj);
 		if(jsonObj) {
-			const containerMsg 
-				= new RottStatusResponseMSG();
-			const rData = asm
-				.parseDataTo(containerMsg);	
-			if(rData) {
-				const cuData = rData
-					.curesult;
-				this.state.cunitMap	
-					.set(cuData.cu_id,
-					     cuData);
-				this.props.bufferMap.insert('node_column',
-							   JSON.stringify(cuData));
-				const nState = {...this.state}
-				this.setState(nState);
+			if(jsonObj.message === 'status_response') {
+				const containerMsg 
+					= new RottStatusResponseMSG();
+				const rData = asm
+					.parseDataTo(containerMsg)
+				if(rData) {
+					const cuData = rData
+						.curesult;
+					this.state.cunitMap	
+						.set(cuData.cu_id,
+						     cuData);
+					this.props.bufferMap
+					.insert('node_column',
+						JSON
+						.stringify(cuData));
+				       /*
+					* TODO: THIS IS A 
+					* FAKE IT MOMENT!
+					* We are currently making some
+					* trigger a dive into the node
+					*
+					*/
+					
+
+				       /*
+					* Now with your 
+					* regular scheduled
+					* programming
+					*/
+					const nState = {...this.state}
+					this.setState(nState);
+				}
+			} else if(jsonObj.message === 'get_graph') {
+				let gid = jsonObj.gid;
+				let graph = appService
+					.decodeGraph(asm);
+				console.log(graph);
+				if(graph) {
+					container.state.graphViewData
+					= graph;
+				}
+				this.props.bufferMap
+					.insert('node_column',
+						JSON
+						.stringify(0));
+
+				const nState = {...cgspace.state}
+				cgspace.setState(nState);
+
 			}
-			
 		}
 	}
 
-	traverseGraph(graph: WidgetGraph, 
-		      rootIdx: number)
-		: WidgetTreeDisplayData {
+	traverseGraph(graph: RottCallGraph, 
+		      rootIdx: string)
+		: CGTreeDisplayData {
+
 		const collection = graph.graph;
 		//depth, parentIdx, entryIdx	
-		let queue: Array<[number, number, number]> 
-			=[[0,-1, rootIdx]];
-		let seenList: Set<number> = new Set();
-		let traversalData: Array<WidgetTreeLayerData> = [];
-		let current: [number, number, number] 
+		let queue: Array<[number, string, string]> 
+			=[[0,'', rootIdx]];
+		let seenList: Set<string> = new Set();
+		let traversalData: Array<CGTreeLayerData> = [];
+		let current: [number, string, string] 
 			| undefined = undefined;
 
 		while(queue.length > 0) {
@@ -369,9 +360,9 @@ export class WidgetSpace extends
 			if(!current) { continue; }
 			
 			const [depth, parentIdx, idx] = current;
-			console.log(graph);
-			const currentWidget = collection[idx];
-			if(currentWidget === undefined) {
+			const currentCG = collection.get(idx);
+			
+			if(currentCG === undefined) {
 				return { layerData: [] };
 			}
 			const element = {
@@ -386,7 +377,6 @@ export class WidgetSpace extends
 						layerElements:[
 							element
 						],
-						firstIdx: idx
 					}
 				);
 			} else {
@@ -396,9 +386,9 @@ export class WidgetSpace extends
 			
 
 			//add children
-			for(let i = 0; i < currentWidget
+			for(let i = 0; i < currentCG
 			    .children.length; i++) {
-				const childIdx = currentWidget
+				const childIdx = currentCG
 					.children[i];
 				if(!seenList.has(childIdx)) {
 					seenList.add(childIdx);
@@ -407,11 +397,31 @@ export class WidgetSpace extends
 				}
 			}
 		}
-		console.log(traversalData);
 
 		return {
 			layerData: traversalData	
 		}
+	}
+	
+	identifyRoots(graph: RottCallGraph): Array<[string, 
+			      RottGraphEntry]> {
+		
+		let rootList: Array<[string, RottGraphEntry]> = [];
+		let seenSet: Set<string> = new Set();
+		for(const [_, cgobj] of graph.graph.entries()) {
+			for(const ck of cgobj.children) {
+				seenSet.add(ck);
+			}
+		}
+
+		
+		for(const [k, cgobj] of graph.graph.entries()) {
+			if(!seenSet.has(k)) {
+				rootList.push([k, cgobj]);
+			}
+		}
+
+		return rootList;
 	}
 
 	render() {
@@ -425,99 +435,104 @@ export class WidgetSpace extends
 		//TODO: We need to retrieve the graph information
 		//	and update the details
 		const graphFromContainer = this.props.container
-			.getWidgetGraph();
-		const waggr: WidgetAggr = {
+			.getCGGraph();
+		bmap.stash('graph_ref', graphFromContainer);
+		const waggr: CGAggr = {
 			graph: graphFromContainer,
 			workspaceData: this.props
 		}
-
-		let selectedIndex = 0;
+		const rootList = this.identifyRoots(
+			graphFromContainer)
+		let selectedIndex = rootList[0][0];	
 		const selectedData = JSON.parse(
 			bmap.get('root_node'));
 		if(selectedData !== null) {
-			selectedIndex = selectedData.idx;
+			//First index is the key
+			selectedIndex = selectedData[0];
 		}
 	
 	       	let prevWlen = 100;
-		let prevLayer: WidgetTreeLayerData | null = null;
+		
+		let cgDisplayLookup = []
+
+		let prevLayer: CGTreeLayerData | null = null;
 		let lineStack: Array<LineStackEntry> = [];
 
-		const renderedWidgets = this.traverseGraph(
-			graphFromContainer, selectedIndex
-		).layerData
-		.map((wl: WidgetTreeLayerData, _: number) => {
-			
+		const renderedCGs = 
+		rootList.map((e) => {
+				return this.traverseGraph(
+				graphFromContainer, e[0]) })
+			.map((ldw: CGTreeDisplayData) => { 
+				return ldw.layerData
+			.map((wl: CGTreeLayerData) => {
+				const wlLength 
+					= wl.layerElements.length;
+				calcdHeight += 20;
+				const wlRes = 
+					wl.layerElements
+				.map((w: CGLayerEntry, 
+				      idx: number) => {
 
-			const wlLength = wl.layerElements.length;
-			calcdHeight += 20;
-			const wlRes = wl.layerElements
-			.map((w: WidgetLayerEntry, idx: number) => {
-				const wname = waggr
+					const wname = waggr
 					.graph
-					.graph[w.entryIdx].cu_id
+					.graph
+					.get(w.entryIdx)
+						?.cu_id
 					
 				const xperc = (100 / (wlLength*2));
 				const xdisp = (xperc * (idx +1)) + 
 					(xperc * idx);
 
-				const cuVal = this.state.cunitMap.get(wname);
-				const distCU = cuVal !== null && cuVal !== undefined ?
+				const cuVal = this.state
+					.cunitMap.get(wname);
+				const distCU = cuVal !== null 
+				&& cuVal !== undefined ?
 					cuVal : null;
 
-				const wdispData = {
+				const wdispData
+					:CGDispData = {
 					wdaggr: waggr,
 					index: w.entryIdx,
 					x: xdisp,
 					y: wl.depth * 20,
 					selectedIdx: selectedIndex,
 					cuReqData: distCU,
-					cuId: wname,
+					cuId: wname === undefined 
+						? '' :
+						wname,
 				};
 
 				//Compute line between child and parent
 				//We need to know if the parent 
 				//is starting or not
 				
-				let pLayerFirstIdx = -1;
-				if(prevLayer !== null) {
-					pLayerFirstIdx = prevLayer
-					.firstIdx;
-				}
-				const pIdx = w.parentIdx;
-				const pDiff = pLayerFirstIdx - pIdx;
-				const pDepth = wl.depth-1;
-				const parentXPerc = (100 / 
-						     (prevWlen*2));
-				let parentXDisp = (parentXPerc 
-						   * (pIdx +1)) + 
-					(pIdx * pIdx);
 
-				//TODO: Not certain about this
-				if(pDiff === 0 && pDepth > 0) {
-					parentXDisp = parentXDisp/2;
-				}
+					const pIdx = w.parentIdx;
+					const pDepth = wl.depth-1;
+					const parentXPerc = (100 / 
+							(prevWlen*2));
+								
+					const line = {
+						x1: wdispData.x,
+						y1: wdispData.y,
+						x2: 0,
+						y2: pDepth * 20
+					};
 
+					lineStack.push(line);
+					return (
+						<CGObject key={wname}
+						{...wdispData}/>
+					);
+				});
 
-				const line = {
-					x1: wdispData.x,
-					y1: wdispData.y,
-					x2: parentXDisp,
-					y2: pDepth * 20
-				};
+				prevWlen = wlLength; 
+				//Used for drawing lines between nodes
+				prevLayer = wl;
+				calcdHeight += 25;
 
-				lineStack.push(line);
-				return (
-					<WidgetObject key={wname}
-					{...wdispData}/>
-				);
-			});
-
-			prevWlen = wlLength; 
-			//Used for drawing lines between nodes
-			prevLayer = wl;
-			calcdHeight += 25;
-
-			return wlRes;
+				return wlRes;
+			})
 		});
 
 		//Construct svg with lines
@@ -534,7 +549,7 @@ export class WidgetSpace extends
 		return (
 			<div className={styles.widgetSpace}
 			style={{height: `${calcdHeight}%`}}>
-				{renderedWidgets}
+				{renderedCGs}
 				<svg className={styles
 					.widgetSVGLineStack}>
 					{svgLines}
@@ -542,5 +557,6 @@ export class WidgetSpace extends
 			</div>
 		)
 	}
-}
+	}
+
 

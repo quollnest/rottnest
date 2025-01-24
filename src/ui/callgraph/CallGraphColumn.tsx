@@ -1,39 +1,50 @@
 import React from "react";
-import styles from '../styles/WidgetSpace.module.css'
-import {Workspace, WorkspaceData} from "../workspace/Workspace";
+import styles from '../styles/CGSpace.module.css'
+import {Workspace, WorkspaceData} 
+	from "../workspace/Workspace";
 
 import {
 	RollbackOutlined,
 	ArrowLeftOutlined
 	} from '@ant-design/icons'
-import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
-import {CUReqResult, CUReqResultDummy, CUVolumeDummy} from "../../model/WidgetGraph";
+
+import {WorkspaceBufferMap} 
+	from "../workspace/WorkspaceBufferMap";
+
+import {CUReqResult, CUReqResultDummy, CUVolumeDummy} 
+	from "../../model/CallGraph";
 
 
 type NodeData = {
-	idx: number
+	idx: string 
 	kind: string
 }
 
-type WidgetNodeColumnData = {
+type CGNodeColumnData = {
 	workspaceData: WorkspaceData 
 }
 
+type CGRootListContainer = {
+	selectedIdx: string
+	bufferMap: WorkspaceBufferMap
+}
 
-type WidgetNodeData = {
+
+type CGNodeData = {
 	cuReqData: CUReqResult
 	workspaceData: WorkspaceData 
 	nodeData: NodeData | null
 }
 
-class WidgetSelectedNodeBox extends React.Component<WidgetNodeData, 
+class CGSelectedNodeBox extends React.Component<CGNodeData, 
 	{}>  {
 
 	cuId: string = 'test';
 
 	gotoVisualiserWithData(data: any) {
 		console.log("Going to visualiser");
-		this.props.workspaceData.container.gotoVizWithData(data);
+		this.props.workspaceData.container
+		.gotoVizWithData(data);
 	}
 
 	render() {
@@ -41,7 +52,6 @@ class WidgetSelectedNodeBox extends React.Component<WidgetNodeData,
 
 
 		const ndata = this.props;
-		let innerContents = <span>Unselected</span>
 		
 		const cuObj = this.props.cuReqData;
 		
@@ -50,25 +60,33 @@ class WidgetSelectedNodeBox extends React.Component<WidgetNodeData,
 			info: 'No Info',
 			mappedData: new Map()
 		};
+
 		let cuVolume = CUVolumeDummy();
 		let cuDetailsReady = false;
-		let status = 'not_checked';
+		let nName = 'Not selected';
+		let nDescription = 'Compiling';
+		let nKind = 'NoKind';
+		if(ndata.nodeData !== null 
+		   && ndata.nodeData !== undefined) {
+			const nd = ndata.nodeData;
+			nKind = nd.kind;
+			nName = nd.idx;
+		}
 		if(cuObj !== null) {
-			status = cuObj.status;
 			if(cuObj.status === 'complete') {
 				cuDetailsReady = true;
 				cuVolume = cuObj.volumes;
 				tsourceInfo.contents =  true;
 				tsourceInfo.info = 'Info';
 				for(const tkey in cuObj.t_source) {
-					tsourceInfo.mappedData.set(tkey,
-							cuObj.t_source[tkey]);
+					tsourceInfo.mappedData
+					.set(tkey,
+					cuObj.t_source[tkey]);
 
 				}
 			} else if(cuObj.status === 'not_found') {
 
 			} else if(cuObj.status === 'not_ready') {
-				status = 'not_ready';
 			}
 		}
 		let tdata = null;		
@@ -86,40 +104,56 @@ class WidgetSelectedNodeBox extends React.Component<WidgetNodeData,
 			});
 		}
 		const tDisp = tdata === null ? 
-			<div className={styles.dataSegment}>No Data Available</div> :
+			<div 
+			className={styles.dataSegment}>
+			No Data Available</div> :
 			<div>
 				<header>T Source Info</header>
 				{tdata}
 			</div>
-
+		//TODO: FAKE PART
+		//
 		const renResult = !cuDetailsReady ? 
 			(<div>
 			 	<header>
-				{this.cuId}:{status}
+				<div>{nName}</div> 
+				<div>{nKind}</div>
 				</header>
 				<div>
-				Test Description
+				{nDescription}
 				</div>
-				<div className={styles.dataSegment}>
+				<div className={styles
+					.dataSegment}>
 					<header>
 					Volumes:
 					</header>
 
 					<div><span>Reg.Vol: </span>
-					<span>{cuVolume.REGISTER_VOLUME}</span></div>
+					<span>{cuVolume
+						.REGISTER_VOLUME}
+					</span></div>
 					<div><span>Fac.Vol: </span>
-					<span>{cuVolume.FACTORY_VOLUME}</span></div>
+					<span>{cuVolume
+						.FACTORY_VOLUME}
+					</span></div>
 					<div><span>Rout.Vol: </span>
-					<span>{cuVolume.ROUTING_VOLUME}</span></div>
+					<span>{cuVolume
+						.ROUTING_VOLUME}
+					</span></div>
 					<div><span>TIdle.Vol: </span>
-					<span>{cuVolume.T_IDLE_VOLUME}</span></div>
+					<span>{cuVolume
+						.T_IDLE_VOLUME}
+					</span></div>
 				</div>
 				{tDisp}
 				<div>
-					<button className={styles.vizButton}
+					<button className={styles
+						.vizButton}
 						onClick={(_) => {
-							this.gotoVisualiserWithData(cuObj)}}>
-						Run Visualisation</button>
+					this
+					.gotoVisualiserWithData(
+						cuObj)}}>
+					Run Visualisation</button>
 				</div>
 			 </div>)
 			:
@@ -129,40 +163,41 @@ class WidgetSelectedNodeBox extends React.Component<WidgetNodeData,
 
 
 
-		if(ndata.nodeData !== null 
-		   && ndata.nodeData !== undefined) {
-			const nd = ndata.nodeData;
-			innerContents = (
-				<div className={styles.dataSegment}>
-				<div>Index: {nd.idx}</div>
-				<div>Kind: {nd.kind}</div>
-				</div>
-
-			)
-		}
+		
 
 		return (
 			<div className={styles.widgetBoxContent}>
-				{innerContents}
 				{renResult}
 			</div>
 		)
 	}
 }
 
-export class WidgetNodeColumn 
-	extends React.Component<WidgetNodeColumnData, 
+export class CGNodeColumn 
+	extends React.Component<CGNodeColumnData, 
 	{}> implements Workspace {
 	render() {
 
 		const wsData = this.props.workspaceData;
 		const bmap = wsData.bufferMap;
-		console.log(bmap);
+		const graphRef = bmap.getStash().get('graph_ref');
+
 		let sData = bmap.get('current_node');
-		let idx = -1;
+		let idx = 'Not Selected';
+		let cuReq = CUReqResultDummy();
+		let kind = 'Not ready';
 		if(sData !== null) {
 			const objDez = JSON.parse(sData);
-			idx = objDez.idx as number;
+			idx = objDez.idx;
+			if(graphRef) {
+				console.log(idx, graphRef);
+				let comp = graphRef.graph.get(idx);
+				if(comp) {
+					cuReq.cu_id = comp.cu_id;
+					kind = comp.name;
+				}
+			}
+
 		}
 
 		
@@ -172,12 +207,12 @@ export class WidgetNodeColumn
 					.widgetContainerHeader}>
 					Node	
 				</header>
-				<WidgetSelectedNodeBox 
+				<CGSelectedNodeBox 
 					nodeData={{
 						idx,
-						kind: 'test'
+						kind 
 					}}
-					cuReqData={CUReqResultDummy()}
+					cuReqData={cuReq}
 					workspaceData={
 						{...wsData}
 					}/>
@@ -186,45 +221,48 @@ export class WidgetNodeColumn
 	}
 }
 
-type WidgetGraphData = {
+type CGGraphData = {
 	workspaceData: WorkspaceData
 }
 
-type WidgetGraphInfo = {
-	idx: number 
+type CGGraphInfo = {
+	idx: string 
 }
 
 
-class WidgetGraphBox extends React.Component<WidgetGraphInfo,{}> {
+class CGGraphBox extends React.Component<CGGraphInfo,{}> {
 	
 	render() {
-		const rootIdx = this.props.idx;
-
-		const fmtdText = `Root Index: ${rootIdx}`;	
-		
+		let rootIdx = this.props.idx;
+		let fmtdText = `graph = ${rootIdx}`;	
+		if(rootIdx === '') {
+			rootIdx = 'call_graph';
+			fmtdText = `overview: ${rootIdx}`;
+		} 	
 		return (
 			<div className={styles.widgetGraphBox}>
-				<span>{fmtdText}</span>
+				<div>Viewing:</div>
+				<div>{fmtdText}</div>
 			</div>
 		);
 	}
 
 }
 
-type WidgetRootData = {
-	rootList: Array<number>
-	selectedIdx: number
+type CGRootData = {
+	rootList: Set<string>
+	selectedIdx: string
 	bufferMap: WorkspaceBufferMap
 }
 
 type RootListItemTup = { 
-	rootIdx: number
+	rootIdx: string 
 	listPosition: number
 }
 
 type RootListItemData = {
 	idxTup: RootListItemTup	
-	rootList: Array<number>
+	rootList: Set<string>
 	selected: boolean
 	isFirst: boolean
 	bufferMap: WorkspaceBufferMap
@@ -233,7 +271,7 @@ type RootListItemData = {
 class RootListItem 
 	extends React.Component<RootListItemData, {}> {
 	
-	rlist: Array<number> = this.props.rootList;
+	rlist: Set<string> = this.props.rootList;
 	listPositon = this.props.idxTup.listPosition;
 	rootIdx = this.props.idxTup.rootIdx;
 	bufferMap = this.props.bufferMap;
@@ -252,6 +290,7 @@ class RootListItem
 	}
 
 	render() {
+		console.log("Doing rlist item");
 		const isFirst = this.props.isFirst;
 		const isSelected = this.props.selected;
 		const { rootIdx } = 
@@ -266,6 +305,7 @@ class RootListItem
 		}
 			
 		
+		console.log(this.rlist);
 		return (
 			<div className={styList}
 				onClick={(_) => {
@@ -282,58 +322,66 @@ class RootListItem
 
 }
 
-class WidgetRootList 
-	extends React.Component<WidgetRootData, {}> {
+class CGRootList 
+	extends React.Component<CGRootData, {}> {
 		
 	render() {
 		const bmap = this.props.bufferMap;
 		const rlist = this.props.rootList;
 		const selectedIdx = this.props.selectedIdx;
-		const renderedList = rlist.map((e, i) => {
+		console.log(rlist);
+		const dispList = rlist.entries().map((e, i) => {
 			const tup: RootListItemTup = {
-				rootIdx: e,
+				rootIdx: e[0],
 				listPosition: i,
 			};
-			const selected = e === selectedIdx
-			return (
-				<RootListItem 
-					key={e}
+			const selected = e[0] === selectedIdx
+			let obj = (<RootListItem
+				   	key={e[0]}
 					idxTup={tup} 
 					rootList={rlist}
 					selected={selected}
 					isFirst={i === 0}
 					bufferMap={bmap}
 				/>
-			)
+			);
+			return obj;
 		});
-
+		let dcol = new Array(...dispList);
+		console.log(dcol)
 		return (
 			<div>
 				<header className={styles
 					.rootListHeader}>
 					Root List	
 				</header>
-
-				{renderedList}
+				<div>
+				{dcol}
+				</div>
 			</div>
 		);
 	}
 
 }
 
-export class WidgetGraphColumn 
-	extends React.Component<WidgetGraphData, WidgetRootData> {
+export class CGGraphColumn 
+	extends React.Component<CGGraphData, CGRootListContainer> {
 
-	state: WidgetRootData = {
-		rootList: [0],
-		selectedIdx: 0
+	rootList: Set<string> = new Set();
+	state: CGRootListContainer = {
+		selectedIdx: '',
+		bufferMap: this.props
+			.workspaceData.bufferMap
 	}
 
 	render() {
 		
 		const bufferMap = this.props
 			.workspaceData.bufferMap
-		const rootList = this.state.rootList;
+		const graphRef = bufferMap.getStash().get('graph_ref');
+		
+		
+		const rootList = this.rootList;
 		const dezData = JSON.parse(bufferMap
 					   .get('root_node'));
 		const nextData = JSON.parse(bufferMap
@@ -343,19 +391,21 @@ export class WidgetGraphColumn
 			idx = dezData.idx;
 		}
 		if(nextData !== null) {
-			rootList.unshift(nextData.idx);
+
+			rootList.add(nextData.idx);
 			bufferMap.insert('next_node', null);
 		}
 
 		return (
 			
-			<div className={styles.widgetViewContainer}>
+			<div className={styles
+				.widgetViewContainer}>
 				<header className={styles
 					.widgetContainerHeader}>
 					Graph
 				</header>
-				<WidgetGraphBox idx={idx} />
-				<WidgetRootList 
+				<CGGraphBox idx={idx} />
+				<CGRootList
 					rootList={rootList}
 					selectedIdx={idx}
 					bufferMap={bufferMap}
