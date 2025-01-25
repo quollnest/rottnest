@@ -481,7 +481,7 @@ class SchedulerRenderer extends React.Component<
 					  	"white", 1.0);
 	}
 
-	drawWidgetRegion(region: VisRegion) {
+	drawCGRegion(region: VisRegion) {
 		const CELL_SIZE = SchedulerRenderer.CELL_SIZE;
 		const x = region.loc_tl[1] * CELL_SIZE;
 		
@@ -625,7 +625,7 @@ class SchedulerRenderer extends React.Component<
 		this.svgBG.innerHTML = "";
 
 		for (let region of this.data.regions) {
-			this.drawWidgetRegion(region);
+			this.drawCGRegion(region);
 		}
 		
 		this.drawBaseLayer(this.data.width, 

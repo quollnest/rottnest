@@ -5,18 +5,13 @@
  * I have opened it up to have fieldData that will
  * allow mapping for it
  */
-export type WGraphEntry = {
+export type RottGraphEntry = {
 	cu_id: string
+	id: string
+	name: string
 	description: string
-	children: Array<number>
-}
-
-
-export type WidgetGraph = {
-	graphIndex: number
-	rootIndex: number
-	graph: Array<WGraphEntry>
-
+	children: Array<string>
+	compute_unit: boolean
 }
 
 export type CUVolume = {
@@ -27,6 +22,9 @@ export type CUVolume = {
 
 }
 
+export type RottCallGraph = {
+	graph: Map<string, RottGraphEntry>
+}
 export type CUSource = {
 	[key: string]: number
 }
@@ -37,6 +35,17 @@ export type CUReqResult = {
 	vis_obj: string | null
 	volumes: CUVolume
 	t_source: CUSource
+}
+
+export function RottCallGraphEntryDefault() {
+	return {
+		cu_id: '0..0', 
+		description: 'No Description',
+		children: [],
+		compute_unit: false,
+		id: 'd_d'
+	}
+
 }
 
 export function CUVolumeDummy() {
@@ -52,17 +61,15 @@ export function CUReqResultDummy() {
 	return {
 
 		cu_id: 'invalid',
-		status: 'invalid',
+		status: '',
 		vis_obj: null,
 		volumes: CUVolumeDummy(),
 		t_source: {}
 	}
 }
 
-export function WidgetGraphDefault() {
+export function RottCallGraphDefault() {
 	return {
-		graph: [],
-		rootIndex: 0,
-		graphIndex: -1
+		graph: new Map(),
 	};
 }

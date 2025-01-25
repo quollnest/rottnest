@@ -1,30 +1,32 @@
-import {WidgetSpace} from "../widget/WidgetSpace";
+import { CallGraphSpace } from "../callgraph/CallGraphSpace";
 import { WorkspaceGroup, WorkspaceProps } from "./Workspace"
 import {ReactElement} from "react";
 import {WorkspaceZone} from "./WorkspaceZone";
-import {WidgetGraphColumn, WidgetNodeColumn} 
-	from "../widget/WidgetColumn";
+import {CGGraphColumn, CGNodeColumn} 
+	from "../callgraph/CallGraphColumn";
 //Originally the WorkspaceContainer
-export class WidgetGroup implements WorkspaceGroup {
+export class CallGraphGroup implements WorkspaceGroup {
 	
 	MakeGroup(data: WorkspaceProps): Array<ReactElement> {
 
-		const wspace = <WidgetSpace 
+		const wspace = <CallGraphSpace 
 			{...data.workspaceData} />;	
 		const group = [
-			<WidgetGraphColumn key={"widget_graph_column"} 
+			<CGGraphColumn 
+			key={"widget_graph_column"} 
 				{...data} />,
 			<WorkspaceZone 	
 				key={"widget_wz_design_space"}
 				wsComponent={wspace}
 				workspaceData={{
-					container: data.workspaceData
+					container: data
+					.workspaceData
 					.container,
 					bufferMap: data
 					.workspaceData.bufferMap
 				}} 
 				/>,
-			<WidgetNodeColumn 
+			<CGNodeColumn 
 				key={"widget_node_column"}
 				{...data} />,
 		];	

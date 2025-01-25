@@ -1,7 +1,7 @@
 
 import { RottnestKindMap, RottnestRouterKindMap } from '../model/RegionKindMap.ts'
 import { TSchedData } from '../model/TSchedData.ts';
-import {CUReqResult, CUReqResultDummy, WGraphEntry, WidgetGraph} from '../model/WidgetGraph.ts';
+import {CUReqResult, CUReqResultDummy, RottGraphEntry, RottCallGraph} from '../model/CallGraph.ts';
 import { DeRott } from './Serialisation'
 
 export class RottArchMSG {
@@ -43,10 +43,8 @@ export type RouterAggr = {
 
 export class RottGraphMSG implements DeRott  {
 
-	graph: WidgetGraph = {
-		graph: [],
-		rootIndex: 0,
-		graphIndex: -1
+	graph: RottCallGraph = {
+		graph: new Map(),
 	};
 
 	fromStr(_: string): this | null {
@@ -57,20 +55,13 @@ export class RottGraphMSG implements DeRott  {
 		
 		//Assume it is a JSON object
 		const data = jsonObj['payload'];
-		const gid = data['gid'];
-		const obj = data['graph_view'];
-		if(gid !== null && gid !== undefined &&
-		  obj !== null && obj != undefined) {
+		const graph = data['graph_view']['graph'];
+		for(const k in graph) {
 
-			const graph = 
-				obj['graph'] as Array<WGraphEntry>;
-			const rootIndex = obj['root_index'];
-			
-			this.graph.graph = graph;
-			this.graph.graphIndex = gid;
-			this.graph.rootIndex = rootIndex;
+			const cobj = graph[k];
+			this.graph.graph.set(cobj.id,cobj);
+
 		}
-
 		return this;
 	}
 }
