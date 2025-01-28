@@ -13,6 +13,7 @@ import {WorkspaceBufferMap}
 
 import {CUReqResult, CUReqResultDummy, CUVolumeDummy} 
 	from "../../model/CallGraph";
+import RottnestContainer from "../container/RottnestContainer";
 
 
 type NodeData = {
@@ -23,6 +24,7 @@ type NodeData = {
 type CGNodeColumnData = {
 	workspaceData: WorkspaceData 
 }
+
 
 type CGRootListContainer = {
 	selectedIdx: string
@@ -48,11 +50,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 	}
 
 	render() {
-
-
-
-		const ndata = this.props;
-		
+		const ndata = this.props;	
 		const cuObj = this.props.cuReqData;
 		
 		let tsourceInfo = { 
@@ -87,6 +85,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 			} else if(cuObj.status === 'not_found') {
 
 			} else if(cuObj.status === 'not_ready') {
+
 			}
 		}
 		let tdata = null;		
@@ -111,8 +110,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 				<header>T Source Info</header>
 				{tdata}
 			</div>
-		//TODO: FAKE PART
-		//
+
 		const renResult = !cuDetailsReady ? 
 			(<div>
 			 	<header>
@@ -159,11 +157,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 			:
 			(<div>
 			 Data Not Ready
-			 </div>);
-
-
-
-		
+			 </div>);	
 
 		return (
 			<div className={styles.widgetBoxContent}>
@@ -253,6 +247,7 @@ type CGRootData = {
 	rootList: Set<string>
 	selectedIdx: string
 	bufferMap: WorkspaceBufferMap
+	container: RottnestContainer
 }
 
 type RootListItemTup = { 
@@ -266,6 +261,7 @@ type RootListItemData = {
 	selected: boolean
 	isFirst: boolean
 	bufferMap: WorkspaceBufferMap
+	
 }
 
 class RootListItem 
@@ -284,6 +280,7 @@ class RootListItem
 				idx: this.rootIdx
 			};
 			const nstr = JSON.stringify(nnode);
+
 			this.bufferMap
 				.insert('root_node',nstr);
 			this.bufferMap.commit();
@@ -378,7 +375,8 @@ export class CGGraphColumn
 		
 		const bufferMap = this.props
 			.workspaceData.bufferMap
-		const graphRef = bufferMap.getStash().get('graph_ref');
+		//const graphRef = bufferMap.getStash()
+		//	.get('graph_ref');
 		
 		
 		const rootList = this.rootList;
@@ -386,7 +384,11 @@ export class CGGraphColumn
 					   .get('root_node'));
 		const nextData = JSON.parse(bufferMap
 					    .get('next_node'));
+		const container = this.props
+			.workspaceData.container;
+
 		let idx = this.state.selectedIdx;
+
 		if(dezData !== null) {
 			idx = dezData.idx;
 		}
@@ -409,6 +411,7 @@ export class CGGraphColumn
 					rootList={rootList}
 					selectedIdx={idx}
 					bufferMap={bufferMap}
+					container={container}
 				/>
 			</div>)
 		

@@ -30,6 +30,7 @@ export type CUSource = {
 }
 
 export type CUReqResult = {
+	
 	cu_id: string
 	status: string
 	vis_obj: string | null
@@ -43,7 +44,8 @@ export function RottCallGraphEntryDefault() {
 		description: 'No Description',
 		children: [],
 		compute_unit: false,
-		id: 'd_d'
+		id: 'd_d',
+		name: '0..0'
 	}
 
 }

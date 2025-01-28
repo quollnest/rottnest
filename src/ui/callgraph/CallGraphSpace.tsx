@@ -11,6 +11,8 @@ import {ASContextHook} from "../../net/AppService";
 import {AppServiceMessage} from "../../net/AppServiceMessage";
 import {RottStatusResponseMSG} from "../../net/Messages";
 
+
+
 type CGPositionData = {
 	x: number
 	y: number
@@ -170,7 +172,8 @@ class CGObject extends React.Component<CGDispData,
 
 		} else if(btn === 0) {
 			if(this.props.cuReqData === null ||
-			  this.props.cuReqData.status !== 'complete') {
+			  this.props.cuReqData.status 
+				!== 'complete') {
 				this.apservice.sendObj('get_graph', {
 					'gid': this.data.idx
 				});
@@ -206,7 +209,8 @@ class CGObject extends React.Component<CGDispData,
 		let x = `${this.state.x-25}`;
 		let y = `${this.state.y-25}`;
 		let sObj = { left: `${x}px`,top: `${y}px`,
-			position: 'fixed' };
+			position: 'fixed' 
+		} as React.CSSProperties;
 		if(!this.state.actualPosition) {
 
 			x = `${this.state.x}%`;
@@ -214,14 +218,14 @@ class CGObject extends React.Component<CGDispData,
 			sObj = {
 				left: `calc(${x} - 25px)`,
 				top: `${y}`,
-				position: 'absolute' }
+				position: 'absolute' 
+			} as React.CSSProperties
 
 		}
 		let description = 'Compiling';
 		let cuId = 'X_X';
 		let compName = 'Compiling';
 		if(widget) {
-			console.log(widget);
 			compName = widget.name;
 			cuId = widget.id;
 			if(widget.description) {
@@ -271,6 +275,12 @@ export class CallGraphSpace extends
 		positionMap: new Map(),
 	}
 
+	resetState() {
+		this.state.cunitMap = new Map();
+		this.state.positionMap = new Map();
+
+	}
+
 	constructor(props: any) {
 		super(props);
 		const container = this.props.container;
@@ -291,7 +301,7 @@ export class CallGraphSpace extends
 		if(jsonObj) {
 			if(jsonObj.message === 'status_response') {
 				const containerMsg 
-					= new RottStatusResponseMSG();
+				= new RottStatusResponseMSG();
 				const rData = asm
 					.parseDataTo(containerMsg)
 				if(rData) {
@@ -304,25 +314,12 @@ export class CallGraphSpace extends
 					.insert('node_column',
 						JSON
 						.stringify(cuData));
-				       /*
-					* TODO: THIS IS A 
-					* FAKE IT MOMENT!
-					* We are currently making some
-					* trigger a dive into the node
-					*
-					*/
-					
-
-				       /*
-					* Now with your 
-					* regular scheduled
-					* programming
-					*/
-					const nState = {...this.state}
+						const nState 
+						= {...this.state}
 					this.setState(nState);
 				}
 			} else if(jsonObj.message === 'get_graph') {
-				let gid = jsonObj.gid;
+				//let gid = jsonObj.gid;
 				let graph = appService
 					.decodeGraph(asm);
 				console.log(graph);
@@ -334,7 +331,10 @@ export class CallGraphSpace extends
 					.insert('node_column',
 						JSON
 						.stringify(0));
-
+				//TODO:
+				// Reset the call_graph
+				// and update
+				cgspace.resetState();
 				const nState = {...cgspace.state}
 				cgspace.setState(nState);
 
@@ -451,12 +451,13 @@ export class CallGraphSpace extends
 			selectedIndex = selectedData[0];
 		}
 	
-	       	let prevWlen = 100;
-		
-		let cgDisplayLookup = []
+	       	//let prevWlen = 100;
+		let dispPositions: Map<string, [number, 
+			number, number, string]> 
+			= new Map();
 
-		let prevLayer: CGTreeLayerData | null = null;
-		let lineStack: Array<LineStackEntry> = [];
+
+		//let lineStack: Array<LineStackEntry> = [];
 
 		const renderedCGs = 
 		rootList.map((e) => {
@@ -489,8 +490,7 @@ export class CallGraphSpace extends
 				&& cuVal !== undefined ?
 					cuVal : null;
 
-				const wdispData
-					:CGDispData = {
+				const wdispData : CGDispData = {
 					wdaggr: waggr,
 					index: w.entryIdx,
 					x: xdisp,
@@ -509,26 +509,25 @@ export class CallGraphSpace extends
 
 					const pIdx = w.parentIdx;
 					const pDepth = wl.depth-1;
-					const parentXPerc = (100 / 
-							(prevWlen*2));
-								
-					const line = {
-						x1: wdispData.x,
-						y1: wdispData.y,
-						x2: 0,
-						y2: pDepth * 20
-					};
+					if(wname) {	
+						dispPositions.set(
+							wname,
+							[wdispData.x,
+							wdispData.y,
+							pDepth,
+							pIdx]
+						);
+					}
 
-					lineStack.push(line);
+				
+
 					return (
 						<CGObject key={wname}
 						{...wdispData}/>
 					);
 				});
 
-				prevWlen = wlLength; 
-				//Used for drawing lines between nodes
-				prevLayer = wl;
+				//prevWlen = wlLength; 
 				calcdHeight += 25;
 
 				return wlRes;
@@ -536,7 +535,7 @@ export class CallGraphSpace extends
 		});
 
 		//Construct svg with lines
-		const svgLines = lineStack.map((l, idx) => {
+		/*const svgLines = lineStack.map((l, idx) => {
 			return <line key={`cu${idx}`} 
 				x1={`${l.x1}%`} 
 				x2={`${l.x2}%`} 
@@ -544,7 +543,7 @@ export class CallGraphSpace extends
 				y2={`${l.y2+2}%`} stroke={'white'} 
 					strokeWidth={'1'}
 			/>
-		});
+		});*/
 
 		return (
 			<div className={styles.widgetSpace}
@@ -552,7 +551,7 @@ export class CallGraphSpace extends
 				{renderedCGs}
 				<svg className={styles
 					.widgetSVGLineStack}>
-					{svgLines}
+					
 				</svg>
 			</div>
 		)
