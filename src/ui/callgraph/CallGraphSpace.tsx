@@ -429,6 +429,7 @@ export class CallGraphSpace extends
 	React.Component<WorkspaceData, CGViewState> 
 	implements ASContextHook {
 	
+	appService = this.props.container.commData.appService;	
 	state: CGViewState = {
 		cunitMap: new Map(),
 		dispPositions: new Map(),
@@ -709,7 +710,7 @@ export class CallGraphSpace extends
 			let prix = '';
 			const rootN = rootList.length;
 			const renderedCGs = 
-			rootList.map((e) => {
+				rootList.map((e) => {
 
 					return this.traverseGraph(
 					graphFromContainer, e[0]) })
@@ -818,8 +819,8 @@ export class CallGraphSpace extends
 					return wlRes;
 				})
 			});
-
-				//Construct svg with lines
+			
+							//Construct svg with lines
 			const svgLines = this.state.dispPositions.entries().map((e, _) => {
 				const [k, coords] = e;
 				//const [x1, y1, _d, pname] = coords;
@@ -896,10 +897,29 @@ export class CallGraphSpace extends
 					</div>
 					)
 			} else {
+				const requestGraph = () => {
+					cgref.props.bufferMap
+						.insert('reset_rlist',
+						JSON.stringify({ reset: true }));
+
+					const aps = cgref.appService;
+					cgref.resetState();
+					aps.sendObj('get_root_graph', JSON.stringify(
+						{ gid: 0 }
+					));
+				}
+
+
 				return (
 					<div className={styles.widgetSpace}
 					style={{height: `${calcdHeight}%`}}>
-						<div>Unable to load call-graph</div>	
+						<div className={styles.badGraph}>
+						Unable to load call-graph
+						<div><button className={styles.retryButton}
+							onClick={(_) => requestGraph()}>
+						Retry
+						</button></div>
+						</div>	
 					</div>
 
 				)
@@ -907,5 +927,3 @@ export class CallGraphSpace extends
 	
 		}
 	}
-
-

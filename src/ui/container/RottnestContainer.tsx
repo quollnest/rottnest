@@ -26,6 +26,7 @@ import AppServiceModule from '../../net/AppServiceModule.ts';
 import {RottRunResultMSG, RouterAggr} from '../../net/Messages.ts';
 import {HelpContainer, HelpBoxData} from './HelpContainer.tsx';
 import {RottCallGraph, RottCallGraphDefault} from '../../model/CallGraph.ts';
+import ErrorDisplay from './ErrorDisplay.tsx';
 
 /**
  * At the moment, nothing interesting
@@ -75,7 +76,9 @@ type RottnestState = {
 	visData: any
 	routerListRcvd: boolean
 	selectedRouterIndex: number
-	graphViewData:RottCallGraph 
+	errorDisplay: boolean
+	errorMessage: string
+	graphViewData: RottCallGraph 
 }
 
 type ComponentMonitor = {
@@ -148,6 +151,8 @@ class RottnestContainer
 		subTypesRecvd: false,
 		routerListRcvd: false,
 		selectedRouterIndex: 0,
+		errorMessage: '',
+		errorDisplay: false,
 		appStateData: {
 			settingsActive: false,
 			newProjectActive: false,
@@ -178,6 +183,11 @@ class RottnestContainer
 
 	constructor(props: RottnestProperties) {
 		super(props);
+	}
+
+	closeError() {
+		this.state.errorDisplay = false;
+		this.triggerUpdate();
 	}
 	
 	readyAppService() {
@@ -229,8 +239,11 @@ class RottnestContainer
 		);
 		appService.registerReciverKinds(
 			'err', (m: any) => {
-				let someMsg = m.data; 
-				console.error(someMsg);
+				let someMsg = JSON.stringify(m); 
+				this.state.errorMessage = someMsg;
+				this.state.errorDisplay = true;
+				console.error(`Error occurred: ${someMsg}`);
+				this.triggerUpdate();
 			}
 		);
 		appService.registerReciverKinds(
@@ -308,8 +321,8 @@ class RottnestContainer
 				appService
 					.sendObj('get_root_graph',
 						 {});
-				/*appService.sendObj('get_args'
-					,'');*/
+				appService.sendObj('get_args'
+					,'');
 			}
 		});
 
@@ -1028,7 +1041,13 @@ class RottnestContainer
 				}
 				/> :
 				<></>
-		
+		const errormsg = this.state.errorMessage;
+		const errorComponent = this.state
+			.errorDisplay ? 
+				<ErrorDisplay message={errormsg} 
+					rootContainer={this} /> :
+				<></>
+
 		return (
 			<div className={styles.rottnest}>
 				<SettingsForm rootContainer={
@@ -1039,6 +1058,7 @@ class RottnestContainer
 						.projectDetails}
 					/>
 				{newProjectElement}
+				{errorComponent}
 				{helpComponent}
 				<GlobalBar componentMap={updateables}
 				container={rottContainer} />

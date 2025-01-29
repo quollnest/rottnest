@@ -1,4 +1,14 @@
 
+.badGraph {
+	text-align: center;
+	width: 100%;
+}
+
+.retryButton {
+	color: white;
+	
+}
+
 .widgetBoxContent {
 	margin-top: 0.25em;
 	text-align: center;

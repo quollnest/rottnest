@@ -1,0 +1,29 @@
+.errorHeader {
+	font-size: medium;
+	text-decoration: underline;
+}
+
+.preFormatDump {
+	max-width: 500px; 
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	overflow-y: scroll;
+	overflow-x:auto;
+}
+
+.errorDisplay {
+	position: absolute;
+	background-color: #2f2f2e;
+	box-shadow: 0px 5px 20px #111111;
+	left: 30%;
+	top: 20%;
+	z-index: 10;
+	padding: 1em;
+	border-radius: 5px;
+}
+
+.errorButton {
+	margin-top: 2em;
+	width: 100%;
+	color: white;
+}
