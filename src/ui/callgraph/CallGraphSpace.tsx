@@ -1,33 +1,78 @@
-import React from "react";
+import React, {CSSProperties} from "react";
 import {WorkspaceData} from "../workspace/Workspace";
 import styles from '../styles/CGSpace.module.css'
 import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
 import {CUReqResult,
 	RottCallGraph,
-	RottCallGraphDefault,
 	RottCallGraphEntryDefault,
 	RottGraphEntry} from "../../model/CallGraph";
 import {ASContextHook} from "../../net/AppService";
 import {AppServiceMessage} from "../../net/AppServiceMessage";
 import {RottStatusResponseMSG} from "../../net/Messages";
 
+interface CGUpdateableContext {
+	
+	pushPositionUpdate(pdata: CGLinePositionData): void
+	getCoords(): CGObjectLineUpdatable
+ 
+}
 
+interface CGUpdatable {	
+	pushPositionUpdate(pdata: CGLinePositionData): void
+	registerContext(ctx: CGUpdateableContext): void
+	getCoords(): CGObjectLineUpdatable
+	
+}
+
+class UpdatableLineRef implements CGUpdatable {
+	
+	ctx: CGUpdateableContext | null = null;
+
+	getCoords(): CGObjectLineUpdatable {
+		if(this.ctx) { 
+			return this.ctx.getCoords(); 
+		}
+		else {
+			return {
+				updateable: this, 
+				pairUnit1: '%', 
+				pairUnit2: '%', 
+				x1: 0,
+				x2: 0,
+				y1: 0,
+				y2: 0
+			}
+		}
+	}
+
+	pushPositionUpdate(pdata: CGLinePositionData): void {
+		if(this.ctx) {
+			this.ctx.pushPositionUpdate(pdata);
+		}
+			
+	}
+
+	registerContext(ctx: any): void {
+		this.ctx = ctx;
+	}
+}
 
 type CGPositionData = {
 	x: number
 	y: number
+	depth: number
+	parent: string
 }
 
 type CGViewState = { 
-	positionMap: Map<string, CGPositionData> 
+	dispPositions: Map<string, CGPositionData> 
+	//The x1, y1 position
+	srcPositions: Map<string, Map<string, CGUpdatable>>
+	//The x2, y2 position
+	destPositions: Map<string, Map<string, CGUpdatable>>
 	cunitMap: Map<string, CUReqResult>
-}
-
-type LineStackEntry = {
-	x1: number
-	x2: number
-	y1: number
-	y2: number
+	//registerMap: Map<string, CGObjectLine>
+	refresh: boolean
 }
 
 type CGLayerEntry = {
@@ -44,9 +89,6 @@ type CGTreeLayerData = {
 type CGTreeDisplayData = {
 	layerData: Array<CGTreeLayerData>
 }
-
-
-
 
 
 /**
@@ -68,6 +110,7 @@ type CGDispData = {
 	x: number
 	y: number
 	cuReqData: CUReqResult | null
+	updateTrigger: (idx: string, data: CGPositionData) => void
 }
 
 type CGObjectData = {
@@ -92,7 +135,8 @@ class CGObject extends React.Component<CGDispData,
 		.workspaceData.container
 		.commData.appService;
 
-
+	updateFn = this.props.updateTrigger;
+	
 	state: CGObjectData = {
 		x: this.props.x,
 		y: this.props.y,
@@ -115,6 +159,31 @@ class CGObject extends React.Component<CGDispData,
 			.selectedIdx
 		
 	}
+	
+	getWorkspaceOffsets(parent: ParentNode | null): [number, number] {
+
+		if(parent) {
+			const wparent = parent.parentNode as HTMLElement;
+		
+			if(wparent) {
+				return [wparent.offsetLeft, wparent.offsetTop];
+			}
+		}
+		return [0, 0];
+		
+	}
+
+	onLineUpdate(offLeft: number, offTop: number) {
+		//const xdiff = offLeft - this.state.x);
+		this.updateFn(this.data.idx, {
+			x: this.state.x - offLeft,
+			y: this.state.y - offTop,
+			depth: 0,
+			parent: ''	
+		});
+
+
+	}	
 
 	/**
 	 * 
@@ -122,6 +191,7 @@ class CGObject extends React.Component<CGDispData,
 	onHoverTrigger() {
 
 		//1. Trigger an update on the panel
+
 		this.data.bufferMap.insert('current_node', 
 		JSON.stringify({
 			idx: this.data.idx 
@@ -130,16 +200,18 @@ class CGObject extends React.Component<CGDispData,
 	}
 
 	onNodeMove(e: React.MouseEvent<HTMLDivElement>) {
-		if(this.state.moveMode) {
+		if(this.state.moveMode) {	
+			const parent = e.currentTarget.parentNode;
 			
-			
-		
+			const [oleft, otop] = this.getWorkspaceOffsets(parent);
 			const nx = e.clientX;
 			const ny = e.clientY;
 			
+			this.state.x = nx;
+			this.state.y = ny;
+
 			let nState = {...this.state};
-			nState.x = nx;
-			nState.y = ny;
+			this.onLineUpdate(oleft, otop);
 			this.setState(nState);
 		}
 	}
@@ -148,7 +220,6 @@ class CGObject extends React.Component<CGDispData,
 
 		const btn = e.button;
 		if(btn === 1) {
-			console.log('release');
 			let nState = {...this.state};
 			nState.moveMode = false;
 			this.setState(nState);
@@ -264,22 +335,116 @@ class CGObject extends React.Component<CGDispData,
 
 }
 
+type CGLinePositionData = {
+	x1: number
+	x2: number
+	y1: number
+	y2: number
+	pairUnit1: string
+	pairUnit2: string
+
+}
+
+
+
+type CGObjectLineData = {
+	idx: string
+	updateable: CGUpdatable
+	pairUnit1: string 
+	pairUnit2: string 
+	x1: number
+	x2: number
+	y1: number
+	y2: number
+}
+
+type CGObjectLineUpdatable = {
+	updateable: CGUpdatable
+	pairUnit1: string 
+	pairUnit2: string 
+	x1: number
+	x2: number
+	y1: number
+	y2: number
+}
+
+export class CGObjectLine extends React.Component<CGObjectLineData, CGObjectLineUpdatable> 
+	implements CGUpdateableContext {
+
+	constructor(props: CGObjectLineData) {
+		super(props);
+		
+		props.updateable.registerContext(this);
+	}
+		
+	state: CGObjectLineUpdatable = {
+		updateable: this.props.updateable,
+		x1: this.props.x1, 
+		x2: this.props.x2,
+		y1: this.props.y1,
+		y2: this.props.y2,
+		pairUnit1: this.props.pairUnit1,
+		pairUnit2: this.props.pairUnit2
+	};
+
+	getCoords() {
+		return this.state;
+	}
+
+	pushPositionUpdate(pdata: CGLinePositionData) {
+		const nState = {...this.state};
+		nState.x1 = pdata.x1;
+		nState.x2 = pdata.x2;
+		nState.y1 = pdata.y1;
+		nState.y2 = pdata.y2;
+		nState.pairUnit1 = pdata.pairUnit1;
+		nState.pairUnit2 = pdata.pairUnit2;
+		this.setState(nState);
+
+	}
+
+	render() {
+		//this.state.updateable.registerContext(this);
+		const { idx } = this.props;
+		const { x1, x2, y1, y2, pairUnit1, pairUnit2 } = this.state;
+		let styPropUpdate: CSSProperties = {};
+		if(this.state.pairUnit1 !== '%' || this.state.pairUnit2 !== '%') {
+			styPropUpdate = { position: 'absolute' } as CSSProperties;
+		}
+
+		return (
+			 <line style={styPropUpdate}
+			 	key={`cu${idx}`} 
+				x1={`${x1}${pairUnit1}`} 
+				x2={`${x2}${pairUnit2}`} 
+				y1={`${y1+5}${pairUnit1}`} 
+				y2={`${y2+5}${pairUnit2}`} stroke={'white'} 
+					strokeWidth={'1'}
+			/>		)
+	}
+}
 
 
 export class CallGraphSpace extends 
 	React.Component<WorkspaceData, CGViewState> 
 	implements ASContextHook {
 	
-	state = {	
+	state: CGViewState = {
 		cunitMap: new Map(),
-		positionMap: new Map(),
+		dispPositions: new Map(),
+		srcPositions: new Map(),
+		destPositions: new Map(),
+		refresh: true,
 	}
 
 	resetState() {
 		this.state.cunitMap = new Map();
-		this.state.positionMap = new Map();
+		this.state.dispPositions = new Map();
+		this.state.srcPositions = new Map();
+		this.state.destPositions = new Map();
 
 	}
+	
 
 	constructor(props: any) {
 		super(props);
@@ -287,6 +452,7 @@ export class CallGraphSpace extends
 		const aService = container.commData.appService;
 		aService.hookContext(this,'status_response');
 		aService.hookContext(this,'get_graph');
+		aService.hookContext(this,'get_root_graph');
 	}
 	
 	serviceHook(asm: AppServiceMessage): void {
@@ -297,7 +463,6 @@ export class CallGraphSpace extends
 		const jsonObj = asm.getJSON()
 		//Your response here
 		//Turn it into a CUReqResult
-		console.log(jsonObj);
 		if(jsonObj) {
 			if(jsonObj.message === 'status_response') {
 				const containerMsg 
@@ -322,7 +487,6 @@ export class CallGraphSpace extends
 				//let gid = jsonObj.gid;
 				let graph = appService
 					.decodeGraph(asm);
-				console.log(graph);
 				if(graph) {
 					container.state.graphViewData
 					= graph;
@@ -336,8 +500,20 @@ export class CallGraphSpace extends
 				// and update
 				cgspace.resetState();
 				const nState = {...cgspace.state}
+				nState.refresh = true;
 				cgspace.setState(nState);
 
+			} else if(jsonObj.message === 'get_root_graph') {
+				let graph = appService
+					.decodeGraph(asm);
+				if(graph) {
+					container.state.graphViewData
+					= graph;
+				}
+				cgspace.resetState();
+				const nState = {...cgspace.state}
+				nState.refresh = true;
+				cgspace.setState(nState);
 			}
 		}
 	}
@@ -424,13 +600,84 @@ export class CallGraphSpace extends
 		return rootList;
 	}
 
+	updateLinePosition(idx: string, data: CGPositionData) {
+		const srcObjs = this.state.srcPositions.get(idx);
+		const destObjs = this.state.destPositions.get(idx);
+		if(srcObjs) {
+			let x2 = data.x;
+			let y2 = data.y;
+			let pairUnit1 = '%';
+			
+
+
+			
+			for(const [sk, co] of srcObjs) {
+				
+				const coords = co.getCoords();
+				let nPosition: CGLinePositionData = {
+					x1: 0,
+					y1: 0,
+					x2,
+					y2,
+					pairUnit1,
+					pairUnit2: 'px'
+
+				};
+				if(idx === sk) {
+					nPosition.pairUnit1 = 'px';
+
+					nPosition.x1 = x2;
+					nPosition.y1 = y2;
+				} else {
+
+					nPosition.pairUnit1 = coords.pairUnit1;
+					nPosition.x1 = coords.x1;
+					
+					nPosition.y1 = coords.y1;
+					
+				}
+				co.pushPositionUpdate(nPosition);
+
+			}
+
+		}
+		if(destObjs) {
+			let x1 = data.x;
+			let y1 = data.y;
+			let pairUnit2 = '%';
+			for(const [dk, co] of destObjs) {
+				
+				const coords = co.getCoords();
+				let nPosition: CGLinePositionData = {
+					x1,
+					y1,
+					x2: 0,
+					y2: 0,
+					pairUnit1: 'px',
+					pairUnit2
+
+				};
+
+
+				if(idx === dk) {
+					nPosition.pairUnit2 = 'px';
+					nPosition.x2 = x1;
+					nPosition.y2 = y1;
+				} else {
+					nPosition.pairUnit2 = coords.pairUnit2;
+					nPosition.x2 = coords.x2;
+					nPosition.y2 = coords.y2;
+				}
+				
+				co.pushPositionUpdate(nPosition);
+			}
+		}	
+	}
+
 	render() {
 		
-		//TODO: We need to re-calculat the height
-		//let newHeight = 100;
-		//TODO: We need to uncap the height and allow
-		//moving of the design space
 		let calcdHeight = 0;
+		const cgref = this;
 		const bmap = this.props.bufferMap;
 		//TODO: We need to retrieve the graph information
 		//	and update the details
@@ -443,119 +690,222 @@ export class CallGraphSpace extends
 		}
 		const rootList = this.identifyRoots(
 			graphFromContainer)
-		let selectedIndex = rootList[0][0];	
-		const selectedData = JSON.parse(
-			bmap.get('root_node'));
-		if(selectedData !== null) {
-			//First index is the key
-			selectedIndex = selectedData[0];
-		}
-	
-	       	//let prevWlen = 100;
-		let dispPositions: Map<string, [number, 
-			number, number, string]> 
-			= new Map();
+
+		if(rootList.length !== 0) {
+			
+			let selectedIndex = rootList[0][0];	
+			const selectedData = JSON.parse(
+				bmap.get('root_node'));
+			if(selectedData !== null) {
+				//First index is the key
+				selectedIndex = selectedData[0];
+			}
+				
+			const upTrigger = (idx: string, data: CGPositionData) => {
+				cgref.updateLinePosition(idx, data);
+			};
+
+			let cidx = 0;
+			let prix = '';
+			const rootN = rootList.length;
+			const renderedCGs = 
+			rootList.map((e) => {
+
+					return this.traverseGraph(
+					graphFromContainer, e[0]) })
+				.map((ldw: CGTreeDisplayData) => { 
+						
+					return ldw.layerData
+				.map((wl: CGTreeLayerData, lidx: number) => {
+					const wlLength 
+						= wl.layerElements.length;
+					calcdHeight += 20;
+					cidx += 1;
+					const wlRes = 
+						wl.layerElements
+					.map((w: CGLayerEntry, 
+					      idx: number) => {
+
+						const wname = waggr
+						.graph
+						.graph
+						.get(w.entryIdx)
+							?.cu_id;
+						let yoff = 0;
+						let sidx = idx+1;
+						let xdiff = 100/(wlLength*2);
+						if(lidx === 0) {
+							xdiff = 100/(rootN*2);
+							sidx = cidx+1;
+
+							if(xdiff < 0.1) {
+								if(sidx % 2 === 1) {
+									xdiff = 1;
+									yoff = (Math.random() * 0.1);	
+								} else {
+									xdiff = 0.5 
+									+ (Math.random() * 2);
+								}
+							}
+						}
+						
+						let xperc = xdiff * (sidx);
+						let xdisp = (xperc * (idx +1)) + 
+							(xperc * idx);
+						if(xdisp > 100 && lidx === 0) {
+							const rowOff = Math.floor(xdisp) % 100;
+							//yoff = rowOff * 1.5 ;
+							
+							xdisp = rowOff;				
+						}
 
 
-		//let lineStack: Array<LineStackEntry> = [];
+						const cuVal = this.state
+							.cunitMap.get(wname !== undefined ? wname
+								: '');
+						const distCU = cuVal !== null 
+						&& cuVal !== undefined ?
+							cuVal : null;
 
-		const renderedCGs = 
-		rootList.map((e) => {
-				return this.traverseGraph(
-				graphFromContainer, e[0]) })
-			.map((ldw: CGTreeDisplayData) => { 
-				return ldw.layerData
-			.map((wl: CGTreeLayerData) => {
-				const wlLength 
-					= wl.layerElements.length;
-				calcdHeight += 20;
-				const wlRes = 
-					wl.layerElements
-				.map((w: CGLayerEntry, 
-				      idx: number) => {
+						const wdispData : CGDispData = {
+							wdaggr: waggr,
+							index: w.entryIdx,
+							x: xdisp,
+							y: yoff,
+							selectedIdx: selectedIndex,
+							cuReqData: distCU,
+							cuId: wname === undefined 
+								? '' :
+								wname,
+							updateTrigger: upTrigger
 
-					const wname = waggr
-					.graph
-					.graph
-					.get(w.entryIdx)
-						?.cu_id
-					
-				const xperc = (100 / (wlLength*2));
-				const xdisp = (xperc * (idx +1)) + 
-					(xperc * idx);
+						};
 
-				const cuVal = this.state
-					.cunitMap.get(wname);
-				const distCU = cuVal !== null 
-				&& cuVal !== undefined ?
-					cuVal : null;
+						const pIdx = prix;
+						const pDepth = wl.depth+1;
+						
+						if( w.entryIdx) {	
+							this.state.dispPositions.set(
+								w.entryIdx,
+								{
+									x: wdispData.x,
+									y: wdispData.y,
+									depth: pDepth,
+									parent: pIdx
+								}
+							);
+						}
+						prix = w.entryIdx;
+						if(!cgref.state.srcPositions.has(w.entryIdx)) {
+							cgref.state.srcPositions.set(
+								w.entryIdx,
+								new Map()
+							);
+						}
+						if(!cgref.state.destPositions.has(w.entryIdx)) {
+							cgref.state.destPositions.set(
+								w.entryIdx,
+								new Map()
+							);
+						}
+						return (<CGObject key={`cgobj_${wname}`}
+							{...wdispData}/>)
+					});
 
-				const wdispData : CGDispData = {
-					wdaggr: waggr,
-					index: w.entryIdx,
-					x: xdisp,
-					y: wl.depth * 20,
-					selectedIdx: selectedIndex,
-					cuReqData: distCU,
-					cuId: wname === undefined 
-						? '' :
-						wname,
+					//prevWlen = wlLength; 
+					calcdHeight += 25;
+
+					return wlRes;
+				})
+			});
+
+				//Construct svg with lines
+			const svgLines = this.state.dispPositions.entries().map((e, _) => {
+				const [k, coords] = e;
+				//const [x1, y1, _d, pname] = coords;
+				const x1 = coords.x;
+				const y1 = coords.y;
+				let pname = coords.parent;
+
+				const p = this.state.dispPositions.get(pname)
+				let x2 = x1;
+				let y2 = y1;
+				if(p) {
+					x2 = p.x;
+					y2 = p.y;
+
+				
+				} else {
+					pname = k;
+				}
+				const tFresh = this.state.refresh;
+				let updatableRef: CGUpdatable = new UpdatableLineRef();
+				const upSrcCol = this.state.srcPositions.get(pname);
+				const upDestCol = this.state.destPositions.get(k);
+				let upRefChk = null;
+				if(upSrcCol && !tFresh) {
+					upRefChk = upSrcCol.get(k);
+
+					if(upRefChk) {
+						updatableRef = upRefChk;
+					}
+				} 
+				if(upDestCol && tFresh) {
+
+					upRefChk = upDestCol.get(k);
+					if(upRefChk) {
+						updatableRef = upRefChk;
+					}
+				}
+				
+				const cgobjdata: CGObjectLineData = {
+					idx: k,
+					x1,
+					x2,
+					y1,
+					y2,
+					pairUnit1: '%',
+					pairUnit2: '%',
+					updateable: updatableRef
 				};
 
-				//Compute line between child and parent
-				//We need to know if the parent 
-				//is starting or not
-				
+				const cgobjRen = <CGObjectLine key={`cgobj_l${k}`} 
+					{...cgobjdata} />;
+				//TODO: Revisit in case
+				//updatableRef.registerContext(cgobjRen);
+				let srcCol = this.state.srcPositions.get(pname);
+				let destCol = this.state.destPositions.get(k);
+				if(srcCol) {
+					srcCol.set(k, updatableRef);
+				}
+				if(destCol) {
+					destCol.set(pname, updatableRef);
+				}
 
-					const pIdx = w.parentIdx;
-					const pDepth = wl.depth-1;
-					if(wname) {	
-						dispPositions.set(
-							wname,
-							[wdispData.x,
-							wdispData.y,
-							pDepth,
-							pIdx]
-						);
-					}
+				return cgobjRen;
+			}).toArray();
+			this.state.refresh = false;
+				return (
+					<div className={styles.widgetSpace}
+					style={{height: `${calcdHeight}%`}}>
+						{renderedCGs}
+						<svg key={`svg_group`} className={styles
+							.widgetSVGLineStack}>
+							{svgLines}	
+						</svg>
+					</div>
+					)
+			} else {
+				return (
+					<div className={styles.widgetSpace}
+					style={{height: `${calcdHeight}%`}}>
+						<div>Unable to load call-graph</div>	
+					</div>
 
-				
-
-					return (
-						<CGObject key={wname}
-						{...wdispData}/>
-					);
-				});
-
-				//prevWlen = wlLength; 
-				calcdHeight += 25;
-
-				return wlRes;
-			})
-		});
-
-		//Construct svg with lines
-		/*const svgLines = lineStack.map((l, idx) => {
-			return <line key={`cu${idx}`} 
-				x1={`${l.x1}%`} 
-				x2={`${l.x2}%`} 
-				y1={`${l.y1}%`} 
-				y2={`${l.y2+2}%`} stroke={'white'} 
-					strokeWidth={'1'}
-			/>
-		});*/
-
-		return (
-			<div className={styles.widgetSpace}
-			style={{height: `${calcdHeight}%`}}>
-				{renderedCGs}
-				<svg className={styles
-					.widgetSVGLineStack}>
-					
-				</svg>
-			</div>
-		)
-	}
+				)
+			}
+	
+		}
 	}
 
 

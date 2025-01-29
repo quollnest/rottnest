@@ -37,7 +37,7 @@ class WorkspaceTabBar extends React
 			};
 
 			return (
-				<span key={idx}
+				<span key={`tab_${t}`}
 				onClick={updateSelected}
 				className={`${styles.workTab}
 					${ isSelected ? 

@@ -184,7 +184,6 @@ export class CGNodeColumn
 			const objDez = JSON.parse(sData);
 			idx = objDez.idx;
 			if(graphRef) {
-				console.log(idx, graphRef);
 				let comp = graphRef.graph.get(idx);
 				if(comp) {
 					cuReq.cu_id = comp.cu_id;
@@ -256,7 +255,8 @@ type RootListItemTup = {
 }
 
 type RootListItemData = {
-	idxTup: RootListItemTup	
+	idxTup: RootListItemTup
+	container: RottnestContainer
 	rootList: Set<string>
 	selected: boolean
 	isFirst: boolean
@@ -272,10 +272,14 @@ class RootListItem
 	rootIdx = this.props.idxTup.rootIdx;
 	bufferMap = this.props.bufferMap;
 	selected = this.props.selected;
-
+	container = this.props.container;
+	
 	updateRootNode() {
-		console.log("Called!", this.selected,
-			   this.rootIdx, this.listPositon);
+		const aps = this.container.commData.appService;
+		if(this.rootIdx === 'root') {
+			this.rlist = new Set(['root']);	
+			aps.sendObj('get_root_graph', {});
+
 			let nnode = {
 				idx: this.rootIdx
 			};
@@ -283,11 +287,13 @@ class RootListItem
 
 			this.bufferMap
 				.insert('root_node',nstr);
+			this.bufferMap
+				.insert('reset_rlist',JSON.stringify({ reset: true }));
 			this.bufferMap.commit();
+		}
 	}
 
 	render() {
-		console.log("Doing rlist item");
 		const isFirst = this.props.isFirst;
 		const isSelected = this.props.selected;
 		const { rootIdx } = 
@@ -302,7 +308,6 @@ class RootListItem
 		}
 			
 		
-		console.log(this.rlist);
 		return (
 			<div className={styList}
 				onClick={(_) => {
@@ -326,7 +331,7 @@ class CGRootList
 		const bmap = this.props.bufferMap;
 		const rlist = this.props.rootList;
 		const selectedIdx = this.props.selectedIdx;
-		console.log(rlist);
+		const container = this.props.container;
 		const dispList = rlist.entries().map((e, i) => {
 			const tup: RootListItemTup = {
 				rootIdx: e[0],
@@ -334,6 +339,7 @@ class CGRootList
 			};
 			const selected = e[0] === selectedIdx
 			let obj = (<RootListItem
+				   	container={container}
 				   	key={e[0]}
 					idxTup={tup} 
 					rootList={rlist}
@@ -345,7 +351,6 @@ class CGRootList
 			return obj;
 		});
 		let dcol = new Array(...dispList);
-		console.log(dcol)
 		return (
 			<div>
 				<header className={styles
@@ -364,7 +369,7 @@ class CGRootList
 export class CGGraphColumn 
 	extends React.Component<CGGraphData, CGRootListContainer> {
 
-	rootList: Set<string> = new Set();
+	rootList: Set<string> = new Set(['root']);
 	state: CGRootListContainer = {
 		selectedIdx: '',
 		bufferMap: this.props
@@ -379,7 +384,7 @@ export class CGGraphColumn
 		//	.get('graph_ref');
 		
 		
-		const rootList = this.rootList;
+		let rootList = this.rootList;
 		const dezData = JSON.parse(bufferMap
 					   .get('root_node'));
 		const nextData = JSON.parse(bufferMap
@@ -396,6 +401,17 @@ export class CGGraphColumn
 
 			rootList.add(nextData.idx);
 			bufferMap.insert('next_node', null);
+		}
+		const resetRList = JSON.parse(bufferMap.get('reset_rlist'));
+		if(resetRList !== null) {
+			if(resetRList.reset) {
+				bufferMap.insert('reset_rlist', JSON.stringify({
+					reset: false
+				}));
+				this.rootList = new Set(['root']);
+				rootList = this.rootList;
+				
+			}
 		}
 
 		return (
