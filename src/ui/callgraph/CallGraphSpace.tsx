@@ -271,6 +271,8 @@ class CGObject extends React.Component<CGDispData,
 
 
 	render() {
+		const rottContainer = this.props.wdaggr.workspaceData.container;
+		const zoomValue = rottContainer.state.appStateData.zoomValue;
 		let widgetObj = this.props.wdaggr
 			.graph.graph.get(
 			this.props.index);
@@ -280,7 +282,10 @@ class CGObject extends React.Component<CGDispData,
 		let x = `${this.state.x-25}`;
 		let y = `${this.state.y-25}`;
 		let sObj = { left: `${x}px`,top: `${y}px`,
-			position: 'fixed' 
+			position: 'fixed',
+			minWidth: `${80*(zoomValue/100)}px`,
+			maxWidth: `${80*(zoomValue/100)}px`,
+			maxHeight: `${80*(zoomValue/100)}px`
 		} as React.CSSProperties;
 		if(!this.state.actualPosition) {
 
@@ -289,7 +294,10 @@ class CGObject extends React.Component<CGDispData,
 			sObj = {
 				left: `calc(${x} - 25px)`,
 				top: `${y}`,
-				position: 'absolute' 
+				position: 'absolute',
+				minWidth: `${80*(zoomValue/100)}px`,
+				maxWidth: `${80*(zoomValue/100)}px`,
+
 			} as React.CSSProperties
 
 		}
@@ -678,6 +686,7 @@ export class CallGraphSpace extends
 	render() {
 		
 		let calcdHeight = 0;
+		const zoomValue = this.props.container.state.appStateData.zoomValue;
 		const cgref = this;
 		const bmap = this.props.bufferMap;
 		//TODO: We need to retrieve the graph information
@@ -888,7 +897,11 @@ export class CallGraphSpace extends
 			this.state.refresh = false;
 				return (
 					<div className={styles.widgetSpace}
-					style={{height: `${calcdHeight}%`}}>
+					style={{height: `${calcdHeight}%`, width: `${zoomValue}%`,
+						fontSize: `${(11*(zoomValue/100))}pt`,
+						}}>
+					
+					
 						{renderedCGs}
 						<svg key={`svg_group`} className={styles
 							.widgetSVGLineStack}>
