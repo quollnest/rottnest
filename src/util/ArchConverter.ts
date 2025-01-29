@@ -42,6 +42,11 @@ export default class ArchConverter {
 				downstream: []
 			};
 
+			const router_type = r.rdata.getRouterKind()
+			if (router_type !== null) {
+				obj.router_type = router_type;
+			}
+
 			//Collect all the regions
 			tmap.set(tkey, obj);
 

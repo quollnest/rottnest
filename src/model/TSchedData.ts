@@ -14,6 +14,7 @@ export type TSchedDataNode = {
 	bell_rate?: number
 	factory_type?: string
 	incl_top?: boolean
+	router_type?: string
 }
 
 /**
