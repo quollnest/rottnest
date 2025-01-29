@@ -125,7 +125,9 @@ export class DesignSpace extends React.Component<GridData, GridState>
 	
 
 	onGridDown(e: React.MouseEvent<HTMLUListElement>) {
-		if(e.button === 1) {
+		
+		const toolKind = this.parentContainer.getToolIndex();
+		if(e.button === 1 || toolKind === 7) {
 			const x = e.movementX;
 			const y = e.movementY;
 			
@@ -147,7 +149,6 @@ export class DesignSpace extends React.Component<GridData, GridState>
 	}
 
 	onGridMove(e: React.MouseEvent<HTMLUListElement>) {
-				
 		if(this.state.middleIsDown) {
 			const x = e.movementX;
 			const y = e.movementY;
