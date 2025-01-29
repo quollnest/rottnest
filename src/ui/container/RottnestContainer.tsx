@@ -252,7 +252,7 @@ class RottnestContainer
 				//the msg to be sent for
 				//get_graph
 
-				let json = m.data; 
+				let json = m.interpretedData; 
 				//appService
 				//	.sendObj('get_graph','');
 				selfRef.state.visData = json;
