@@ -1,0 +1,51 @@
+.chartSel {
+	display: inline;
+}
+
+.optionStyle {
+	border: 1px #35332f solid;
+	border-radius: 1px;	
+	border-right: 5px #35332f solid;
+	border-left: 5px #35332f solid;
+	color: rgba(255, 255, 255, 0.87);
+	background-color: #232122;
+
+}
+
+.cgvisTab {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	background-color: #232122;
+	border-bottom: 1px #35332f solid;
+}
+
+.cuObjectSelected {
+	stroke: red;
+	fill: red;
+}
+.cuObject:hover {
+	stroke: red;
+	fill: red;
+}
+
+.cgSpaceContainer {
+	height: 100%;
+}
+
+.graphContainer {
+	width: 100%;
+	height: 100%;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.nodesComponent {
+	display: flex;
+	flex: 1;
+	width: 100%;
+	height: 100%;
+	border-top: 1px #35332f solid;
+	background-color: #191812;
+}

@@ -9,20 +9,48 @@ import {CUReqResult,
 import {ASContextHook} from "../../net/AppService";
 import {AppServiceMessage} from "../../net/AppServiceMessage";
 import {RottStatusResponseMSG} from "../../net/Messages";
+import {CGChartSpace, CGSample} from "./CGChart";
 
-interface CGUpdateableContext {
-	
+const PreMadeData = [
+	genData(20),
+	genData(20),
+	genData(20)
+];
+
+interface CGUpdateableContext {	
 	pushPositionUpdate(pdata: CGLinePositionData): void
-	getCoords(): CGObjectLineUpdatable
- 
+	getCoords(): CGObjectLineUpdatable 
 }
 
 interface CGUpdatable {	
 	pushPositionUpdate(pdata: CGLinePositionData): void
 	registerContext(ctx: CGUpdateableContext): void
-	getCoords(): CGObjectLineUpdatable
-	
+	getCoords(): CGObjectLineUpdatable	
 }
+
+function genData(n: number): Array<CGSample> {
+	const data: Array<CGSample> = [];
+	const nodesRan = [
+		'0_0',
+		'0_0s',
+		'0_1'
+	]
+	for(let i = 0; i < n; i++) {
+		data.push({
+			
+			widgetIdx: i+1,
+			refId: nodesRan[i%3],
+			cuVolume: {
+			REGISTER_VOLUME: 10000 + (Math.random() * 1999),
+			FACTORY_VOLUME: 9000 + (Math.random() * 1999),
+			ROUTING_VOLUME: 8000 + (Math.random() * 1999),
+			T_IDLE_VOLUME: 7000 + (Math.random() * 1999),
+			}
+		})
+	}
+	return data;
+}
+
 
 class UpdatableLineRef implements CGUpdatable {
 	
@@ -230,15 +258,19 @@ class CGObject extends React.Component<CGDispData,
 		const btn = e.button;
 
 		if(btn === 1) {
-					
+			
 			const nx = e.clientX;
 			const ny = e.clientY;
-			let nState = {...this.state};
-			nState.x = nx;
-			nState.y = ny;
-			nState.moveMode = true;
-			nState.actualPosition = true;
+			this.state.x = nx;
+			this.state.y = ny;
+			this.state.moveMode = true;
+			this.state.actualPosition = true;
 			
+			let nState = {...this.state};
+			const parent = e.currentTarget.parentNode;
+			
+			const [oleft, otop] = this.getWorkspaceOffsets(parent);
+			this.onLineUpdate(oleft, otop);
 			this.setState(nState);
 
 		} else if(btn === 0) {
@@ -285,7 +317,6 @@ class CGObject extends React.Component<CGDispData,
 			position: 'fixed',
 			minWidth: `${80*(zoomValue/100)}px`,
 			maxWidth: `${80*(zoomValue/100)}px`,
-			maxHeight: `${80*(zoomValue/100)}px`
 		} as React.CSSProperties;
 		if(!this.state.actualPosition) {
 
@@ -751,7 +782,8 @@ export class CallGraphSpace extends
 							if(xdiff < 0.1) {
 								if(sidx % 2 === 1) {
 									xdiff = 1;
-									yoff = (Math.random() * 0.1);	
+									yoff = (Math.random()
+										* 0.1);	
 								} else {
 									xdiff = 0.5 
 									+ (Math.random() * 2);
@@ -895,9 +927,9 @@ export class CallGraphSpace extends
 				return cgobjRen;
 			}).toArray();
 			this.state.refresh = false;
-				return (
+				/*return (
 					<div className={styles.widgetSpace}
-					style={{height: `${calcdHeight}%`, width: `${zoomValue}%`,
+					style={{height: `${calcdHeight}%`, width:`${zoomValue}%`,
 						fontSize: `${(11*(zoomValue/100))}pt`,
 						}}>
 					
@@ -908,9 +940,18 @@ export class CallGraphSpace extends
 							{svgLines}	
 						</svg>
 					</div>
-					)
-			} else {
-				const requestGraph = () => {
+					)*/
+					//const data = genData(10);
+					//TODO: Update this part with real data
+					const data = PreMadeData;
+					return (
+						<CGChartSpace graphData={data}
+							workspaceData={cgref.props}
+							selKey={'T_IDLE_VOLUME'}
+						/> 
+					);
+				} else {
+						const requestGraph = () => {
 					cgref.props.bufferMap
 						.insert('reset_rlist',
 						JSON.stringify({ reset: true }));
