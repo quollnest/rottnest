@@ -55,6 +55,7 @@ function genData(n: number): Array<CGSample> {
 class UpdatableLineRef implements CGUpdatable {
 	
 	ctx: CGUpdateableContext | null = null;
+	
 
 	getCoords(): CGObjectLineUpdatable {
 		if(this.ctx) { 
@@ -280,10 +281,8 @@ class CGObject extends React.Component<CGDispData,
 				this.apservice.sendObj('get_graph', {
 					'gid': this.data.idx
 				});
-				//TODO THIS IS A FAKE PART
 				this.state.cuReady = true;
 				this.state.dataReady = true;
-				//END OF FAKE PART
 			}
 			let nnode = {
 				idx: this.data.idx
@@ -493,6 +492,7 @@ export class CallGraphSpace extends
 		aService.hookContext(this,'status_response');
 		aService.hookContext(this,'get_graph');
 		aService.hookContext(this,'get_root_graph');
+		aService.hookContext(this,'run_result');
 	}
 	
 	serviceHook(asm: AppServiceMessage): void {
@@ -501,8 +501,6 @@ export class CallGraphSpace extends
 		const appService = container.commData.appService;
 
 		const jsonObj = asm.getJSON()
-		//Your response here
-		//Turn it into a CUReqResult
 		if(jsonObj) {
 			if(jsonObj.message === 'status_response') {
 				const containerMsg 
@@ -527,14 +525,51 @@ export class CallGraphSpace extends
 				//let gid = jsonObj.gid;
 				let graph = appService
 					.decodeGraph(asm);
+				let expands = true;
+				let expGid = 'invalid';
 				if(graph) {
 					container.state.graphViewData
 					= graph;
+					if(graph.graph) {
+						let sz = graph.graph.size;
+						if(sz) {
+							
+							//let [k,e] = graph.graph
+							//	.entries()[0]
+							if(sz === 1) {
+								const e = graph.graph.
+									values().map((et) => {
+									return et;
+								}).toArray()[0];
+								expands = e.expands;
+								expGid = e.id;
+							}	
+							
+						}
+
+					}
 				}
 				this.props.bufferMap
 					.insert('node_column',
 						JSON
 						.stringify(0));
+				this.props.bufferMap
+					.insert('cgviz_chart_gid_data',
+						JSON
+						.stringify({
+							expands,
+							gid: expGid,
+							idx: expGid
+
+						}));
+				if(!expands) { //Need to know about vizualiser
+					appService.sendObj('run_graph_node', {
+						gid: expGid
+					})
+				}
+				//Identify if we should expand
+				
+
 				//TODO:
 				// Reset the call_graph
 				// and update
@@ -547,13 +582,31 @@ export class CallGraphSpace extends
 				let graph = appService
 					.decodeGraph(asm);
 				if(graph) {
-					container.state.graphViewData
+					container.state
+					.graphViewData
 					= graph;
 				}
 				cgspace.resetState();
 				const nState = {...cgspace.state}
 				nState.refresh = true;
 				cgspace.setState(nState);
+			} else if(jsonObj.message === 'run_result') {
+			
+				//TODO Set the graph id for
+				//the msg to be sent for
+				//get_graph
+								
+				container.state.visData = jsonObj;
+				container.state.tabData
+				.availableTabs[2]
+					= true;
+				this.props.bufferMap
+					.insert('viz_sim_data',
+						JSON.stringify({
+							simready: true 
+						})
+					);
+
 			}
 		}
 	}
@@ -730,7 +783,25 @@ export class CallGraphSpace extends
 			workspaceData: this.props
 		}
 		const rootList = this.identifyRoots(
-			graphFromContainer)
+			graphFromContainer);
+		//Get info related to CGChart
+		let gotoCGChart = false;
+		const cgViz= JSON.parse(bmap.get('cgviz_chart_gid_data'));
+		if(cgViz) {
+			gotoCGChart = cgViz.expands;
+		}
+	
+		
+		if(gotoCGChart) {
+
+			const data = [];
+			return (
+				<CGChartSpace graphData={data}
+					workspaceData={cgref.props}
+					selKey={'T_IDLE_VOLUME'}
+				/> 
+			);
+		}
 
 		if(rootList.length !== 0) {
 			
@@ -927,7 +998,7 @@ export class CallGraphSpace extends
 				return cgobjRen;
 			}).toArray();
 			this.state.refresh = false;
-				/*return (
+				return (
 					<div className={styles.widgetSpace}
 					style={{height: `${calcdHeight}%`, width:`${zoomValue}%`,
 						fontSize: `${(11*(zoomValue/100))}pt`,
@@ -940,18 +1011,19 @@ export class CallGraphSpace extends
 							{svgLines}	
 						</svg>
 					</div>
-					)*/
+					)
+
 					//const data = genData(10);
 					//TODO: Update this part with real data
-					const data = PreMadeData;
+					/*const data = PreMadeData;
 					return (
 						<CGChartSpace graphData={data}
 							workspaceData={cgref.props}
 							selKey={'T_IDLE_VOLUME'}
 						/> 
-					);
+					);*/
 				} else {
-						const requestGraph = () => {
+					const requestGraph = () => {
 					cgref.props.bufferMap
 						.insert('reset_rlist',
 						JSON.stringify({ reset: true }));

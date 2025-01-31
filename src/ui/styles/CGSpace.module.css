@@ -9,6 +9,10 @@
 	
 }
 
+.vizNotReady {
+	color: grey !important;
+}
+
 .widgetBoxContent {
 	margin-top: 0.25em;
 	text-align: center;
@@ -127,7 +131,7 @@
 	border-radius: 0;
 	border-top: 1px #35332f solid;
 	border-bottom: 1px #35332f solid;
-	color: white !important;
+	color: white;
 }
 
 .cuStatus {

@@ -43,16 +43,26 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 
 	cuId: string = 'test';
 
+
 	gotoVisualiserWithData(data: any) {
 		console.log("Going to visualiser");
-		this.props.workspaceData.container
-		.gotoVizWithData(data);
+		const bmap = this.props.workspaceData.bufferMap;
+		const bmapViz = JSON.parse(bmap.get('viz_sim_data'));
+		let simReady = false;
+		if(bmapViz) {
+			simReady = bmapViz.simready;
+		}
+
+		if(simReady) {
+			this.props.workspaceData.container
+			.gotoVizWithData(data);
+		}
 	}
 
 	render() {
 		const ndata = this.props;	
 		const cuObj = this.props.cuReqData;
-		
+		const bmap = this.props.workspaceData.bufferMap;	
 		let tsourceInfo = { 
 			contents: false,
 			info: 'No Info',
@@ -102,6 +112,16 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 
 			});
 		}
+		const bmapViz = JSON.parse(bmap.get('viz_sim_data'));
+		let simReady = false;
+		if(bmapViz) {
+			simReady = bmapViz.simready;
+		}
+		const visText = simReady ? 'Run Visualisation' :
+			'Not Ready';
+
+		const vzReadyStyle = simReady ? '' : styles.vizNotReady;
+
 		const tDisp = tdata === null ? 
 			<div 
 			className={styles.dataSegment}>
@@ -145,13 +165,13 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 				</div>
 				{tDisp}
 				<div>
-					<button className={styles
-						.vizButton}
+					<button className={`${styles
+						.vizButton} ${vzReadyStyle}`}
 						onClick={(_) => {
 					this
 					.gotoVisualiserWithData(
 						cuObj)}}>
-					Run Visualisation</button>
+					{visText}</button>
 				</div>
 			 </div>)
 			:
