@@ -72,7 +72,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 		let cuVolume = CUVolumeDummy();
 		let cuDetailsReady = false;
 		let nName = 'Not selected';
-		let nDescription = 'Compiling';
+		let nDescription = '';
 		let nKind = 'NoKind';
 		if(ndata.nodeData !== null 
 		   && ndata.nodeData !== undefined) {
@@ -123,19 +123,22 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 		const vzReadyStyle = simReady ? '' : styles.vizNotReady;
 
 		const tDisp = tdata === null ? 
+			/*
 			<div 
 			className={styles.dataSegment}>
-			No Data Available</div> :
-			<div>
-				<header>T Source Info</header>
+			No Data Available</div> 
+			*/
+			<></>:
+			<div className={styles.dataSegment}>
+				<header>T Source Info:</header>
 				{tdata}
 			</div>
 
 		const renResult = !cuDetailsReady ? 
 			(<div>
 			 	<header>
-				<div>{nName}</div> 
-				<div>{nKind}</div>
+				<div>Id: {nName}</div> 
+				<div>Type: {nKind}</div>
 				</header>
 				<div>
 				{nDescription}

@@ -1,51 +1,9 @@
 import React, { ReactElement, useEffect, useMemo, useRef, useState } from "react";
-import {CUVolume} from "../../model/CallGraph";
 import style from '../styles/CGChart.module.css';
 import * as d3 from "d3";
-import {WorkspaceData} from "../workspace/Workspace";
 import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
+import { CallGraphStatsData, CGSample, CUDataKey, CUDataKeyRef, CUScaleKeyRef, CUWidgetKeyRef, WidgetSelectorProps } from "./ChartData";
 
-
-type CUDataKey = keyof CUVolume;
-
-export type CGSample = {
-	refId: string
-	widgetIdx: number
-	cuVolume: CUVolume 
-}
-
-export type CGMargins = {
-	top: number
-	bottom: number
-	left: number
-	right: number
-}
-
-export type CGChartDimensions = {
-	wUnit: string
-	width: number
-	hUnit: string
-	height: number
-	margins: CGMargins
-}
-
-export type CallGraphSpaceData = {
-	workspaceData: WorkspaceData
-	graphData: Array<Array<CGSample>>
-	selKey: string 
-
-}
-
-export type CallGraphStatsData = {
-	workspaceData: WorkspaceData
-	graphData: Array<Array<CGSample>>
-	selKey: CUDataKey
-	dimensions: CGChartDimensions	
-}
-
-const onNodeOver = () => {
-	
-}
 
 const onNodeClick = () => {
 
@@ -68,28 +26,6 @@ const CircleColorList: Array<string> = [
 	'#1a6fb4',
 	'#b1ee28',
 ]
-
-type CUDataKeyRef = {
-	keyvalue: string 
-}
-
-type CUWidgetKeyRef = {
-	keyvalue: number 
-}
-
-type CUScaleKeyRef = {
-	keyvalue: string 
-}
-
-type WidgetSelectorProps = {
-	currentKeyRef: CUWidgetKeyRef
-	keyRefUpdate: (key: number) => void
-	optPairs: Array<{
-		value: number 
-		display: string 
-	}>
-
-}
 
 const WidgetSelector = (props: WidgetSelectorProps): ReactElement => {
 	const selected = props.currentKeyRef.keyvalue;
@@ -115,7 +51,7 @@ const WidgetSelector = (props: WidgetSelectorProps): ReactElement => {
 }
 
 type ScaleProps = {
-	currentKeyRef: CUScaleKeyRef
+	currentKeyRef: CUScaleKeyRef 
 	keyRefUpdate: (key: string) => void
 	optPairs: Array<{
 		value: string 
@@ -150,7 +86,7 @@ const ScaleSelector = (props: ScaleProps): ReactElement => {
 
 type ChartSelectorProps = {
 
-	currentKeyRef: CUDataKeyRef
+	currentKeyRef: CUDataKeyRef 
 	keyRefUpdate: (key: string) => void
 	optPairs: Array<{
 		value: string 
@@ -268,51 +204,7 @@ const GenerateNodes = (
 	});
 }
 
-export const CGChartSpace = (props: CallGraphSpaceData): ReactElement => {
-	
-	const cgstatsSpace = useRef<any>();
-	const [width, setWidth] = useState(600);
-	const [height, setHeight] = useState(600);
-	const [isReady, setReady] = useState(false);
-	const selKey = props.selKey as CUDataKey;
-	const graphData = props.graphData;
-	const workspaceData = props.workspaceData;
 
-	useEffect(() => {
-		const rszObs = new ResizeObserver((event) => {
-			setWidth(event[0].contentBoxSize[0].inlineSize);
-			setHeight(event[0].contentBoxSize[0].blockSize * 0.65);
-			setReady(true);		
-		});
-		rszObs.observe(cgstatsSpace.current);
-	});
-
-	const margins = {
-		top: 50,
-		bottom: 30,
-		left: 70,
-		right: 70
-	};
-
-	const dimensions: CGChartDimensions = {
-		width,
-		wUnit: 'px',
-		height,
-		hUnit: 'px',
-		margins
-
-	};	
-	const chartSpace = isReady ? <CallGraphStatsSpace
-				workspaceData={workspaceData}
-				dimensions={dimensions}
-				selKey={selKey} graphData={graphData} /> :
-					<></>;
-	return (
-		<div id="cgspace_container" ref={cgstatsSpace} className={style.cgSpaceContainer}>
-		{chartSpace}
-		</div>
-	);
-}
 const ChartOptionPairs = [
 	{ value: 'REGISTER_VOLUME', display: 'Register Volume'},
 	{ value: 'FACTORY_VOLUME', display: 'Factory Volume'},
@@ -323,8 +215,10 @@ const ChartOptionPairs = [
 export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 
 	const data = props.graphData;
-	const nCols = data.map(() => CircleColorList[Math.floor((Math.random() * CircleColorList.length))])
-	const nLins = data.map(() => LineColorList[Math.floor((Math.random() * LineColorList.length))])
+	const nCols = data.map(() => CircleColorList[Math.floor((Math.random() 
+								 * CircleColorList.length))])
+	const nLins = data.map(() => LineColorList[Math.floor((Math.random() 
+							       * LineColorList.length))])
 	const bmap = props.workspaceData.bufferMap;
 	const [keyref, setKeyRef] = useState<CUDataKeyRef>({ keyvalue: props.selKey });
 	const [lineref, setLineRef] = useState<CUWidgetKeyRef>({ keyvalue: -1 });

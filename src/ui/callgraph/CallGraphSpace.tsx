@@ -9,13 +9,8 @@ import {CUReqResult,
 import {ASContextHook} from "../../net/AppService";
 import {AppServiceMessage} from "../../net/AppServiceMessage";
 import {RottStatusResponseMSG} from "../../net/Messages";
-import {CGChartSpace, CGSample} from "./CGChart";
 
-const PreMadeData = [
-	genData(20),
-	genData(20),
-	genData(20)
-];
+
 
 interface CGUpdateableContext {	
 	pushPositionUpdate(pdata: CGLinePositionData): void
@@ -28,28 +23,7 @@ interface CGUpdatable {
 	getCoords(): CGObjectLineUpdatable	
 }
 
-function genData(n: number): Array<CGSample> {
-	const data: Array<CGSample> = [];
-	const nodesRan = [
-		'0_0',
-		'0_0s',
-		'0_1'
-	]
-	for(let i = 0; i < n; i++) {
-		data.push({
-			
-			widgetIdx: i+1,
-			refId: nodesRan[i%3],
-			cuVolume: {
-			REGISTER_VOLUME: 10000 + (Math.random() * 1999),
-			FACTORY_VOLUME: 9000 + (Math.random() * 1999),
-			ROUTING_VOLUME: 8000 + (Math.random() * 1999),
-			T_IDLE_VOLUME: 7000 + (Math.random() * 1999),
-			}
-		})
-	}
-	return data;
-}
+
 
 
 class UpdatableLineRef implements CGUpdatable {
@@ -331,7 +305,7 @@ class CGObject extends React.Component<CGDispData,
 			} as React.CSSProperties
 
 		}
-		let description = 'Compiling';
+		let description = '';
 		let cuId = 'X_X';
 		let compName = 'Compiling';
 		if(widget) {
@@ -357,7 +331,7 @@ class CGObject extends React.Component<CGDispData,
 					className={
 						styles
 						.widgetObjectHeader}>
-					{cuId}
+					Id: {cuId}
 				</header>
 				<div className={styles
 					.widgetObjectBody}>
@@ -538,7 +512,7 @@ export class CallGraphSpace extends
 							//	.entries()[0]
 							if(sz === 1) {
 								const e = graph.graph.
-									values().map((et) => {
+									values().map((et: any) => {
 									return et;
 								}).toArray()[0];
 								expands = e.expands;
@@ -785,7 +759,7 @@ export class CallGraphSpace extends
 		const rootList = this.identifyRoots(
 			graphFromContainer);
 		//Get info related to CGChart
-		let gotoCGChart = false;
+		/*let gotoCGChart = false;
 		const cgViz= JSON.parse(bmap.get('cgviz_chart_gid_data'));
 		if(cgViz) {
 			gotoCGChart = cgViz.expands;
@@ -801,7 +775,7 @@ export class CallGraphSpace extends
 					selKey={'T_IDLE_VOLUME'}
 				/> 
 			);
-		}
+		}*/
 
 		if(rootList.length !== 0) {
 			

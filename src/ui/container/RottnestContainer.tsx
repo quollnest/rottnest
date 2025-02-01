@@ -168,9 +168,9 @@ class RottnestContainer
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, true, false],
+			availableTabs: [true, true, false, false],
 			tabNames: ['Architecture', 'Call Graph', 
-				'Visualiser']
+				'Visualiser', 'Run Chart']
 		},
 		graphViewData: RottCallGraphDefault(),	
 		visData: {}
@@ -638,9 +638,9 @@ class RottnestContainer
 		};
 		this.state.tabData = {
 			selectedTabIndex: 0,
-			availableTabs: [true, false, false],
+			availableTabs: [true, false, false, false],
 			tabNames: ['Architecture', 'Call Graph', 
-				'Visualiser']
+				'Visualiser', 'Run Chart']
 		};
 		this.state.graphViewData = RottCallGraphDefault(),	
 		this.state.visData = {};

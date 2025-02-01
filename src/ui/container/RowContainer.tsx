@@ -8,6 +8,7 @@ import {VisualiserGroup} from "../workspace/VisualiserGroup";
 import {CallGraphGroup} from "../workspace/CallGraphGroup";
 import {BufferMapTrigger, WorkspaceBufferMap} 
 	from "../workspace/WorkspaceBufferMap";
+import {RunChartGroup} from "../workspace/ChartGroup";
 
 
 type WorkspaceContainerState = {
@@ -31,7 +32,8 @@ class WorkspaceContainer
 	workspaceGroups: Array<WorkspaceGroup> = [
 		new ArchGroup(),
 		new CallGraphGroup(),
-		new VisualiserGroup()
+		new VisualiserGroup(),
+		new RunChartGroup(),
 	]
 	
 	refresh() {
