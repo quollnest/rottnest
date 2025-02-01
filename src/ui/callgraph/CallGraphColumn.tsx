@@ -11,7 +11,7 @@ import {
 import {WorkspaceBufferMap} 
 	from "../workspace/WorkspaceBufferMap";
 
-import {CUReqResult, CUReqResultDummy, CUVolumeDummy} 
+import {CGResult, CGResultDummy, CUReqResult, CUReqResultDummy, CUVolumeDummy} 
 	from "../../model/CallGraph";
 import RottnestContainer from "../container/RottnestContainer";
 
@@ -43,6 +43,23 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 
 	cuId: string = 'test';
 
+	actionOnNode(data: any,
+		    runReady: boolean, simReady: boolean) {
+		if(simReady) {
+			this.gotoVisualiserWithData(data);
+		} else if(runReady) {
+			this.runGraphNode(data);
+		}
+	}
+
+	runGraphNode(data: any) {
+		const container = this.props.workspaceData.container;
+		
+		const appService = container.commData.appService;
+		appService.sendObj('run_graph_node', {
+				gid: data.idx
+			})
+	}
 
 	gotoVisualiserWithData(data: any) {
 		console.log("Going to visualiser");
@@ -54,8 +71,24 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 		}
 
 		if(simReady) {
+			//Grab data here?
+			const vizData = this.props.workspaceData.container.state.visData;
+			bmap.insert('current_viz_data', JSON.stringify(vizData)); 
 			this.props.workspaceData.container
 			.gotoVizWithData(data);
+		}
+	}
+
+	getGlobalVolumes(): CGResult {
+		const rrbuf = this.props.workspaceData.container.getRRBuffer();
+
+		const gvolumes = rrbuf.getTotalArray();
+		if(gvolumes.length > 0) {
+			const lastVol = gvolumes[gvolumes.length-1];
+
+			return lastVol;
+		} else {
+			return CGResultDummy();
 		}
 	}
 
@@ -63,13 +96,14 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 		const ndata = this.props;	
 		const cuObj = this.props.cuReqData;
 		const bmap = this.props.workspaceData.bufferMap;	
-		let tsourceInfo = { 
+		/*let tsourceInfo = { 
 			contents: false,
 			info: 'No Info',
 			mappedData: new Map()
-		};
-
-		let cuVolume = CUVolumeDummy();
+		};*/
+		let cuResults = this.getGlobalVolumes();
+		let cuVolume = cuResults.volumes;
+	        let tsourceInfo = cuResults.tSource;
 		let cuDetailsReady = false;
 		let nName = 'Not selected';
 		let nDescription = '';
@@ -84,22 +118,21 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 			if(cuObj.status === 'complete') {
 				cuDetailsReady = true;
 				cuVolume = cuObj.volumes;
-				tsourceInfo.contents =  true;
-				tsourceInfo.info = 'Info';
-				for(const tkey in cuObj.t_source) {
-					tsourceInfo.mappedData
-					.set(tkey,
-					cuObj.t_source[tkey]);
+				//tsourceInfo.contents =  true;
+				//tsourceInfo.info = 'Info';
+				//for(const tkey in cuObj.t_source) {
+					//tsourceInfo.mappedData
+					//.set(tkey,
+					//cuObj.t_source[tkey]);
 
-				}
 			} else if(cuObj.status === 'not_found') {
 
 			} else if(cuObj.status === 'not_ready') {
 
 			}
 		}
-		let tdata = null;		
-		if(tsourceInfo.contents) {
+		let tdata = [];		
+		/*if(tsourceInfo.contents) {
 			tdata = tsourceInfo.mappedData
 				.entries()
 				.map((e) => {
@@ -111,16 +144,35 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 				)
 
 			});
+		}*/
+	        if(tsourceInfo) {
+			for(const k in tsourceInfo) {
+				const tdat = tsourceInfo[k];
+				tdata.push(
+					<div key={`tdat_${k}`}>
+					{k}:{tdat}	
+					</div>
+				);
+			}
 		}
 		const bmapViz = JSON.parse(bmap.get('viz_sim_data'));
 		let simReady = false;
+		let runReady = false;
+		let runReqd = false;
+		let runFnd = false;
 		if(bmapViz) {
 			simReady = bmapViz.simready;
+			runReady = bmapViz.runready;
+			runReqd = bmapViz.runrequested;
+			runFnd = bmapViz.runfinished;
 		}
-		const visText = simReady ? 'Run Visualisation' :
-			'Not Ready';
+		let visText = runReady ? 'Run Node' : 'Not Available';
+		visText = runReqd ? 'Currently Running' : visText;
+		visText = runFnd ? 'Run Visualisation' : visText;
+		visText = simReady ? 'Run Visualisation' :
+			visText;	
 
-		const vzReadyStyle = simReady ? '' : styles.vizNotReady;
+		const vzReadyStyle = simReady || runReady ? '' : styles.vizNotReady;
 
 		const tDisp = tdata === null ? 
 			/*
@@ -130,12 +182,12 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 			*/
 			<></>:
 			<div className={styles.dataSegment}>
-				<header>T Source Info:</header>
+				<header>Last Run - T Source Info:</header>
 				{tdata}
 			</div>
 
 		const renResult = !cuDetailsReady ? 
-			(<div>
+			(<div className={styles.nodePanel}>
 			 	<header>
 				<div>Id: {nName}</div> 
 				<div>Type: {nKind}</div>
@@ -146,7 +198,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 				<div className={styles
 					.dataSegment}>
 					<header>
-					Volumes:
+					Global Volumes:
 					</header>
 
 					<div><span>Reg.Vol: </span>
@@ -171,9 +223,8 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 					<button className={`${styles
 						.vizButton} ${vzReadyStyle}`}
 						onClick={(_) => {
-					this
-					.gotoVisualiserWithData(
-						cuObj)}}>
+						this.actionOnNode(ndata.nodeData,
+								 runReady, simReady)}}>
 					{visText}</button>
 				</div>
 			 </div>)

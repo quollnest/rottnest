@@ -2,7 +2,8 @@ import React, { ReactElement, useEffect, useMemo, useRef, useState } from "react
 import style from '../styles/CGChart.module.css';
 import * as d3 from "d3";
 import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
-import { CallGraphStatsData, CGSample, CUDataKey, CUDataKeyRef, CUScaleKeyRef, CUWidgetKeyRef, WidgetSelectorProps } from "./ChartData";
+import { CallGraphStatsData, CUAggrKey, CUDataKey, CUDataKeyRef, CUScaleKeyRef, 
+	DataAggregate, DataAggrIdentifier, DataAggrMap } from "./ChartData";
 
 
 const onNodeClick = () => {
@@ -27,7 +28,7 @@ const CircleColorList: Array<string> = [
 	'#b1ee28',
 ]
 
-const WidgetSelector = (props: WidgetSelectorProps): ReactElement => {
+/*const WidgetSelector = (props: WidgetSelectorProps): ReactElement => {
 	const selected = props.currentKeyRef.keyvalue;
 	const keyRefUpdate = props.keyRefUpdate;
 
@@ -38,6 +39,39 @@ const WidgetSelector = (props: WidgetSelectorProps): ReactElement => {
 	const options = props.optPairs.map((e, i) => {
 		return (
 			<option key={`cline_${i}`} 
+				value={e.value}>{e.display}</option>
+		);
+	});
+
+	return (<div className={style.chartSel}>
+		<select value={selected} onChange={onOptionChange}
+			className={style.optionStyle}>
+			{options}
+		</select>
+	       </div>)
+}*/
+type CacheSelectorProps = {
+	currentKeyRef: CUScaleKeyRef 
+	keyRefUpdate: (key: string) => void
+	optPairs: Array<{
+		value: string 
+		display: string
+	}>
+}
+
+const CacheSelector = (props: CacheSelectorProps): ReactElement => {
+
+	const selected = props.currentKeyRef.keyvalue;
+	
+	const keyRefUpdate = props.keyRefUpdate;
+
+	const onOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		keyRefUpdate(e.currentTarget.value);
+	};
+	
+	const options = props.optPairs.map((e, i) => {
+		return (
+			<option key={`cacsel_${i}`} 
 				value={e.value}>{e.display}</option>
 		);
 	});
@@ -123,18 +157,21 @@ const ChartSelector = (props: ChartSelectorProps): ReactElement => {
 }
 
 const GenerateLine = (
-	data: Array<CGSample>,
+	data: DataAggregate,
 	xScale: d3.ScaleLinear<number, number>,
 	yScale: d3.ScaleLinear<number, number> | d3.ScaleLogarithmic<number, number>, 
-	selKey: CUDataKey,
+	selKey: CUAggrKey,
 	colorStr: string,
-	key: string):  ReactElement => {
+	key: string, idx: number):  ReactElement => {
+
+	
 
 	const lbuilder = d3
-			.line<CGSample>()
-			.x((d) => xScale(d.widgetIdx))
-			.y((d) => yScale(d.cuVolume[selKey]));
-	const lres = lbuilder(data);
+			.line<DataAggrIdentifier>()
+			.x((d) => xScale(d.mxid))
+			.y((d, ids) => yScale(data.aggrMap[selKey][ids]));
+	//console.log(data.aggrMap[selKey][idx]);
+	const lres = lbuilder(data.idxs);
 	return (<path
 		    key={key}
 		    className={style.cgline}
@@ -148,16 +185,16 @@ const GenerateLine = (
 
 const GenerateNodes = (
 	lIdent: number,
-	data: Array<CGSample>,
+	data: DataAggregate,
 	xScale: d3.ScaleLinear<number, number>,
 	yScale: d3.ScaleLinear<number, number>, 
-	selKey: CUDataKey,
+	selKey: CUAggrKey,
 	colorStr: string,
 	bmap: WorkspaceBufferMap): Array<ReactElement> => {
 
 	const cnode = bmap.get('current_chart_idx');
 	let selectedIdx = -1;
-	let selectedRefId = '';
+	let selectedRefId = -1;
 	let selectedLine = -1;
 	if(cnode) {
 		const jcnode = JSON.parse(cnode);
@@ -168,36 +205,45 @@ const GenerateNodes = (
 		}
 	}
 
-	return data.map((sample, i) => {
-		const onNodeHoverTrigger = () => {
-			bmap.insert('current_node', 
-			JSON.stringify({
-				idx: sample.refId 
-			}));
+	return data.idxs.map((sample, i) => {
+		
+		const onNodeHoverTrigger = (isCuid: boolean) => {
+			if(isCuid) {
+				bmap.insert('current_node',
+				JSON.stringify({
+					idx: sample.cuid
+				}));
+			}
 			bmap.insert('current_chart_idx', 
 			JSON.stringify({
 				idx: i,
-				refIdx: sample.refId,
+				refIdx: sample.mxid,
 				selKey: selKey,
 				lineIdx: lIdent,
 			}));
 			bmap.commit();
 		}
-		const selStyle = (selectedIdx === i) &&
-			(selectedRefId === sample.refId) &&
-			(selectedLine === lIdent)? 
+		const mxid = sample.mxid;
+		const isCuidObj = (sample.cuid !== null && sample.cuid !== undefined)
+		const selectedObj = (selectedIdx === i) &&
+			(selectedRefId === sample.mxid) &&
+			(selectedLine === lIdent);
+		const selStyle = !isCuidObj ? style.cuObjectNotCuidSelected : selectedObj ? 
 			style.cuObjectSelected : '';
+		const actionMouseOver = sample.cuid !== null ||
+			sample.cuid !== undefined ? onNodeHoverTrigger :
+			(_gg: any) => {};
 		
 		return (<circle
 			key={`circ_${i}`}
-			cx={xScale(sample.widgetIdx)}
-			cy={yScale(sample.cuVolume[selKey])}
+			cx={xScale(mxid)}
+			cy={yScale(data.aggrMap[selKey][i])}
 			r={5}
 			stroke={colorStr}
 		        fill={colorStr}
 		        strokeWidth={2}
 			className={`${style.cuObject} ${selStyle}`}
-			onMouseOver={onNodeHoverTrigger}
+			onMouseOver={() => actionMouseOver(isCuidObj)}
 			onClick={onNodeClick}
 			/>
 		)
@@ -206,22 +252,65 @@ const GenerateNodes = (
 
 
 const ChartOptionPairs = [
+	{ value: 'ALL', display: 'All'},
 	{ value: 'REGISTER_VOLUME', display: 'Register Volume'},
 	{ value: 'FACTORY_VOLUME', display: 'Factory Volume'},
 	{ value: 'ROUTING_VOLUME', display: 'Routing Volume'},
-	{ value: 'T_IDLE_VOLUME', display: 'T-Idle Volume'}
+	{ value: 'T_IDLE_VOLUME', display: 'T-Idle Volume'},
+	{ value: 'BELL_IDLE_VOLUME', display: 'Bell-Idle Volume'},
+	{ value: 'BELL_ROUTING_VOLUME', display: 'Bell-Routing Volume'}
 ];
+
+type HDatKind = {
+	hlen: number
+	hArr: Array<number> 
+	hIdx: number
+}
+
+function ToggleCacheData(data: DataAggregate, cacheOn: boolean): DataAggregate {
+	if(cacheOn) {
+		return data;
+	}
+	const aggrData = [[],[],[],[],[],[]]
+	const daggr : DataAggregate = {
+		idxs: [],
+		aggrMap: {
+			REGISTER_VOLUME: aggrData[0],
+			FACTORY_VOLUME: aggrData[1],
+			ROUTING_VOLUME: aggrData[2],
+			T_IDLE_VOLUME: aggrData[3],
+			BELL_IDLE_VOLUME: aggrData[4],
+			BELL_ROUTING_VOLUME: aggrData[5],
+		},
+		dataRefs: aggrData
+	}
+	for(let i = 0; i < data.idxs.length; i++) {
+		const idref = data.idxs[i];
+		if(idref.cuid !== null) {
+			for(let j = 0; j < daggr.dataRefs.length; j++) {
+				const dref = daggr.dataRefs[j];
+				dref.push(data.dataRefs[j][i]);
+			}
+			daggr.idxs.push(idref);
+		}
+	}
+	return daggr;
+}
 
 export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 
-	const data = props.graphData;
-	const nCols = data.map(() => CircleColorList[Math.floor((Math.random() 
+	const [cacheref, setCacheRef] = useState<CUScaleKeyRef>({keyvalue: 'ON'});
+	const cacheIncluded = cacheref.keyvalue === 'ON';
+	
+	const data = ToggleCacheData(props.graphData, cacheIncluded);
+	const keyset = Object.keys(data.aggrMap);
+	const nCols = data.idxs.map(() => CircleColorList[Math.floor((Math.random() 
 								 * CircleColorList.length))])
-	const nLins = data.map(() => LineColorList[Math.floor((Math.random() 
+	const nLins = data.idxs.map(() => LineColorList[Math.floor((Math.random() 
 							       * LineColorList.length))])
 	const bmap = props.workspaceData.bufferMap;
 	const [keyref, setKeyRef] = useState<CUDataKeyRef>({ keyvalue: props.selKey });
-	const [lineref, setLineRef] = useState<CUWidgetKeyRef>({ keyvalue: -1 });
+	//const [lineref, setLineRef] = useState<CUWidgetKeyRef>({ keyvalue: -1 });
 	const [scaleref, setScaleRef] = useState<CUScaleKeyRef>({keyvalue: 'Linear'});
 	const [lineCol, _setLineCol] = useState<Array<string>>(nLins);
 	const [nodeCol, _setNodeCol] = useState<Array<string>>(nCols);
@@ -236,32 +325,40 @@ export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 	const height = props.dimensions.height;
 	const boundsWidth = width - mWidth;
 	const boundsHeight = height - mHeight;
-	const selKey = (keyref.keyvalue) as CUDataKey;
+	//const selKey = (keyref.keyvalue) as CUDataKey;
 	const scaleFnStr = scaleref.keyvalue;
 	
-	const [wDat, _wLen] = data.map((e,i) => [e,i] as [CGSample[], number])
+	const [wDat, _wLen] = [data.idxs, data.idxs.length];
+	/*const [wDat, _wLen] = data.idxs.map((e,i) => [e,i] as [DataAggrIdentifier, number])
 		.reduce((p, c, _, _a) => {
 			return p[0].length > c[0].length ? p : c; 
+		});*/
+	//TODO: Apparently the TS devs have not worked out this expression
+	//with their parser >.>
+	const { hArr } = data.dataRefs.map((e,i) => {
+			return { hlen: Math.max(...e), hArr: e, hIdx: i } as HDatKind; 
+		}).reduce((p: HDatKind, c: HDatKind, _, _a) =>  {
+
+			if(p.hlen > c.hlen) {
+				return { hlen: p.hlen, hArr: p.hArr, hIdx: p.hIdx } as HDatKind;
+			} else {
+				return { hlen: c.hlen, hArr: c.hArr, hIdx: c.hIdx} as HDatKind;
+			}
 		});
 
-	const [_, hDat, _hIdx]: [number, CGSample[], number] = data.map((e,i) => {
-			const hLen = e
-				.map((t) => t.cuVolume[selKey])
-				.reduce((p,c) => p+c);
-			return ([hLen,e, i]) as [number, CGSample[], number];
-			
-		})
-		.reduce((p, c, _, _a) => {
-			return p[0] > c[0] ? p : c;	
-		});
-	const [xMin, xMax] = d3.extent(wDat, (d: CGSample) => d.widgetIdx);	
-	const xScale = useMemo(() => {
-		return d3.scaleLinear()
+	let hDat = hArr;
+	if(keyref.keyvalue !== 'ALL') {
+		const akey = keyref.keyvalue as keyof DataAggrMap;
+		if(akey) {
+			hDat = data.aggrMap[akey];
+		}
+	}
+	const [xMin, xMax] = d3.extent(wDat, (d: DataAggrIdentifier) => d.mxid);	
+	const xScale = d3.scaleLinear()
 		.domain([xMin || 0, xMax || 0])
-		.range([0, boundsWidth])
-	}, [data, width]);
+		.range([0, boundsWidth]);
 
-	const [yMin, yMax] = d3.extent(hDat, (d: CGSample) => d.cuVolume[selKey]);
+	const [yMin, yMax] = d3.extent(hDat, (d: number) => d);	
 	const scaleFn = scaleFnStr === 'Linear' ? d3.scaleLinear : d3.scaleLog;
 	const yScale = scaleFn() 
 		.domain([yMin || 0, yMax || 0])
@@ -294,46 +391,54 @@ export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 	const keyrefUpdate = (key: string) => {
 		setKeyRef({ keyvalue: key });
 	}
-	const linrefUpdate = (key: number) => {
+	/*const linrefUpdate = (key: number) => {
 		setLineRef({ keyvalue: key });
-	}
-	const scalerefUpdate = (key: string) => {
+	}*/
+	/*const scalerefUpdate = (key: string) => {
 		setScaleRef({ keyvalue: key });
+	}*/
+
+	const cacheRefUpdate = (key: string) => {
+		setCacheRef({ keyvalue: key });
 	}
-
-
-	const circs = data.map((d, idx) => { 
+	const circs = data.dataRefs.map((d, idx) => { 
+		//if(keyref.keyvalue === 'All' || akey === data.aggrMap[) {
+		//	return GenerateNodes(idx, data, xScale, yScale, selKey, lineCol[idx], bmap)
+		const refKey = keyref.keyvalue === 'ALL' ? keyset[idx] : keyref.keyvalue;
+		const akey = refKey as keyof DataAggrMap;
 		
-		if(lineref.keyvalue === -1 || lineref.keyvalue === idx) {
-			return GenerateNodes(idx, d, xScale, yScale, selKey, lineCol[idx], bmap)
+		if(keyref.keyvalue === 'ALL' || d === data.aggrMap[akey]) { 	
+		   return GenerateNodes(idx, data, xScale, yScale, akey, lineCol[idx], bmap)
 		} else {
 			return <></>
 		}
 	});
-	const lines = data.map((d, idx) => {
+	const lines = data.dataRefs.map((d, idx) => {
 		const key = `lin_${idx}`;
-		if(lineref.keyvalue === -1 || lineref.keyvalue === idx) {
-			return GenerateLine(d, xScale, yScale, selKey, nodeCol[idx], key);
+		const refKey = keyref.keyvalue === 'ALL' ? keyset[idx] : keyref.keyvalue;
+		const akey = refKey as keyof DataAggrMap;
+		if(keyref.keyvalue === 'ALL' || d === data.aggrMap[akey]) { 	
+			return GenerateLine(data, xScale, yScale, akey, nodeCol[idx], key, idx);
 		} else {
 			return <></>
 		}
 	});
-	const idxes = [{value:-1,display:'All'}]
-		.concat(data.map((_, idx) => { return {value: idx, display: `${idx+1}`} }));
+	//const idxes = [{value:-1,display:'All'}]
+	//	.concat(data.map((_, idx) => { return {value: idx, display: `${idx+1}`} }));
 
-	const scaleOpts = [{value: 'Linear', display: 'Linear'}, {value: 'Log', display: 'Log'}];
+	const cacheOpts = [{value: 'ON', display: 'Cached Included'}, 
+		{value: 'OFF', display: 'Cached Removed'}];
+	//const scaleOpts = [{value: 'Linear', display: 'Linear'}, {value: 'Log', display: 'Log'}];
 	return (
 		<div className={style.graphContainer}>
 			<div className={style.cgvisTab}>
 			<ChartSelector optPairs={ChartOptionPairs} 
 				currentKeyRef={keyref}
 				keyRefUpdate={keyrefUpdate}/>
-			<WidgetSelector optPairs={idxes} 
-				currentKeyRef={lineref}
-				keyRefUpdate={linrefUpdate}/>
-			<ScaleSelector optPairs={scaleOpts} 
-				currentKeyRef={scaleref}
-				keyRefUpdate={scalerefUpdate}/>
+			<CacheSelector optPairs={cacheOpts} 
+				currentKeyRef={cacheref}
+				keyRefUpdate={cacheRefUpdate}/>
+		
 			</div>
 			<div>
 			<svg width={width} height={height}>

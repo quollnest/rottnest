@@ -231,7 +231,7 @@ class CGObject extends React.Component<CGDispData,
 
 	onNodeMouseDown(e: React.MouseEvent<HTMLDivElement>) {
 		const btn = e.button;
-
+		
 		if(btn === 1) {
 			
 			const nx = e.clientX;
@@ -249,27 +249,57 @@ class CGObject extends React.Component<CGDispData,
 			this.setState(nState);
 
 		} else if(btn === 0) {
-			if(this.props.cuReqData === null ||
-			  this.props.cuReqData.status 
-				!== 'complete') {
-				this.apservice.sendObj('get_graph', {
-					'gid': this.data.idx
-				});
-				this.state.cuReady = true;
-				this.state.dataReady = true;
-			}
-			let nnode = {
-				idx: this.data.idx
-			};
-			const nstr = JSON.stringify(nnode);
-			this.data.bufferMap
-				.insert('root_node',
-					nstr);	
-			this.data.bufferMap
-				.insert('next_node',
-					nstr);
 
-			this.data.bufferMap.commit();
+			const bmap = this.props.wdaggr.workspaceData.bufferMap;
+			let expands = true;
+			const chdata = JSON.parse(bmap
+					.get('cgviz_chart_gid_data'));
+			if(chdata) {
+				expands = chdata.expands;			
+			}
+			console.log(chdata);	
+			if(expands) {
+				if(this.props.cuReqData === null ||
+				  this.props.cuReqData.status 
+					!== 'complete') {
+					this.apservice.sendObj('get_graph', {
+						'gid': this.data.idx
+					});
+					this.state.cuReady = true;
+					this.state.dataReady = true;
+				}
+				const gidx = this.data.idx;
+				let nnode = {
+					idx: gidx
+				};
+				const nstr = JSON.stringify(nnode);
+				this.data.bufferMap
+					.insert('root_node',
+						nstr);	
+				this.data.bufferMap
+					.insert('next_node',
+						nstr);
+
+				this.data.bufferMap.commit();
+			} else {
+				const container = this.props.wdaggr
+					.workspaceData.container;
+				
+				const gidx = this.data.idx;
+				const ifReqd = container.getRRBuffer()
+					.checkIfRequested(gidx);
+				const ifFin = container.getRRBuffer()
+					.checkIfFinished(gidx);
+				bmap.insert('viz_sim_data',
+					JSON.stringify({
+						simready: false,
+						runready: true,
+						runrequested: ifReqd,
+						runfinished: ifFin,
+					})
+				);
+				bmap.commit();
+			}
 		}	
 
 	}		
@@ -536,13 +566,7 @@ export class CallGraphSpace extends
 							idx: expGid
 
 						}));
-				if(!expands) { //Need to know about vizualiser
-					appService.sendObj('run_graph_node', {
-						gid: expGid
-					})
-				}
-				//Identify if we should expand
-				
+			
 
 				//TODO:
 				// Reset the call_graph
@@ -570,17 +594,53 @@ export class CallGraphSpace extends
 				//the msg to be sent for
 				//get_graph
 								
-				container.state.visData = jsonObj;
+				/*container.state.visData = jsonObj;
 				container.state.tabData
 				.availableTabs[2]
-					= true;
-				this.props.bufferMap
+					= true;*/
+
+				let rrBuf = container.getRRBuffer();
+
+			
+				//A lot of heavy lifting done with this
+				//to address a terrible messaging system
+				const [rkind, mdat] = rrBuf.decodeAndSort(jsonObj
+									  .payload);
+				let shouldUpdate = false;
+				if(rkind === "CUIDObj" || rkind === "CUIDTotal") {
+					container.state.tabData
+					.availableTabs[3]
+						= true;
+					container.state.tabData
+					.availableTabs[1]
+						= true;
+					shouldUpdate = true;
+				}
+					
+				   	
+				if(rkind === "VisualResult") {
+					console.log("Attaching to container");
+					console.log(mdat);
+					container.state.visData = mdat;
+					container.state.tabData
+					.availableTabs[2]
+						= true;
+					this.props.bufferMap
 					.insert('viz_sim_data',
 						JSON.stringify({
 							simready: true 
 						})
 					);
+					shouldUpdate = true;
 
+
+				}
+
+				if(shouldUpdate) {
+					container.triggerUpdate();
+				}
+
+				
 			}
 		}
 	}
@@ -998,16 +1058,18 @@ export class CallGraphSpace extends
 					);*/
 				} else {
 					const requestGraph = () => {
-					cgref.props.bufferMap
-						.insert('reset_rlist',
-						JSON.stringify({ reset: true }));
+						
+							
+						bmap.insert('reset_rlist',
+							JSON.stringify({ reset: true }));
 
-					const aps = cgref.appService;
-					cgref.resetState();
-					aps.sendObj('get_root_graph', JSON.stringify(
-						{ gid: 0 }
-					));
-				}
+						const aps = cgref.appService;
+						cgref.resetState();
+						aps.sendObj('get_root_graph', JSON.stringify(
+							{ gid: 0 }
+						));
+						
+					}
 
 
 				return (

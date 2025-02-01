@@ -104,7 +104,9 @@
 	margin-top: 10px;
 }
 
-
+.nodePanel {
+	word-wrap: break-word;
+}
 
 .widgetObjectBody {
 	

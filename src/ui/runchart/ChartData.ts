@@ -1,11 +1,35 @@
 import {WorkspaceData} from "../workspace/Workspace";
 import {CUVolume} from "../../model/CallGraph";
+
 export type CUDataKey = keyof CUVolume;
+export type CUAggrKey = keyof DataAggrMap;
 
 export type CGSample = {
 	refId: string
 	widgetIdx: number
 	cuVolume: CUVolume 
+}
+export type DataAggrMap = {
+	REGISTER_VOLUME: Array<number>
+	FACTORY_VOLUME: Array<number>
+	ROUTING_VOLUME: Array<number>
+	T_IDLE_VOLUME: Array<number>
+	BELL_IDLE_VOLUME: Array<number>
+	BELL_ROUTING_VOLUME: Array<number>
+	//NON_PARTICIPATORY_VOLUME: Array<number>
+}
+
+export type DataAggrIdentifier = {
+	mxid: number
+	cuid: number | null
+	hash: string | null
+}
+
+export type DataAggregate = {
+	idxs: Array<DataAggrIdentifier>
+	aggrMap: DataAggrMap	
+	dataRefs: Array<Array<number>>
+
 }
 
 export type CGMargins = {
@@ -15,6 +39,8 @@ export type CGMargins = {
 	right: number
 }
 
+
+
 export type CGChartDimensions = {
 	wUnit: string
 	width: number
@@ -23,15 +49,20 @@ export type CGChartDimensions = {
 	margins: CGMargins
 }
 
+export type RunChartProps = {
+	workspaceData: WorkspaceData 
+
+}
+
 export type CallGraphSpaceData = {
 	workspaceData: WorkspaceData 
-	graphData: Array<Array<CGSample>>
+	//graphData: Array<Array<CGSample>>
 	selKey: string 
 }
 
 export type CallGraphStatsData = {
 	workspaceData: WorkspaceData
-	graphData: Array<Array<CGSample>>
+	graphData: DataAggregate	
 	selKey: CUDataKey
 	dimensions: CGChartDimensions	
 }

@@ -3,11 +3,12 @@ import style from './styles/SchedulerVisual.module.css'
 import {WorkspaceData} from './workspace/Workspace';
 
 export function SchedulerVisualiser(props: WorkspaceData) {
-	
+	const bmap = props.bufferMap;
+	const vizDataStr = bmap.get('current_viz_data');
+	const vizData = JSON.parse(vizDataStr);
 	function iframeLoaded() {
 		iframeRef.current?.contentWindow?.postMessage(
-			props.container.state
-				.visData.payload.vis_obj, "*");
+			vizData.vis_obj, "*");
 	}
 		
 	const iframeRef = useRef<HTMLIFrameElement>(null);

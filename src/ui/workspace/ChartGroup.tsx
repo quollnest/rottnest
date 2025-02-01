@@ -1,17 +1,16 @@
-import { CallGraphSpace } from "../callgraph/CallGraphSpace";
 import { WorkspaceGroup, WorkspaceProps } from "./Workspace"
 import {ReactElement} from "react";
 import {WorkspaceZone} from "./WorkspaceZone";
 import {CGGraphColumn, CGNodeColumn} 
 	from "../callgraph/CallGraphColumn";
-import {RunChartSpace} from "../runchart/RunChart";
+import {RunChartContainer} from "../runchart/RunChart";
 //Originally the WorkspaceContainer
 export class RunChartGroup implements WorkspaceGroup {
 	
 	MakeGroup(data: WorkspaceProps): Array<ReactElement> {
 
-		const wspace = <CallGraphSpace 
-			{...data.workspaceData} />;	
+		const wspace = <RunChartContainer
+			{...data} />;	
 		const group = [
 			<CGGraphColumn 
 			key={"widget_graph_column"} 

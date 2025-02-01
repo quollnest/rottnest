@@ -27,6 +27,7 @@ import {RottRunResultMSG, RouterAggr} from '../../net/Messages.ts';
 import {HelpContainer, HelpBoxData} from './HelpContainer.tsx';
 import {RottCallGraph, RottCallGraphDefault} from '../../model/CallGraph.ts';
 import ErrorDisplay from './ErrorDisplay.tsx';
+import {RunResultBuffer} from '../../model/RunResult.ts';
 
 /**
  * At the moment, nothing interesting
@@ -78,7 +79,8 @@ type RottnestState = {
 	selectedRouterIndex: number
 	errorDisplay: boolean
 	errorMessage: string
-	graphViewData: RottCallGraph 
+	graphViewData: RottCallGraph
+	rrBuffer: RunResultBuffer 
 }
 
 type ComponentMonitor = {
@@ -168,12 +170,13 @@ class RottnestContainer
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, true, false, false],
+			availableTabs: [true, false, false, false],
 			tabNames: ['Architecture', 'Call Graph', 
 				'Visualiser', 'Run Chart']
 		},
 		graphViewData: RottCallGraphDefault(),	
-		visData: {}
+		visData: {},
+		rrBuffer: new RunResultBuffer()
 	};
 	
 	regionStack: RegionsSnapshotStack = 
@@ -190,6 +193,10 @@ class RottnestContainer
 		this.triggerUpdate();
 	}
 	
+	getRRBuffer() {
+		return this.state.rrBuffer;
+	}
+
 	readyAppService() {
 		const appReady = AppServiceModule
 			.ConnectionReady();
@@ -251,18 +258,37 @@ class RottnestContainer
 				//TODO Set the graph id for
 				//the msg to be sent for
 				//get_graph
+				let rrBuf = selfRef.getRRBuffer();
 
 				let json = m.interpretedData; 
+			
+				//A lot of heavy lifting done with this
+				//to address a terrible messaging system
+				const [rkind, mdat] = rrBuf.decodeAndSort(json.payload);
 				//appService
 				//	.sendObj('get_graph','');
-				selfRef.state.visData = json;
-				selfRef.state.tabData
-				.availableTabs[2]
-					= true;
-				selfRef.triggerUpdate();
-
-
-
+				
+				let shouldUpdate = false;
+				if(rkind === "CUIDObj" || rkind === "CUIDTotal") {
+					selfRef.state.tabData
+					.availableTabs[3]
+						= true;
+					
+					selfRef.state.tabData
+					.availableTabs[1]
+						= true;
+					shouldUpdate = true;
+				}
+				if(rkind === "VisualResult") {
+					selfRef.state.visData = mdat;
+					selfRef.state.tabData
+					.availableTabs[2]
+						= true;
+					shouldUpdate = true;
+				}
+				if(shouldUpdate) {
+					selfRef.triggerUpdate();
+				}
 				//This needs to trigger
 				//a retrieval on get_graph
 			}

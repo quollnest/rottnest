@@ -20,6 +20,12 @@
 	border-bottom: 1px #35332f solid;
 }
 
+.cuObjectNotCuidSelected:hover {
+
+	stroke: blue !important;
+	fill: blue !important;
+}
+
 .cuObjectSelected {
 	stroke: red;
 	fill: red;
