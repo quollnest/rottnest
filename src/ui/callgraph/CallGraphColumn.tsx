@@ -159,40 +159,45 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 				<header>Last Run - Tocks Info:</header>
 				<div>
 					<span>
-					Graph-State: 
+					Graph-State
 					</span>
+					<span>: </span>
 					<span>
 					{cuTocks.graph_state}
 					</span>
 				</div>
 				<div>
 					<span>
-					Bell Input: 
+					Bell Input 
 					</span>
+					<span>: </span>
 					<span>
 					{cuTocks.bell}
 					</span>
 				</div>
 				<div>
 					<span>
-					T-Schedule: 
+					T-Schedule
 					</span>
+					<span>: </span>
 					<span>
 					{cuTocks.t_schedule}
 					</span>
 				</div>
 				<div>
 					<span>
-					Bell Output: 
+					Bell Output
 					</span>
+					<span>: </span>
 					<span>
 					{cuTocks.bell2}
 					</span>
 				</div>
 				<div>
 					<span>
-					Total: 
+					Total 
 					</span>
+					<span>: </span>
 					<span>
 					{cuTocks.total}
 					</span>
