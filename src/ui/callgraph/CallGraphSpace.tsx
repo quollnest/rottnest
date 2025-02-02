@@ -76,6 +76,9 @@ type CGViewState = {
 	cunitMap: Map<string, CUReqResult>
 	//registerMap: Map<string, CGObjectLine>
 	refresh: boolean
+	xOff: number
+	yOff: number
+	moveMode: boolean
 }
 
 type CGLayerEntry = {
@@ -220,8 +223,13 @@ class CGObject extends React.Component<CGDispData,
 
 	onNodeMouseUp(e: React.MouseEvent<HTMLDivElement>) {
 
+		const bmap = this.props.wdaggr.workspaceData.bufferMap;
 		const btn = e.button;
 		if(btn === 1) {
+
+			bmap.insert('inner_mouse_event', JSON.stringify({
+				innerMove:false 
+			}))	
 			let nState = {...this.state};
 			nState.moveMode = false;
 			this.setState(nState);
@@ -230,9 +238,12 @@ class CGObject extends React.Component<CGDispData,
 
 	onNodeMouseDown(e: React.MouseEvent<HTMLDivElement>) {
 		const btn = e.button;
-		
-		if(btn === 1) {
 			
+		const bmap = this.props.wdaggr.workspaceData.bufferMap;
+		if(btn === 1) {
+			bmap.insert('inner_mouse_event', JSON.stringify({
+				innerMove: true
+			}))	
 			const nx = e.clientX;
 			const ny = e.clientY;
 			this.state.x = nx;
@@ -249,14 +260,12 @@ class CGObject extends React.Component<CGDispData,
 
 		} else if(btn === 0) {
 
-			const bmap = this.props.wdaggr.workspaceData.bufferMap;
 			let expands = true;
 			const chdata = JSON.parse(bmap
 					.get('cgviz_chart_gid_data'));
 			if(chdata) {
 				expands = chdata.expands;	
 			}
-			console.log(chdata);	
 			if(expands) {
 				if(this.props.cuReqData === null ||
 				  this.props.cuReqData.status 
@@ -314,19 +323,26 @@ class CGObject extends React.Component<CGDispData,
 			widgetObj : RottCallGraphEntryDefault();
 		
 		let x = `${this.state.x-25}`;
-		let y = `${this.state.y-25}`;
-		let sObj = { left: `${x}px`,top: `${y}px`,
+		
+		let ypx = `${this.state.y-25}`;
+		let yperc = `${this.state.y}`;
+		let zIndex = 5;
+		if(this.state.moveMode) {
+			zIndex = 200; //Makes it visible out of others
+		}
+		let sObj = { left: `${x}px`,top: `${ypx}px`,
 			position: 'fixed',
 			minWidth: `${80*(zoomValue/100)}px`,
 			maxWidth: `${80*(zoomValue/100)}px`,
+			zIndex: zIndex
 		} as React.CSSProperties;
 		if(!this.state.actualPosition) {
 
 			x = `${this.state.x}%`;
-			y = `${this.state.y}%`;
+			yperc = `${this.props.y}%`;
 			sObj = {
 				left: `calc(${x} - 25px)`,
-				top: `${y}`,
+				top: `${yperc}`,
 				position: 'absolute',
 				minWidth: `${80*(zoomValue/100)}px`,
 				maxWidth: `${80*(zoomValue/100)}px`,
@@ -334,6 +350,7 @@ class CGObject extends React.Component<CGDispData,
 			} as React.CSSProperties
 
 		}
+		
 		let description = '';
 		let cuId = 'X_X';
 		let compName = 'Compiling';
@@ -477,6 +494,9 @@ export class CallGraphSpace extends
 		srcPositions: new Map(),
 		destPositions: new Map(),
 		refresh: true,
+		xOff: 0,
+		yOff: 0,
+		moveMode: false,
 	}
 
 	resetState() {
@@ -530,7 +550,6 @@ export class CallGraphSpace extends
 					.decodeGraph(asm);
 				let expands = true;
 				let expGid = 'invalid';
-				console.log(jsonObj);
 
 				if(graph) {
 					container.state.graphViewData
@@ -629,8 +648,6 @@ export class CallGraphSpace extends
 					
 				   	
 				if(rkind === "VisualResult") {
-					console.log("Attaching to container");
-					console.log(mdat);
 					container.state.visData = mdat;
 					container.state.tabData
 					.availableTabs[2]
@@ -835,6 +852,7 @@ export class CallGraphSpace extends
 			};
 
 			let cidx = 0;
+			let rowDrop = 0;
 			let prix = '';
 			const rootN = rootList.length;
 			const renderedCGs = 
@@ -863,27 +881,37 @@ export class CallGraphSpace extends
 						let yoff = 0;
 						let sidx = idx+1;
 						let xdiff = 100/(wlLength*2);
-						console.log('xdiff', xdiff);
 						if(lidx === 0) {
-							console.log('is lidx');
 							xdiff = 100/(rootN*2);
 							sidx = cidx+1;
+							let yAdj = 0;
+							/*if(sidx % 2 === 1) {
+								yAdj = 0.5;
+								
+							}*/
 
 							if(xdiff < 1) {
-								if(sidx % 2 === 1) {
-									xdiff = 1;
-									yoff = (Math.random()
-										* 0.5);	
+								
+								/*if(sidx % 2 === 1) {*/
+								if(sidx % 10 > 0) {
+									xdiff = 10+(-0.5);
+									yoff = rowDrop * 0.5;
+										
 								} else {
-									xdiff = 0.5 
-									+ (Math.random() * 2);
+									cidx = 0;
+									xdiff = 10+(-0.5);
+									yoff = rowDrop * 0.5;
+									rowDrop+=1;
+									//xdiff = 0.5; 
+										
 								}
 							}
+							yoff += yAdj;
 						}
-						console.log('now: ', xdiff, rootN, rootN*2)	
-						let xperc = xdiff * (sidx);
-						let xdisp = (xperc * (idx +1)) + 
-							(xperc * idx);
+						let xperc = xdiff * (cidx+1);
+						//let xdisp = (xperc * (idx +1)) + 
+						///	(xperc * idx);
+						let xdisp = xperc;
 						if(xdisp > 100 && lidx === 0) {
 							const rowOff = Math.floor(xdisp) % 100;	
 							xdisp = rowOff;				
@@ -894,14 +922,12 @@ export class CallGraphSpace extends
 						const distCU = cuVal !== null 
 						&& cuVal !== undefined ?
 							cuVal : null;
-
-						console.log(xdisp);
-						console.log(yoff);
 						const wdispData : CGDispData = {
 							wdaggr: waggr,
 							index: w.entryIdx,
 							x: xdisp,
 							y: yoff,
+
 							selectedIdx: selectedIndex,
 							cuReqData: distCU,
 							cuId: wname === undefined 
@@ -914,7 +940,7 @@ export class CallGraphSpace extends
 						const pIdx = prix;
 						const pDepth = wl.depth+1;
 						//if( w.entryIdx) {	
-							this.state.dispPositions.set(
+						/*	this.state.dispPositions.set(
 								w.entryIdx,
 								{
 									x: wdispData.x,
@@ -936,7 +962,7 @@ export class CallGraphSpace extends
 								w.entryIdx,
 								new Map()
 							);
-						//}
+						//}*/
 						return (<CGObject key={`cgobj_${wname}`}
 							{...wdispData}/>)
 					});
@@ -949,7 +975,7 @@ export class CallGraphSpace extends
 			});
 			
 							//Construct svg with lines
-			const svgLines = this.state.dispPositions.entries().map((e, _) => {
+			/*const svgLines = this.state.dispPositions.entries().map((e, _) => {
 				const [k, coords] = e;
 				const x1 = coords.x;
 				const y1 = coords.y;
@@ -1011,17 +1037,61 @@ export class CallGraphSpace extends
 				}
 
 				return cgobjRen;
-			}).toArray();
+			}).toArray();*/
+
+			const mouseDownContainer = (e: React.MouseEvent<HTMLDivElement>) => {
+				const innerState = JSON.parse(bmap.get('inner_mouse_event'));
+				let innerMove = false;
+				if(innerState) {
+					innerMove = innerState.innerMove;
+				}
+
+
+				if(e.button === 1 && !innerMove) {
+					const nState = {...this.state};
+					nState.moveMode = true;
+					this.setState(nState);
+				}
+			};
+			const mouseUpContainer = (e: React.MouseEvent<HTMLDivElement>) => {
+
+				if(e.button === 1) {
+					const nState = {...this.state};
+					nState.moveMode = false;
+					this.setState(nState);
+				}
+			};
+			const mouseMoveContainer = (e: React.MouseEvent<HTMLDivElement>) => {
+				const innerState = JSON.parse(bmap.get('inner_mouse_event'));
+				let innerMove = false;
+				if(innerState) {
+					innerMove = innerState.innerMove;
+				}
+
+				if(this.state.moveMode && !innerMove) {
+					const nState = {...this.state};
+					nState.xOff += e.movementX;
+					nState.yOff += e.movementY
+					this.setState(nState);
+				}
+			};
+
+			const cxoff = this.state.xOff;
+			const cyoff = this.state.yOff;
 			this.state.refresh = false;
 				return (
 					<div className={styles.widgetSpace}
-					style={{height: `${calcdHeight}%`, width:`${zoomValue}%`,
+					style={{height: `${calcdHeight}px`, width:`${zoomValue}%`,
 						fontSize: `${(11*(zoomValue/100))}pt`,
-						}}>	
+						top: `${cyoff}px`, left: `${cxoff}px` 
+						}}
+						onMouseDown={(e) => { mouseDownContainer(e)}}
+						onMouseUp={(e) => { mouseUpContainer(e)}}
+						onMouseMove={(e) => { mouseMoveContainer(e)}}
+						>	
 						{renderedCGs}
 						<svg key={`svg_group`} className={styles
 							.widgetSVGLineStack}>
-							{svgLines}	
 						</svg>
 					</div>
 					)
@@ -1039,10 +1109,9 @@ export class CallGraphSpace extends
 						
 					}
 
-
 				return (
 					<div className={styles.widgetSpace}
-					style={{height: `${calcdHeight}%`}}>
+						style={{height:`${calcdHeight}px`}}>
 						<div className={styles.badGraph}>
 						Unable to load call-graph
 						<div><button className={styles.retryButton}

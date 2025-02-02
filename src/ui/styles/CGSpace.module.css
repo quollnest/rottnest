@@ -98,10 +98,12 @@
 
 .widgetSpace {
 	position: relative;
-	width: 100%;
-	Height: 100%;
+	width: 120%;
+	height: 120%;
 	display: flex;
 	margin-top: 10px;
+	padding-top:5em;
+	border: 1px solid #35332f;
 }
 
 .nodePanel {
