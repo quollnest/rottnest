@@ -29,6 +29,7 @@ type CGNodeColumnData = {
 type CGRootListContainer = {
 	selectedIdx: string
 	bufferMap: WorkspaceBufferMap
+	rootList: Set<string>
 }
 
 
@@ -359,6 +360,7 @@ type RootListItemData = {
 	selected: boolean
 	isFirst: boolean
 	bufferMap: WorkspaceBufferMap
+	refreshCol: (set: Set<string>) => void
 	
 }
 
@@ -371,13 +373,13 @@ class RootListItem
 	bufferMap = this.props.bufferMap;
 	selected = this.props.selected;
 	container = this.props.container;
-	
+	refresh = this.props.refreshCol;
+
 	updateRootNode() {
 		const aps = this.container.commData.appService;
 		if(this.rootIdx === 'root') {
 			this.rlist = new Set(['root']);	
 			aps.sendObj('get_root_graph', {});
-
 			let nnode = {
 				idx: this.rootIdx
 			};
@@ -388,6 +390,30 @@ class RootListItem
 			this.bufferMap
 				.insert('reset_rlist',JSON.stringify({ reset: true }));
 			this.bufferMap.commit();
+		} else {
+			/*const nSet: Set<string> = new Set();
+			let foundRoot = false;
+			this.rlist.values().forEach((e) => {
+				if(e === this.props.idxTup.rootIdx) {
+					nSet.add(e);
+					foundRoot = true;
+				}
+				else {
+					if(!foundRoot) {
+						nSet.add(e);
+					}
+				}
+			});*/
+			/*let nnode = {
+				idx: this.rootIdx
+			};
+			const nstr = JSON.stringify(nnode);
+
+			this.bufferMap
+				.insert('root_node',nstr);
+			aps.sendObj('get_graph',  {gid: this.rootIdx });
+			//this.refresh(nSet);
+			this.bufferMap.commit();*/
 		}
 	}
 
@@ -422,14 +448,25 @@ class RootListItem
 
 }
 
-class CGRootList 
-	extends React.Component<CGRootData, {}> {
-		
+class CGRootList
+	extends React.Component<CGRootData, { rootList: Set<string> }> {
+	
+	state: { rootList: Set<string> } = { rootList: this.props.rootList };
+
 	render() {
+		//if(this.state.rootList.size < this.props.rootList.size) {
+			this.state.rootList = this.props.rootList;
+		//}
 		const bmap = this.props.bufferMap;
-		const rlist = this.props.rootList;
+		const rlist = this.state.rootList; 
 		const selectedIdx = this.props.selectedIdx;
 		const container = this.props.container;
+		const selfRef = this;
+		const refreshColumn = (set: Set<string>) => {
+			console.log(set);
+			selfRef.setState({ rootList: set });
+			console.log("Did you run?");
+		};
 		const dispList = rlist.entries().map((e, i) => {
 			const tup: RootListItemTup = {
 				rootIdx: e[0],
@@ -444,6 +481,7 @@ class CGRootList
 					selected={selected}
 					isFirst={i === 0}
 					bufferMap={bmap}
+					refreshCol={refreshColumn}
 				/>
 			);
 			return obj;
@@ -467,11 +505,11 @@ class CGRootList
 export class CGGraphColumn 
 	extends React.Component<CGGraphData, CGRootListContainer> {
 
-	rootList: Set<string> = new Set(['root']);
 	state: CGRootListContainer = {
 		selectedIdx: '',
 		bufferMap: this.props
-			.workspaceData.bufferMap
+			.workspaceData.bufferMap,
+		rootList: new Set(['root'])
 	}
 
 	render() {
@@ -482,7 +520,7 @@ export class CGGraphColumn
 		//	.get('graph_ref');
 		
 		
-		let rootList = this.rootList;
+		let rootList = this.state.rootList;
 		const dezData = JSON.parse(bufferMap
 					   .get('root_node'));
 		const nextData = JSON.parse(bufferMap
@@ -506,8 +544,8 @@ export class CGGraphColumn
 				bufferMap.insert('reset_rlist', JSON.stringify({
 					reset: false
 				}));
-				this.rootList = new Set(['root']);
-				rootList = this.rootList;
+				this.state.rootList = new Set(['root']);
+				rootList = this.state.rootList;
 				
 			}
 		}

@@ -696,8 +696,6 @@ export class CallGraphSpace extends
 				traversalData[depth]
 				.layerElements.push(element);	
 			}
-			
-
 			//add children
 			for(let i = 0; i < currentCG
 			    .children.length; i++) {
@@ -745,9 +743,6 @@ export class CallGraphSpace extends
 			let y2 = data.y;
 			let pairUnit1 = '%';
 			
-
-
-			
 			for(const [sk, co] of srcObjs) {
 				
 				const coords = co.getCoords();
@@ -768,13 +763,10 @@ export class CallGraphSpace extends
 				} else {
 
 					nPosition.pairUnit1 = coords.pairUnit1;
-					nPosition.x1 = coords.x1;
-					
+					nPosition.x1 = coords.x1;	
 					nPosition.y1 = coords.y1;
-					
 				}
 				co.pushPositionUpdate(nPosition);
-
 			}
 
 		}
@@ -794,7 +786,6 @@ export class CallGraphSpace extends
 					pairUnit2
 
 				};
-
 
 				if(idx === dk) {
 					nPosition.pairUnit2 = 'px';
@@ -827,25 +818,7 @@ export class CallGraphSpace extends
 			workspaceData: this.props
 		}
 		const rootList = this.identifyRoots(
-			graphFromContainer);
-		//Get info related to CGChart
-		/*let gotoCGChart = false;
-		const cgViz= JSON.parse(bmap.get('cgviz_chart_gid_data'));
-		if(cgViz) {
-			gotoCGChart = cgViz.expands;
-		}
-	
-		
-		if(gotoCGChart) {
-
-			const data = [];
-			return (
-				<CGChartSpace graphData={data}
-					workspaceData={cgref.props}
-					selKey={'T_IDLE_VOLUME'}
-				/> 
-			);
-		}*/
+			graphFromContainer);	
 
 		if(rootList.length !== 0) {
 			
@@ -890,33 +863,31 @@ export class CallGraphSpace extends
 						let yoff = 0;
 						let sidx = idx+1;
 						let xdiff = 100/(wlLength*2);
+						console.log('xdiff', xdiff);
 						if(lidx === 0) {
+							console.log('is lidx');
 							xdiff = 100/(rootN*2);
 							sidx = cidx+1;
 
-							if(xdiff < 0.1) {
+							if(xdiff < 1) {
 								if(sidx % 2 === 1) {
 									xdiff = 1;
 									yoff = (Math.random()
-										* 0.1);	
+										* 0.5);	
 								} else {
 									xdiff = 0.5 
 									+ (Math.random() * 2);
 								}
 							}
 						}
-						
+						console.log('now: ', xdiff, rootN, rootN*2)	
 						let xperc = xdiff * (sidx);
 						let xdisp = (xperc * (idx +1)) + 
 							(xperc * idx);
 						if(xdisp > 100 && lidx === 0) {
-							const rowOff = Math.floor(xdisp) % 100;
-							//yoff = rowOff * 1.5 ;
-							
+							const rowOff = Math.floor(xdisp) % 100;	
 							xdisp = rowOff;				
 						}
-
-
 						const cuVal = this.state
 							.cunitMap.get(wname !== undefined ? wname
 								: '');
@@ -924,6 +895,8 @@ export class CallGraphSpace extends
 						&& cuVal !== undefined ?
 							cuVal : null;
 
+						console.log(xdisp);
+						console.log(yoff);
 						const wdispData : CGDispData = {
 							wdaggr: waggr,
 							index: w.entryIdx,
@@ -940,8 +913,7 @@ export class CallGraphSpace extends
 
 						const pIdx = prix;
 						const pDepth = wl.depth+1;
-						
-						if( w.entryIdx) {	
+						//if( w.entryIdx) {	
 							this.state.dispPositions.set(
 								w.entryIdx,
 								{
@@ -951,20 +923,20 @@ export class CallGraphSpace extends
 									parent: pIdx
 								}
 							);
-						}
+						//
 						prix = w.entryIdx;
-						if(!cgref.state.srcPositions.has(w.entryIdx)) {
+						//if(!cgref.state.srcPositions.has(w.entryIdx)) {
 							cgref.state.srcPositions.set(
 								w.entryIdx,
 								new Map()
 							);
-						}
-						if(!cgref.state.destPositions.has(w.entryIdx)) {
+						//}
+						//if(!cgref.state.destPositions.has(w.entryIdx)) {
 							cgref.state.destPositions.set(
 								w.entryIdx,
 								new Map()
 							);
-						}
+						//}
 						return (<CGObject key={`cgobj_${wname}`}
 							{...wdispData}/>)
 					});
@@ -979,7 +951,6 @@ export class CallGraphSpace extends
 							//Construct svg with lines
 			const svgLines = this.state.dispPositions.entries().map((e, _) => {
 				const [k, coords] = e;
-				//const [x1, y1, _d, pname] = coords;
 				const x1 = coords.x;
 				const y1 = coords.y;
 				let pname = coords.parent;
@@ -1046,9 +1017,7 @@ export class CallGraphSpace extends
 					<div className={styles.widgetSpace}
 					style={{height: `${calcdHeight}%`, width:`${zoomValue}%`,
 						fontSize: `${(11*(zoomValue/100))}pt`,
-						}}>
-					
-					
+						}}>	
 						{renderedCGs}
 						<svg key={`svg_group`} className={styles
 							.widgetSVGLineStack}>
@@ -1056,19 +1025,8 @@ export class CallGraphSpace extends
 						</svg>
 					</div>
 					)
-
-					//const data = genData(10);
-					//TODO: Update this part with real data
-					/*const data = PreMadeData;
-					return (
-						<CGChartSpace graphData={data}
-							workspaceData={cgref.props}
-							selKey={'T_IDLE_VOLUME'}
-						/> 
-					);*/
 				} else {
 					const requestGraph = () => {
-						
 							
 						bmap.insert('reset_rlist',
 							JSON.stringify({ reset: true }));
