@@ -255,7 +255,7 @@ class CGObject extends React.Component<CGDispData,
 			const chdata = JSON.parse(bmap
 					.get('cgviz_chart_gid_data'));
 			if(chdata) {
-				expands = chdata.expands;			
+				expands = chdata.expands;	
 			}
 			console.log(chdata);	
 			if(expands) {

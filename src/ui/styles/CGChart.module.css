@@ -47,6 +47,36 @@
 	flex-direction: column;
 }
 
+.legendEntry {
+	display: inline;
+	margin-left: 1em;
+	padding: 0.2em;
+	border-radius: 5px;
+	border: 1px #35332f solid 
+}
+
+
+.legendBox {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-left: 0.25em;
+}
+
+.fadedEntry {
+	color: #555555 !important;
+}
+
+.legendContainer {
+	display: flex;
+	padding-bottom: 1em;
+	justify-content: center;
+}
+.legendEntry:hover {
+	background-color: #35332f;
+	border: 1px #35332f solid 
+}
+
 .nodesComponent {
 	display: flex;
 	flex: 1;

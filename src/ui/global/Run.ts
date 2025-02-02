@@ -5,12 +5,14 @@ import { RottArchMSG } from "../../net/Messages";
 
 const leftClick = (container: RottnestContainer) => {
 	const rottContainer = container;
+	const rrBuf = rottContainer.getRRBuffer();
 	const appService = rottContainer.commData.appService;
 	const projAssembly = rottContainer.getProjectAssembly();
 	const tschedProject 
 		= ArchConverter.ToTSched(projAssembly);
 	
-	if(tschedProject) {	
+	if(tschedProject) {
+		rrBuf.reset();
 		appService.submitArch(
 			new RottArchMSG(tschedProject))
 	}

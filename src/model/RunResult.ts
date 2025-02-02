@@ -76,16 +76,18 @@ export class RunResultBuffer {
 
 	isHashVolumes(jsonObj: any): boolean {
 		const noCUID = !this.isCUIDObj(jsonObj);
-		const hasMoreThan1Key = Object.keys(jsonObj).length > 1;
-		return noCUID && hasMoreThan1Key;
+		const hasTSource = jsonObj.t_source !== undefined;
+		const hasVolumes = jsonObj.volumes !== undefined;
+		const hasTocks = jsonObj.tocks !== undefined;
+		return noCUID && hasTocks && hasTSource && hasVolumes;
 	}
 
 	isCacheHashOnly(jsonObj: any): boolean {
 		
 		const noCUID = !this.isCUIDObj(jsonObj);
-		const has1Key = Object.keys(jsonObj).length === 1;
+		const hasVolumes = jsonObj.volumes !== undefined;
 		const keyIsCache = jsonObj.cache_hash_hex !== undefined;
-		return noCUID && has1Key && keyIsCache;
+		return noCUID && hasVolumes && keyIsCache;
 	}
 
 	decodeAndSort(jsonObj: any): [RunResultKind, any] {

@@ -21,7 +21,8 @@ export type CUVolume = {
 	T_IDLE_VOLUME: number
 	BELL_IDLE_VOLUME: number
 	BELL_ROUTING_VOLUME: number
-	NON_PARTICIPATORY_VOLUME?: number
+	NP_VOLUME?: number
+	
 }
 
 export type CUTocks = {
@@ -146,7 +147,6 @@ export function CGResultDummy(): CGResult {
 		volumes: CUVolumeDummy(),
 		tSource: CUSourceDummy(),
 		tocks: CUTocksDummy(),
-		visObj: null,
 		status: 'Invalid',
 		cuID: 'X_X',
 		npQubits: 0,

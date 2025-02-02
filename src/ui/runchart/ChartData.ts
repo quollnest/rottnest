@@ -25,7 +25,15 @@ export type DataAggrIdentifier = {
 	hash: string | null
 }
 
+export type MinMaxSet = {
+	minX: number
+	maxX: number
+	minY: number
+	maxY: number
+}
+
 export type DataAggregate = {
+	globalMinMax: MinMaxSet
 	idxs: Array<DataAggrIdentifier>
 	aggrMap: DataAggrMap	
 	dataRefs: Array<Array<number>>

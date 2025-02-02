@@ -94,7 +94,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 
 	render() {
 		const ndata = this.props;	
-		const cuObj = this.props.cuReqData;
+		//const cuObj = this.props.cuReqData;
 		const bmap = this.props.workspaceData.bufferMap;	
 		/*let tsourceInfo = { 
 			contents: false,
@@ -103,6 +103,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 		};*/
 		let cuResults = this.getGlobalVolumes();
 		let cuVolume = cuResults.volumes;
+		let cuTocks = cuResults.tocks;
 	        let tsourceInfo = cuResults.tSource;
 		let cuDetailsReady = false;
 		let nName = 'Not selected';
@@ -114,37 +115,8 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 			nKind = nd.kind;
 			nName = nd.idx;
 		}
-		if(cuObj !== null) {
-			if(cuObj.status === 'complete') {
-				cuDetailsReady = true;
-				cuVolume = cuObj.volumes;
-				//tsourceInfo.contents =  true;
-				//tsourceInfo.info = 'Info';
-				//for(const tkey in cuObj.t_source) {
-					//tsourceInfo.mappedData
-					//.set(tkey,
-					//cuObj.t_source[tkey]);
-
-			} else if(cuObj.status === 'not_found') {
-
-			} else if(cuObj.status === 'not_ready') {
-
-			}
-		}
 		let tdata = [];		
-		/*if(tsourceInfo.contents) {
-			tdata = tsourceInfo.mappedData
-				.entries()
-				.map((e) => {
-				const [ky, vl] = e; 
-				return (
-					<div>
-					{ky}:{vl}	
-					</div>
-				)
-
-			});
-		}*/
+	
 	        if(tsourceInfo) {
 			for(const k in tsourceInfo) {
 				const tdat = tsourceInfo[k];
@@ -175,17 +147,56 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 		const vzReadyStyle = simReady || runReady ? '' : styles.vizNotReady;
 
 		const tDisp = tdata === null ? 
-			/*
-			<div 
-			className={styles.dataSegment}>
-			No Data Available</div> 
-			*/
 			<></>:
 			<div className={styles.dataSegment}>
 				<header>Last Run - T Source Info:</header>
 				{tdata}
 			</div>
-
+		const tockDisp = cuTocks === null ? 
+			<></>:
+			<div className={styles.dataSegment}>
+				<header>Last Run - Tocks Info:</header>
+				<div>
+					<span>
+					Graph-State: 
+					</span>
+					<span>
+					{cuTocks.graph_state}
+					</span>
+				</div>
+				<div>
+					<span>
+					Bell Input: 
+					</span>
+					<span>
+					{cuTocks.bell}
+					</span>
+				</div>
+				<div>
+					<span>
+					T-Schedule: 
+					</span>
+					<span>
+					{cuTocks.t_schedule}
+					</span>
+				</div>
+				<div>
+					<span>
+					Bell Output: 
+					</span>
+					<span>
+					{cuTocks.bell2}
+					</span>
+				</div>
+				<div>
+					<span>
+					Total: 
+					</span>
+					<span>
+					{cuTocks.total}
+					</span>
+				</div>
+			</div>
 		const renResult = !cuDetailsReady ? 
 			(<div className={styles.nodePanel}>
 			 	<header>
@@ -217,8 +228,21 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 					<span>{cuVolume
 						.T_IDLE_VOLUME}
 					</span></div>
+					<div><span>Bell-Rout.Vol: </span>
+					<span>{cuVolume
+						.BELL_ROUTING_VOLUME}
+					</span></div>
+					<div><span>Bell-Idle.Vol: </span>
+					<span>{cuVolume
+						.BELL_IDLE_VOLUME}
+					</span></div>
+					<div><span>Non-Part.Vol: </span>
+					<span>{cuVolume
+						.NP_VOLUME}
+					</span></div>
 				</div>
 				{tDisp}
+				{tockDisp}
 				<div>
 					<button className={`${styles
 						.vizButton} ${vzReadyStyle}`}
@@ -272,7 +296,7 @@ export class CGNodeColumn
 			<div className={styles.widgetViewContainer}>
 				<header className={styles
 					.widgetContainerHeader}>
-					Node	
+					Context & Volumes	
 				</header>
 				<CGSelectedNodeBox 
 					nodeData={{

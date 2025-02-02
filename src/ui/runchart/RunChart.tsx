@@ -30,7 +30,8 @@ export function GenData(n: number): Array<CGSample> {
 				T_IDLE_VOLUME: 7000 + (Math.random() * 1999),
 				BELL_IDLE_VOLUME: 6000 + (Math.random() * 1000),
 				BELL_ROUTING_VOLUME: 5000 + (Math.random() * 1000),
-				NON_PARTICIPATORY_VOLUME: 4000 + (Math.random()* 2000)
+				NP_VOLUME: 4000 + (Math.random()* 2000)
+				
 			}
 		})
 	}
@@ -62,6 +63,12 @@ const ResolveGraphData = (workspaceData: WorkspaceData): DataAggregate => {
 	 */
 	const aggrData = [[],[],[],[],[],[]]
 	const daggr: DataAggregate = {
+		globalMinMax: { 
+			minX: 0,
+			minY: 0,
+			maxX: 0,
+			maxY: 0
+		},
 		idxs: [],
 		aggrMap: {
 			REGISTER_VOLUME: aggrData[0],
@@ -80,8 +87,18 @@ const ResolveGraphData = (workspaceData: WorkspaceData): DataAggregate => {
 	const cuidObjs = rrBuf.getVolumeSet();
 	//TODO: Temporary, could likely do it directly but not wanting to play games
 	//at the moment.
+	let gMinY = +Infinity;
+	let gMinX = +Infinity;
+	let gMaxY = 0;
+	let gMaxX = 0;
 	for(const cmr of cuidObjs) {
 		const cvol = cmr.volumes;
+		if(cmr.mxid > gMaxX) {
+			gMaxX = cmr.mxid;
+		}
+		if(cmr.mxid < gMinX) {
+			gMinX = cmr.mxid;
+		}
 		daggr.idxs.push({
 			mxid: cmr.mxid,
 			cuid: cmr.cuID === undefined ? null : cmr.cuID,
@@ -93,12 +110,25 @@ const ResolveGraphData = (workspaceData: WorkspaceData): DataAggregate => {
 			if(cv) {
 				const dgrRef = daggr.aggrMap[akey]
 				if(dgrRef) {
+					if(cv < gMinY) {
+						gMinY = cv;
+					}
+					if(cv > gMaxY) {
+						gMaxY = cv;
+					}
 					dgrRef.push(cv);
 				}
 			}
 		}
 	}
-	console.log(daggr);
+	if(gMinY === 0) {
+		gMinY = 0.000001; //used for log scaling, wonky_workaround 
+	}
+	daggr.globalMinMax.minY = gMinY;
+	daggr.globalMinMax.maxY = gMaxY;
+	daggr.globalMinMax.minX = gMinX;
+	daggr.globalMinMax.maxX = gMaxX;
+
 	return daggr;
 };
 

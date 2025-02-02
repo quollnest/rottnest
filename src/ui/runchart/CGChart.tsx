@@ -1,13 +1,13 @@
-import React, { ReactElement, useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactElement, useEffect, useRef, useState } from "react";
 import style from '../styles/CGChart.module.css';
 import * as d3 from "d3";
 import {WorkspaceBufferMap} from "../workspace/WorkspaceBufferMap";
-import { CallGraphStatsData, CUAggrKey, CUDataKey, CUDataKeyRef, CUScaleKeyRef, 
+import { CallGraphStatsData, CUAggrKey, CUDataKeyRef, CUScaleKeyRef, 
 	DataAggregate, DataAggrIdentifier, DataAggrMap } from "./ChartData";
 
 
 const onNodeClick = () => {
-
+	//TODO: Clean this up
 }
 
 const LineColorList: Array<string> = [
@@ -17,6 +17,9 @@ const LineColorList: Array<string> = [
 	'#6a1ff0',
 	'#1a6fb4',
 	'#b1ee28',
+	'#777777',
+	'#336699',
+	'#441188',
 ]
 
 const CircleColorList: Array<string> = [
@@ -26,6 +29,9 @@ const CircleColorList: Array<string> = [
 	'#6a1ff0',
 	'#1a6fb4',
 	'#b1ee28',
+	'#777777',
+	'#336699',
+	'#441188',
 ]
 
 /*const WidgetSelector = (props: WidgetSelectorProps): ReactElement => {
@@ -156,6 +162,45 @@ const ChartSelector = (props: ChartSelectorProps): ReactElement => {
 
 }
 
+const GenerateLegend = (
+	names: Array<string>,
+	colors: Array<string>,
+	enableSet: Array<boolean>,
+	setEnableSet: (d: boolean[]) => void
+): ReactElement => {
+
+	const linesGend = names.map((name, idx) => {
+		const col = colors[idx];
+		const isSet = enableSet[idx];
+		let legStyles = `${style.legendEntry}`;
+		if(!isSet) {
+			legStyles = `${style.legendEntry} ${style.fadedEntry}`;
+		}
+
+		return (
+			<div className={legStyles}
+				onClick={() => {
+					const cur = enableSet[idx];
+					const nSet = [...enableSet];
+					nSet[idx] = !cur;
+					setEnableSet(nSet);
+					}
+				}>
+			<span>{name}:</span>
+			<div className={style.legendBox} 
+			style={{backgroundColor: col}}></div>
+			</div>
+		)
+
+	});
+
+	return (
+		<div className={style.legendContainer}>
+		{linesGend}
+		</div>
+	)
+}
+
 const GenerateLine = (
 	data: DataAggregate,
 	xScale: d3.ScaleLinear<number, number>,
@@ -170,7 +215,6 @@ const GenerateLine = (
 			.line<DataAggrIdentifier>()
 			.x((d) => xScale(d.mxid))
 			.y((d, ids) => yScale(data.aggrMap[selKey][ids]));
-	//console.log(data.aggrMap[selKey][idx]);
 	const lres = lbuilder(data.idxs);
 	return (<path
 		    key={key}
@@ -233,15 +277,14 @@ const GenerateNodes = (
 		const actionMouseOver = sample.cuid !== null ||
 			sample.cuid !== undefined ? onNodeHoverTrigger :
 			(_gg: any) => {};
-		
 		return (<circle
 			key={`circ_${i}`}
 			cx={xScale(mxid)}
 			cy={yScale(data.aggrMap[selKey][i])}
-			r={5}
+			r={4}
 			stroke={colorStr}
 		        fill={colorStr}
-		        strokeWidth={2}
+		        strokeWidth={1}
 			className={`${style.cuObject} ${selStyle}`}
 			onMouseOver={() => actionMouseOver(isCuidObj)}
 			onClick={onNodeClick}
@@ -273,6 +316,7 @@ function ToggleCacheData(data: DataAggregate, cacheOn: boolean): DataAggregate {
 	}
 	const aggrData = [[],[],[],[],[],[]]
 	const daggr : DataAggregate = {
+		globalMinMax: data.globalMinMax,
 		idxs: [],
 		aggrMap: {
 			REGISTER_VOLUME: aggrData[0],
@@ -301,13 +345,18 @@ export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 
 	const [cacheref, setCacheRef] = useState<CUScaleKeyRef>({keyvalue: 'ON'});
 	const cacheIncluded = cacheref.keyvalue === 'ON';
-	
 	const data = ToggleCacheData(props.graphData, cacheIncluded);
+	const gMinY = data.globalMinMax.minY;
+	const gMaxY = data.globalMinMax.maxY;
 	const keyset = Object.keys(data.aggrMap);
-	const nCols = data.idxs.map(() => CircleColorList[Math.floor((Math.random() 
-								 * CircleColorList.length))])
-	const nLins = data.idxs.map(() => LineColorList[Math.floor((Math.random() 
-							       * LineColorList.length))])
+	const [enableSet, setEnableSet] = useState<Array<boolean>>(
+		ChartOptionPairs.map((_) => true) 
+	);
+	const nCols = data.idxs.map((_, idx) => CircleColorList[idx %
+						CircleColorList.length])
+	const nLins = data.idxs.map((_, idx) => LineColorList[idx % 
+				    		LineColorList.length])
+	
 	const bmap = props.workspaceData.bufferMap;
 	const [keyref, setKeyRef] = useState<CUDataKeyRef>({ keyvalue: props.selKey });
 	//const [lineref, setLineRef] = useState<CUWidgetKeyRef>({ keyvalue: -1 });
@@ -321,6 +370,7 @@ export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 	const mWidth = margins.left + margins.right;
 	const mHeight = margins.top + margins.bottom;
 	const top = margins.top;
+	
 	const width = props.dimensions.width;
 	const height = props.dimensions.height;
 	const boundsWidth = width - mWidth;
@@ -338,7 +388,6 @@ export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 	const { hArr } = data.dataRefs.map((e,i) => {
 			return { hlen: Math.max(...e), hArr: e, hIdx: i } as HDatKind; 
 		}).reduce((p: HDatKind, c: HDatKind, _, _a) =>  {
-
 			if(p.hlen > c.hlen) {
 				return { hlen: p.hlen, hArr: p.hArr, hIdx: p.hIdx } as HDatKind;
 			} else {
@@ -358,7 +407,21 @@ export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 		.domain([xMin || 0, xMax || 0])
 		.range([0, boundsWidth]);
 
-	const [yMin, yMax] = d3.extent(hDat, (d: number) => d);	
+	let [yMin, yMax] = d3.extent(hDat, (d: number) => d);
+	if(keyref.keyvalue === 'ALL') {
+		if(scaleFnStr === 'Log') {
+			yMin = gMinY;
+			yMax = gMaxY;
+		} else {
+
+			yMin = 0;
+		}
+	} else {
+		if(scaleFnStr === 'Linear') {
+			yMin = 0;
+		}
+	}
+
 	const scaleFn = scaleFnStr === 'Linear' ? d3.scaleLinear : d3.scaleLog;
 	const yScale = scaleFn() 
 		.domain([yMin || 0, yMax || 0])
@@ -390,45 +453,73 @@ export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 	
 	const keyrefUpdate = (key: string) => {
 		setKeyRef({ keyvalue: key });
+		setEnableSet(ChartOptionPairs.map((_) => true));
 	}
-	/*const linrefUpdate = (key: number) => {
-		setLineRef({ keyvalue: key });
-	}*/
-	/*const scalerefUpdate = (key: string) => {
+	const scalerefUpdate = (key: string) => {
 		setScaleRef({ keyvalue: key });
-	}*/
+	}
 
 	const cacheRefUpdate = (key: string) => {
 		setCacheRef({ keyvalue: key });
+		setEnableSet(ChartOptionPairs.map((_) => true));
 	}
 	const circs = data.dataRefs.map((d, idx) => { 
 		//if(keyref.keyvalue === 'All' || akey === data.aggrMap[) {
 		//	return GenerateNodes(idx, data, xScale, yScale, selKey, lineCol[idx], bmap)
-		const refKey = keyref.keyvalue === 'ALL' ? keyset[idx] : keyref.keyvalue;
-		const akey = refKey as keyof DataAggrMap;
-		
-		if(keyref.keyvalue === 'ALL' || d === data.aggrMap[akey]) { 	
-		   return GenerateNodes(idx, data, xScale, yScale, akey, lineCol[idx], bmap)
-		} else {
-			return <></>
+		if(enableSet[idx]) {
+
+			const refKey = keyref.keyvalue === 'ALL' ? keyset[idx] : keyref.keyvalue;
+			const akey = refKey as keyof DataAggrMap;
+			
+			if(keyref.keyvalue === 'ALL' || d === data.aggrMap[akey]) { 	
+			   return GenerateNodes(idx, data, xScale, yScale, akey, lineCol[idx], bmap)
+			} else {
+				return <></>
+			}
 		}
 	});
 	const lines = data.dataRefs.map((d, idx) => {
-		const key = `lin_${idx}`;
-		const refKey = keyref.keyvalue === 'ALL' ? keyset[idx] : keyref.keyvalue;
-		const akey = refKey as keyof DataAggrMap;
-		if(keyref.keyvalue === 'ALL' || d === data.aggrMap[akey]) { 	
-			return GenerateLine(data, xScale, yScale, akey, nodeCol[idx], key, idx);
-		} else {
-			return <></>
+		if(enableSet[idx]) {
+			const key = `lin_${idx}`;
+			const refKey = keyref.keyvalue === 'ALL' ? keyset[idx] : keyref.keyvalue;
+			const akey = refKey as keyof DataAggrMap;
+			if(keyref.keyvalue === 'ALL' || d === data.aggrMap[akey]) { 	
+				return GenerateLine(data, xScale, yScale, akey, nodeCol[idx], key, idx);
+			} else {
+				return <></>
+			}
 		}
 	});
+	
+	let legndNames = [];
+	let colorsIncluded = LineColorList;
+	let setEnableProxy: (d: boolean[]) => void = setEnableSet; 
+		
+	if(keyref.keyvalue === 'ALL') {
+		legndNames = ChartOptionPairs.slice(1).map((pair) => {
+			return pair.display;
+		});
+	} else {
+		colorsIncluded = [];
+		legndNames = ChartOptionPairs.slice(1).filter((pair, idx) => {
+
+			const res = keyref.keyvalue === pair.value;
+			if(res) { colorsIncluded.push(LineColorList[idx]) };
+			return res;
+		}).map((p) => p.display);
+		setEnableProxy = (_: Array<boolean>):void => {};
+
+	}
+	
+	//Because ain't we just a legend mateeee
+	const legendBro = GenerateLegend(legndNames, colorsIncluded, enableSet, setEnableProxy);
+
 	//const idxes = [{value:-1,display:'All'}]
 	//	.concat(data.map((_, idx) => { return {value: idx, display: `${idx+1}`} }));
 
 	const cacheOpts = [{value: 'ON', display: 'Cached Included'}, 
 		{value: 'OFF', display: 'Cached Removed'}];
-	//const scaleOpts = [{value: 'Linear', display: 'Linear'}, {value: 'Log', display: 'Log'}];
+	const scaleOpts = [{value: 'Linear', display: 'Linear'}, {value: 'Log', display: 'Log'}];
 	return (
 		<div className={style.graphContainer}>
 			<div className={style.cgvisTab}>
@@ -438,28 +529,38 @@ export const CallGraphStatsSpace = (props: CallGraphStatsData) => {
 			<CacheSelector optPairs={cacheOpts} 
 				currentKeyRef={cacheref}
 				keyRefUpdate={cacheRefUpdate}/>
+			<ScaleSelector optPairs={scaleOpts}
+				currentKeyRef={scaleref}
+				keyRefUpdate={scalerefUpdate} />
 		
 			</div>
+
 			<div>
 			<svg width={width} height={height}>
 			<g
 				width={boundsWidth}
 				height={boundsHeight}
-				transform={`translate(${[left, top].join(",")})`}>
+				transform={`translate(${[left, top].join(",")})`}
+				>
 				{lines}	
 			</g>
 			<g
 				width={boundsWidth}
 				height={boundsHeight}
 				ref={chartRef}
-				transform={`translate(${[left, top].join(",")})`}/>
+				transform={`translate(${[left, top].join(",")})`}
+				>
+			</g>
 			<g
 				width={boundsWidth}
-				height={boundsHeight}
-				transform={`translate(${[left, top].join(",")})`}>
+				height={boundsHeight}	
+				transform={`translate(${[left, top].join(",")})`}
+				>
 				{circs}
 			</g>
 			</svg>
+			{legendBro}
+
 			</div>
 			<div className={style.nodesComponent}>
 			
