@@ -194,10 +194,10 @@ class CGObject extends React.Component<CGDispData,
 	onHoverTrigger() {
 
 		//1. Trigger an update on the panel
-
+		console.log(this.data.idx);
 		this.data.bufferMap.insert('current_node', 
 		JSON.stringify({
-			idx: this.data.idx 
+			idx: this.props.index 
 		}));	
 		this.data.bufferMap.commit();
 	}
@@ -531,18 +531,17 @@ export class CallGraphSpace extends
 					.decodeGraph(asm);
 				let expands = true;
 				let expGid = 'invalid';
+				console.log(jsonObj);
+
 				if(graph) {
 					container.state.graphViewData
 					= graph;
 					if(graph.graph) {
 						let sz = graph.graph.size;
-						if(sz) {
-							
-							//let [k,e] = graph.graph
-							//	.entries()[0]
+						if(sz) {	
 							if(sz === 1) {
 								const e = graph.graph.
-									values().map((et: any) => {
+								values().map((et: any) => {
 									return et;
 								}).toArray()[0];
 								expands = e.expands;
@@ -579,6 +578,17 @@ export class CallGraphSpace extends
 			} else if(jsonObj.message === 'get_root_graph') {
 				let graph = appService
 					.decodeGraph(asm);
+				let expands = true;
+				this.props.bufferMap
+					.insert('cgviz_chart_gid_data',
+						JSON
+						.stringify({
+							expands,
+						}));
+				this.props.bufferMap
+					.insert('node_column',
+						JSON
+						.stringify(0));
 				if(graph) {
 					container.state
 					.graphViewData
@@ -588,6 +598,7 @@ export class CallGraphSpace extends
 				const nState = {...cgspace.state}
 				nState.refresh = true;
 				cgspace.setState(nState);
+
 			} else if(jsonObj.message === 'run_result') {
 			
 				//TODO Set the graph id for

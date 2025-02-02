@@ -178,7 +178,7 @@ const GenerateLegend = (
 		}
 
 		return (
-			<div className={legStyles}
+			<div key={`lin_legend_${idx}`} className={legStyles}
 				onClick={() => {
 					const cur = enableSet[idx];
 					const nSet = [...enableSet];
@@ -207,15 +207,15 @@ const GenerateLine = (
 	yScale: d3.ScaleLinear<number, number> | d3.ScaleLogarithmic<number, number>, 
 	selKey: CUAggrKey,
 	colorStr: string,
-	key: string, idx: number):  ReactElement => {
-
-	
+	key: string, idx: number):  ReactElement => {	
 
 	const lbuilder = d3
 			.line<DataAggrIdentifier>()
 			.x((d) => xScale(d.mxid))
 			.y((d, ids) => yScale(data.aggrMap[selKey][ids]));
+
 	const lres = lbuilder(data.idxs);
+
 	return (<path
 		    key={key}
 		    className={style.cgline}
