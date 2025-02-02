@@ -194,7 +194,6 @@ class CGObject extends React.Component<CGDispData,
 	onHoverTrigger() {
 
 		//1. Trigger an update on the panel
-		console.log(this.data.idx);
 		this.data.bufferMap.insert('current_node', 
 		JSON.stringify({
 			idx: this.props.index 
