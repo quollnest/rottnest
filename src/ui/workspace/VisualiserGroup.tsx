@@ -1,10 +1,8 @@
-
-import {RegionContainer, ToolContainer} 
-	from "../container/ColumnContainer"
 import {SchedulerVisualiser} from "../SchedulerIFrame";
 import { WorkspaceData, WorkspaceGroup, WorkspaceProps } from "./Workspace"
 import {ReactElement} from "react";
 import {WorkspaceZone} from "./WorkspaceZone";
+import {CGGraphColumn, CGNodeColumn} from "../callgraph/CallGraphColumn";
 
 export class VisualiserGroup implements WorkspaceGroup {
 	
@@ -17,7 +15,8 @@ export class VisualiserGroup implements WorkspaceGroup {
 		const svisSpace = <SchedulerVisualiser {...nWorkSpace}  />;
 
 		const group = [
-			<ToolContainer key={"arch_toolcontainer"} 
+			<CGGraphColumn 
+			key={"widget_graph_column"} 
 				{...data} />,
 			<WorkspaceZone 
 				key={"arch_wz_design_space"}
@@ -28,8 +27,8 @@ export class VisualiserGroup implements WorkspaceGroup {
 					bufferMap: data
 					.workspaceData.bufferMap
 				}} />,		
-			<RegionContainer 
-				key={"arch_region_container"}
+			<CGNodeColumn 
+				key={"widget_node_column"}
 				{...data} />,
 		];	
 
