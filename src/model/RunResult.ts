@@ -35,6 +35,7 @@ export class RunResultBuffer {
 		this.runsFinished = new Set();
 		this.runResults = new Map();
 		this.volumeSet = [];
+		this.endComps = [];
 	}
 
 	requestRun(gid: string) {
