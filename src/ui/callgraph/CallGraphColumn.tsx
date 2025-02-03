@@ -415,7 +415,7 @@ class RootListItem
 				.insert('reset_rlist',JSON.stringify({ reset: true }));
 			this.bufferMap.commit();
 		} else {
-			/*const nSet: Set<string> = new Set();
+			const nSet: Set<string> = new Set();
 			let foundRoot = false;
 			this.rlist.values().forEach((e) => {
 				if(e === this.props.idxTup.rootIdx) {
@@ -427,8 +427,8 @@ class RootListItem
 						nSet.add(e);
 					}
 				}
-			});*/
-			/*let nnode = {
+			});
+			let nnode = {
 				idx: this.rootIdx
 			};
 			const nstr = JSON.stringify(nnode);
@@ -437,7 +437,7 @@ class RootListItem
 				.insert('root_node',nstr);
 			aps.sendObj('get_graph',  {gid: this.rootIdx });
 			//this.refresh(nSet);
-			this.bufferMap.commit();*/
+			this.bufferMap.commit();
 		}
 	}
 
