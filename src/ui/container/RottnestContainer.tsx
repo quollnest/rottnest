@@ -170,7 +170,7 @@ class RottnestContainer
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, true, false, true],
+			availableTabs: [true, false, false, false],
 			tabNames: ['Architecture', 'Call Graph', 
 				'Visualiser', 'Run Chart']
 		},
@@ -664,7 +664,7 @@ class RottnestContainer
 		};
 		this.state.tabData = {
 			selectedTabIndex: 0,
-			availableTabs: [true, true, false, true],
+			availableTabs: [true, false, false, false],
 			tabNames: ['Architecture', 'Call Graph', 
 				'Visualiser', 'Run Chart']
 		};
