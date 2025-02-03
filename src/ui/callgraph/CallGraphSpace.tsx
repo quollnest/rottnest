@@ -863,7 +863,7 @@ export class CallGraphSpace extends
 			let cidx = 0;
 			// let rowDrop = 0;
 			// let prix = '';
-			// const rootN = rootList.length;
+			const rootN = rootList.length;
 			const renderedCGs = 
 				rootList.map((e) => {
 
@@ -920,7 +920,8 @@ export class CallGraphSpace extends
                 }*/
 
               let xdisp = cidx % 10 * 8 + 8;
-              let yoff = Math.floor(cidx / 10) * 0.5;
+              let yoff = Math.floor(cidx / 10) / rootN * 600;
+			  calcdHeight = Math.max(Math.floor(rootN / 10)*100, calcdHeight);
 						const cuVal = this.state
 							.cunitMap.get(wname !== undefined ? wname
 								: '');
@@ -973,7 +974,7 @@ export class CallGraphSpace extends
             );
 
 					//prevWlen = wlLength; 
-					calcdHeight += 10;
+					// calcdHeight += 10;
 
 					return wlRes;
 				})
@@ -1086,7 +1087,7 @@ export class CallGraphSpace extends
 			this.state.refresh = false;
 				return (
 					<div className={styles.widgetSpace}
-					style={{height: `${calcdHeight}px`, width:`${zoomValue}%`,
+					style={{height: `${zoomValue}%`, width:`${zoomValue}%`,
 						fontSize: `${(11*(zoomValue/100))}pt`,
 						top: `${cyoff}px`, left: `${cxoff}px` 
 						}}
