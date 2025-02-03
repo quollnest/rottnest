@@ -117,7 +117,8 @@ type CGDispData = {
 	y: number
 	cuReqData: CUReqResult | null
 	updateTrigger: (idx: string, data: CGPositionData) => void
-}
+  expands: boolean;
+};
 
 type CGObjectData = {
 	x: number
@@ -195,12 +196,21 @@ class CGObject extends React.Component<CGDispData,
 	 * 
 	 */
 	onHoverTrigger() {
-
 		//1. Trigger an update on the panel
-		this.data.bufferMap.insert('current_node', 
+    this.data.bufferMap.insert(
+      "current_node",
 		JSON.stringify({
-			idx: this.props.index 
-		}));	
+        idx: this.props.index,
+      })
+    );
+    this.data.bufferMap.insert(
+      "cgviz_chart_gid_data",
+      JSON.stringify({
+        expands: this.props.expands,
+        gid: this.props.index,
+        idx: this.props.index,
+      })
+    );
 		this.data.bufferMap.commit();
 	}
 
@@ -293,7 +303,7 @@ class CGObject extends React.Component<CGDispData,
 				const container = this.props.wdaggr
 					.workspaceData.container;
 				
-				const gidx = this.data.idx;
+				const gidx = this.props.index;
 				const ifReqd = container.getRRBuffer()
 					.checkIfRequested(gidx);
 				const ifFin = container.getRRBuffer()
@@ -820,7 +830,6 @@ export class CallGraphSpace extends
 	}
 
 	render() {
-		
 		let calcdHeight = 0;
 		const zoomValue = this.props.container.state.appStateData.zoomValue;
 		const cgref = this;
@@ -834,8 +843,8 @@ export class CallGraphSpace extends
 			graph: graphFromContainer,
 			workspaceData: this.props
 		}
-		const rootList = this.identifyRoots(
-			graphFromContainer);	
+    // const rootList = this.identifyRoots(graphFromContainer);
+    const rootList = Array.from(graphFromContainer.graph.entries());
 
 		if(rootList.length !== 0) {
 			
@@ -852,9 +861,9 @@ export class CallGraphSpace extends
 			};
 
 			let cidx = 0;
-			let rowDrop = 0;
-			let prix = '';
-			const rootN = rootList.length;
+			// let rowDrop = 0;
+			// let prix = '';
+			// const rootN = rootList.length;
 			const renderedCGs = 
 				rootList.map((e) => {
 
@@ -864,35 +873,28 @@ export class CallGraphSpace extends
 						
 					return ldw.layerData
 				.map((wl: CGTreeLayerData, lidx: number) => {
-					const wlLength 
-						= wl.layerElements.length;
-					calcdHeight += 20;
+					// const wlLength 
+					// 	= wl.layerElements.length;
+					// calcdHeight += 5;
 					cidx += 1;
-					const wlRes = 
-						wl.layerElements
-					.map((w: CGLayerEntry, 
-					      idx: number) => {
-
-						const wname = waggr
-						.graph
-						.graph
-						.get(w.entryIdx)
-							?.cu_id;
-						let yoff = 0;
+            const wlRes = wl.layerElements.map(
+              (w: CGLayerEntry, idx: number) => {
+                const wname = waggr.graph.graph.get(w.entryIdx)?.name;
+                /*let yoff = 0;
 						let sidx = idx+1;
 						let xdiff = 100/(wlLength*2);
 						if(lidx === 0) {
 							xdiff = 100/(rootN*2);
 							sidx = cidx+1;
-							let yAdj = 0;
+                  let yAdj = 0;*/
 							/*if(sidx % 2 === 1) {
 								yAdj = 0.5;
 								
 							}*/
 
-							if(xdiff < 1) {
+                  // if(xdiff < 1) {
 								
-								/*if(sidx % 2 === 1) {*/
+                    /*if(sidx % 2 === 1) {*//*
 								if(sidx % 10 > 0) {
 									xdiff = 10+(-0.5);
 									yoff = rowDrop * 0.5;
@@ -915,7 +917,10 @@ export class CallGraphSpace extends
 						if(xdisp > 100 && lidx === 0) {
 							const rowOff = Math.floor(xdisp) % 100;	
 							xdisp = rowOff;				
-						}
+                }*/
+
+              let xdisp = cidx % 10 * 8 + 8;
+              let yoff = Math.floor(cidx / 10) * 0.5;
 						const cuVal = this.state
 							.cunitMap.get(wname !== undefined ? wname
 								: '');
@@ -933,12 +938,12 @@ export class CallGraphSpace extends
 							cuId: wname === undefined 
 								? '' :
 								wname,
-							updateTrigger: upTrigger
-
+							updateTrigger: upTrigger,
+              expands: waggr.graph.graph.get(w.entryIdx)?.expands ?? false
 						};
 
-						const pIdx = prix;
-						const pDepth = wl.depth+1;
+                // const pIdx = prix;
+                // const pDepth = wl.depth + 1;
 						//if( w.entryIdx) {	
 						/*	this.state.dispPositions.set(
 								w.entryIdx,
@@ -963,12 +968,12 @@ export class CallGraphSpace extends
 								new Map()
 							);
 						//}*/
-						return (<CGObject key={`cgobj_${wname}`}
-							{...wdispData}/>)
-					});
+                return <CGObject key={`cgobj_${wname}`} {...wdispData} />;
+              }
+            );
 
 					//prevWlen = wlLength; 
-					calcdHeight += 25;
+					calcdHeight += 10;
 
 					return wlRes;
 				})

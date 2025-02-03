@@ -6,12 +6,13 @@
  * allow mapping for it
  */
 export type RottGraphEntry = {
-	cu_id: string
+	// cu_id: string
 	id: string
 	name: string
 	description: string
 	children: Array<string>
-	compute_unit: boolean
+	expands: boolean
+	// compute_unit: boolean
 }
 
 export type CUVolume = {
