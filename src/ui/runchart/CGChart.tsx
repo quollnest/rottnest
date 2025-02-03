@@ -11,27 +11,27 @@ const onNodeClick = () => {
 }
 
 const LineColorList: Array<string> = [
-	'#1a6fb0',
-	'#ba6fa0',
-	'#8a2922',
-	'#6a1ff0',
-	'#1a6fb4',
-	'#b1ee28',
-	'#777777',
-	'#336699',
-	'#441188',
+	'#DDDDDD',
+	'#2E2585',
+	'#337538',
+	'#5DA899',
+	'#94CBEC',
+	'#DCCD7D',
+	'#C26A77',
+	'#9F4A96',
+	'#7E2954',
 ]
 
 const CircleColorList: Array<string> = [
-	'#1a6fb0',
-	'#ba6fa0',
-	'#8a2922',
-	'#6a1ff0',
-	'#1a6fb4',
-	'#b1ee28',
-	'#777777',
-	'#336699',
-	'#441188',
+	'#DDDDDD',
+	'#2E2585',
+	'#337538',
+	'#5DA899',
+	'#94CBEC',
+	'#DCCD7D',
+	'#C26A77',
+	'#9F4A96',
+	'#7E2954',
 ]
 
 /*const WidgetSelector = (props: WidgetSelectorProps): ReactElement => {
