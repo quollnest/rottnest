@@ -1,7 +1,7 @@
 import {CGHashResult, CUHashHex, CGResult, CGStatus, CGVisualResult, CUResultKind,
 	CUResultMixed} from "./CallGraph";
 
-export type RunResultKind = "CUIDObj" | "CUIDTotal" | "VolumeWithHash" | 
+export type RunResultKind = "CUIDObj" | "CUIDTotal" | "CUIDEndComp" | "VolumeWithHash" | 
 	"CacheHashOnly" | "StatusItem" | "VisualResult" | "Invalid";
 
 /*
@@ -12,6 +12,7 @@ export class RunResultBuffer {
 
 	withCUID: Map<string, Array<CGResult>> = new Map();
 	withTotal: Array<CGResult> = []
+
 	cacheHashes: Set<CUHashHex> = new Set();
 	volumesWithHashes: Map<string, Array<CGHashResult>> = new Map();
 	statusItems: Set<CGStatus> = new Set();
@@ -21,6 +22,8 @@ export class RunResultBuffer {
 	runsRequested: Set<string> = new Set();
 	runsFinished: Set<string> = new Set();
 	runResults: Map<string, CGVisualResult> = new Map();
+
+	endComps: Array<CGResult> = [];
 
 	reset() {
 		this.withCUID = new Map();
@@ -74,6 +77,17 @@ export class RunResultBuffer {
 		return isCUIDObjRes && jsonObj.cu_id === 'TOTAL';
 	}
 
+	isCUIDEndComp(jsonObj: any): boolean {
+
+		const isCUIDObjRes = this.isCUIDObj(jsonObj);
+		return isCUIDObjRes && jsonObj.cu_id === 'endcomp';
+	}
+
+	getEndComp(): Array<CGResult> {
+		return this.endComps;
+	}
+
+	
 	isHashVolumes(jsonObj: any): boolean {
 		const noCUID = !this.isCUIDObj(jsonObj);
 		const hasTSource = jsonObj.t_source !== undefined;
@@ -106,6 +120,16 @@ export class RunResultBuffer {
 				npQubits: jsonObj.np_qubits
 			});
 			msgKind = "CUIDTotal";
+		} else if(this.isCUIDEndComp(jsonObj)) {
+			msgKind = "CUIDEndComp";
+			this.endComps.push({
+				volumes: jsonObj.volumes,
+				tSource: jsonObj.t_source,
+				tocks: jsonObj.tocks,
+				cuID: jsonObj.cu_id,
+				status: jsonObj.status,
+				npQubits: jsonObj.np_qubits
+			});
 		} else if(this.isCUIDObj(jsonObj)) {
 			msgKind = "CUIDObj";
 			const volData = {

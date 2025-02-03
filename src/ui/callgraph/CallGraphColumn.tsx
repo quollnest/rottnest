@@ -93,6 +93,17 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 		}
 	}
 
+	getCompilationFinished(): string {
+		const rrbuf = this.props.workspaceData.container.getRRBuffer();
+
+		const gendcomp = rrbuf.getEndComp();
+		if(gendcomp.length > 0) {
+			return 'Compilation Finished';
+		} else {
+			return 'Compiling';
+		}
+	}
+
 	render() {
 		const ndata = this.props;	
 		//const cuObj = this.props.cuReqData;
@@ -110,6 +121,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 		let nName = 'Not selected';
 		let nDescription = '';
 		let nKind = 'NoKind';
+		let compStr = this.getCompilationFinished();
 		if(ndata.nodeData !== null 
 		   && ndata.nodeData !== undefined) {
 			const nd = ndata.nodeData;
@@ -146,7 +158,13 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 			visText;	
 
 		const vzReadyStyle = simReady || runReady ? '' : styles.vizNotReady;
+		const compInfo = (<div className={styles.dataSegment}>
+				  <header>Compilation State:</header>
+					<span>
+					{compStr}
+					</span>
 
+			</div>)
 		const tDisp = tdata === null ? 
 			<></>:
 			<div className={styles.dataSegment}>
@@ -247,6 +265,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 						.NP_VOLUME}
 					</span></div>
 				</div>
+				{compInfo}
 				{tDisp}
 				{tockDisp}
 				<div>
