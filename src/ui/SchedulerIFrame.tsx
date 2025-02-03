@@ -14,7 +14,7 @@ export function SchedulerVisualiser(props: WorkspaceData) {
 	const iframeRef = useRef<HTMLIFrameElement>(null);
 	const iframeObj = (
 		<iframe src="https://jqxcz.github.io/scheduler_vis/?file=none"
-		width={'100%'} height={"100%"} ref={iframeRef} onLoad={iframeLoaded}>
+		width={'100%'} height={"95%"} ref={iframeRef} onLoad={iframeLoaded}>
 		</iframe>);
 
 	return (
