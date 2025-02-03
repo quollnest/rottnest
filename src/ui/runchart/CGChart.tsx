@@ -211,8 +211,8 @@ const GenerateLine = (
 
 	const lbuilder = d3
 			.line<DataAggrIdentifier>()
-			.x((d) => xScale(d.mxid))
-			.y((d, ids) => yScale(data.aggrMap[selKey][ids]));
+			.x((d) => xScale(d.mxid ?? 0))
+			.y((d, ids) => yScale(data.aggrMap[selKey][ids] ?? 0));
 
 	const lres = lbuilder(data.idxs);
 
