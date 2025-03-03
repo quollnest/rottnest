@@ -139,7 +139,11 @@ export class RottnestContainerSchema implements ContainerSchema<
   data: RottnestContainerAggr = RottnestContainerSchema.DataDefaults();
 
   static DataDefaults(): RottnestContainerAggr {
-    return new RottnestContainerSchema().getData();
+    return {
+			rtstate: RTStateDefault,
+			rtcommdata: RTCommData,
+			rtsubkinds: RottnestSubKinds
+    }
   }
 
   getDefaults(): RottnestContainerAggr {

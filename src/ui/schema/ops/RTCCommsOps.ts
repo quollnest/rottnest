@@ -4,6 +4,14 @@ import RottnestContainer from "../../container/RottnestContainer";
 import { CommEventOps, CommsActions } from "./CommsOps";
 
 
+/**
+ *
+ * RTCCommEvents is a collection of events that is relevant for the RottnestContainer
+ * Separate events can be separated into another container or context type
+ * That will be the focus.
+ * 
+ * 
+ */
 export const RTCCommEvents: CommEventOps<RottnestContainer> = {
   recvSubType: {
     evkey: 'subtype',
@@ -126,5 +134,9 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 	}
 }
 
+/**
+ * CommunicationActions for RottnestContainer, allows one
+ * to define it in a file and pass it to where it is needed
+ */
 export const RTCCommActions
   = CommsActions.MakeCommsWith<RottnestContainer>(RTCCommEvents);
