@@ -1,7 +1,8 @@
 
 import {RottnestKindMap} from "../model/RegionKindMap.ts";
 import { AppServiceMessage } from "./AppServiceMessage.ts"; 
-import {RottArchMSG, RottGraphMSG, RottRouterTypesMSG, RottRunResultMSG, RottSubTypesMSG} from "./Messages.ts";
+import {RottArchMSG, RottGraphMSG, RottRouterTypesMSG,
+	RottRunResultMSG, RottSubTypesMSG} from "./Messages.ts";
 
 export const APP_URL: string = "ws://localhost:8080/websocket";
 
@@ -12,19 +13,21 @@ const WS_ONOPEN: string = "open";
 //const WS_ONCLOSE: string = "close";
 
 export interface ASContextHook {
-	//callbackMap(): Map<string, ASRecvContextCallback>
 	serviceHook(asm: AppServiceMessage): void
 }
 
-export type ASOpenCallback 
-	= () => void;
+export type ASOpenCallback = () => void;
 
-export type ASRecvCallback 
-	= (asm: AppServiceMessage) => void;
+export type ASRecvCallback = (asm: AppServiceMessage) => void;
 
 export type ASRecvContextCallback 
 	= (ctx: ASContextHook, asm: AppServiceMessage) => void;
 
+/**
+ * Application Service Client,
+ * Holds onto a websocket, buffer of messages (will be removed)
+ * and url endpoint string
+ */
 export class AppServiceClient {
 	
 	url: string | null = null;
@@ -94,12 +97,12 @@ export class AppServiceClient {
 		}
 	}
 
-	sendObj(cmd: string, payload: any) {
+	sendObj(message: string, payload: any) {
 			
 		if(this.socket) {
 			this.socket.send(
 				JSON.stringify({
-					cmd,
+					message,
 					payload
 				})	
 			);

@@ -20,18 +20,16 @@ import NewProjectForm from './NewProjectForm';
 import { RottnestKindMap, SubKind } 
 	from '../../model/RegionKindMap.ts'
 
-import {AppServiceClient} from '../../net/AppService.ts';
-
 import AppServiceModule from '../../net/AppServiceModule.ts';
-import {RottRunResultMSG, RouterAggr} from '../../net/Messages.ts';
-import {HelpContainer, HelpBoxData} from './HelpContainer.tsx';
-import {RottCallGraph, RottCallGraphDefault} from '../../model/CallGraph.ts';
+import { RouterAggr} from '../../net/Messages.ts';
+import {HelpContainer } from './HelpContainer.tsx';
+import {RottCallGraphDefault} from '../../model/CallGraph.ts';
 import ErrorDisplay from './ErrorDisplay.tsx';
-import {RunResultBuffer} from '../../model/RunResult.ts';
 import { AppCommData, RottnestContainerSchema, RottnestState } from '../schema/RottnestContainerSchema.ts';
 import { HelpDataCollection, HelpUISchema } from '../schema/HelpUISchema.ts';
 import { CommsActions } from '../schema/ops/CommsOps.ts';
 import { RTCCommActions } from '../schema/ops/RTCCommsOps.ts';
+
 
 /**
  * At the moment, nothing interesting
@@ -43,13 +41,12 @@ type RottnestProperties = {}
  *  that can be updated by other components
  *  or internally.
  */
-
-
-
 type ComponentMonitor = {
 	designSpace: DesignSpace | null
 	settingsForm: SettingsForm | null
 }
+
+
 
 
 /**

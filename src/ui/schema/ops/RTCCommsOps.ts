@@ -3,6 +3,22 @@ import { RottRunResultMSG } from "../../../net/Messages";
 import RottnestContainer from "../../container/RottnestContainer";
 import { CommEventOps, CommsActions } from "./CommsOps";
 
+/**
+ * CURRENT WIP, Protocol is currently not
+ * settled, for testing purposes, we will
+ * have a remap component to minimise excessive
+ * changes
+ */
+export const MSG_REMAP = {
+	"subtype": "arch_lat2d_get_subtypes",
+	"get_router": "arch_lat2d_get_router",
+	"use_arch": "arch_lat2d_use",
+	"run_result": "cg_lat2d_run_result",
+	"get_args" : "arch_lat2d_get_args",
+	"get_root_graph" : "cg_lat2d_get_root_graph",
+	"get_graph" : "cg_lat2d_get_graph",
+	"err": "err",
+}
 
 /**
  *
@@ -14,7 +30,7 @@ import { CommEventOps, CommsActions } from "./CommsOps";
  */
 export const RTCCommEvents: CommEventOps<RottnestContainer> = {
   recvSubType: {
-    evkey: 'subtype',
+    evkey: MSG_REMAP['subtype'],
     evtrigger: (appService: AppServiceClient, rtc: RottnestContainer, m: any) => {
       let kinds = appService
 				.retrieveSubTypes(m);
@@ -22,14 +38,14 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 				rtc.updateSubTypes(kinds);
 
 				appService
-				.sendObj('get_router'
+				.sendObj(MSG_REMAP['get_router']
 				,'');
 			}
 		}
   },
   
   recvGetRouter: {
-    evkey: 'get_router',
+    evkey: MSG_REMAP['get_router'],
     evtrigger: (appService: AppServiceClient, rtc: RottnestContainer, m: any) => {
       let kinds = appService
 					.retrieveRouters(
@@ -40,7 +56,7 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 		}
   },
   recvUseArch: {
-    evkey: 'use_arch',
+    evkey: MSG_REMAP['use_arch'],
     evtrigger: (appService: AppServiceClient, _: RottnestContainer, m: any) => {
       let someMsg = m 
 				if(someMsg) {
@@ -53,7 +69,7 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 		  }
   },
   recvErr: {
-    evkey: 'err',
+    evkey: MSG_REMAP['err'],
     evtrigger: (_: AppServiceClient, rtc: RottnestContainer, m: any) => {
     
       let someMsg = JSON.stringify(m); 
@@ -65,7 +81,7 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 	},
 
   recvRunResult: {
-    evkey: 'run_result',
+    evkey: MSG_REMAP['run_result'],
     evtrigger: (_: AppServiceClient, rtc: RottnestContainer, m: any) => {
     
       //TODO Set the graph id for
@@ -108,7 +124,7 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 	},
 
   recvGetRootGraph: {
-    evkey: 'get_root_graph',
+    evkey: MSG_REMAP['get_root_graph'],
     evtrigger: (appService: AppServiceClient, rtc: RottnestContainer, m: any) => {
       let graph = appService
 				.decodeGraph(m);
@@ -120,7 +136,7 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 	},
 
 	recvGetArgs: {
-    evkey: 'get_args',
+    evkey: MSG_REMAP['get_args'],
     evtrigger: (_a: AppServiceClient, _r: RottnestContainer, _m: any) => {
       /*let kinds = appService
 					.retrieveArgs(m);

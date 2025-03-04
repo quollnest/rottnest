@@ -1,7 +1,9 @@
 
-import { RottnestKindMap, RottnestRouterKindMap } from '../model/RegionKindMap.ts'
+import { RottnestKindMap, RottnestRouterKindMap }
+	from '../model/RegionKindMap.ts'
 import { TSchedData } from '../model/TSchedData.ts';
-import {CUReqResult, CUReqResultDummy, RottGraphEntry, RottCallGraph} from '../model/CallGraph.ts';
+import {CUReqResult, CUReqResultDummy, RottGraphEntry, RottCallGraph}
+	from '../model/CallGraph.ts';
 import { DeRott } from './Serialisation'
 
 export class RottArchMSG {
@@ -14,7 +16,8 @@ export class RottArchMSG {
 
 	toJsonStr(): string {
 		return JSON.stringify({
-			cmd: "use_arch",
+			message: "use_arch",
+			originator: "rottnet",
 			payload: this.tschedData,
 		});
 	}
@@ -30,7 +33,8 @@ export class RottRunResultMSG {
 
 	toJsonStr(): string {
 		return JSON.stringify({
-			cmd: "run_result",
+			message: "run_result",
+			originator: "rottnest",
 			payload: this.archid,
 		});
 	}

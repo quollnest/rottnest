@@ -79,12 +79,21 @@ let RottnestSubKinds: RottnestKindMap = {
 	buffer: [{ name: 'Not Selected' }]	
 }
 
-
+/**
+ * RTCommData, used to hold onto the service
+ * instance as there is only going to be one
+ * socket/pipe in use.
+ */
 const RTCommData: AppCommData = {
 		appService: AppServiceModule
 			.GetAppServiceInstance()
 };
 
+/**
+ * Defaults around the rottnest state
+ * data, will be used in part to initialise
+ * the project data and other buffers as necessary
+ */
 const RTStateDefault: RottnestState = 
 {
 		projectDetails: {
@@ -129,7 +138,7 @@ const RTStateDefault: RottnestState =
 
 export type RottnestContainerOperations = {
   
-  
+  validate: 
 }
 
 export class RottnestContainerSchema implements ContainerSchema<
@@ -160,7 +169,9 @@ export class RottnestContainerSchema implements ContainerSchema<
   }
 
   getOperations(): RottnestContainerOperations {
-    return {};
+    return {
+    	
+    };
   }
   
 }
