@@ -9,6 +9,9 @@ export type VisCell = {
   type: string
 } 
 
+/**
+ * Pre-Rendered version of a patch cell
+ */
 export type PatchRenderData = {
   element: ReactElement
   id: string

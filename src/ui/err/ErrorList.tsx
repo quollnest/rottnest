@@ -1,5 +1,5 @@
 import React from "react";
-import styles from './styles/ErrorList.module.css';
+import styles from '../styles/ErrorList.module.css';
 
 /**
  * The error data will provide a

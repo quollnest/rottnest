@@ -2,6 +2,12 @@ import { ProjectAssembly } from "../model/Project";
 import ProjectRules from "./rules/ProjectRules";
 import { EnforcementTuple, LocalValidator, RemoteValidator } from "./Validator";
 
+export type ValidationBuffers = {
+  localbuf: EnforcementTuple
+  remotebuf: EnforcementTuple
+}
+
+
 /**
  * ValidationExecutor
  * Used to execute both local and remote validation rules on the
@@ -9,8 +15,16 @@ import { EnforcementTuple, LocalValidator, RemoteValidator } from "./Validator";
  */
 export class ValidationExecutor {
 
+  validationbuffers: ValidationBuffers = ValidationExecutor.EmptyBuffers();
   #localValidator: LocalValidator = new LocalValidator();
   #remoteValidator: RemoteValidator = new RemoteValidator();
+
+  static EmptyBuffers(): ValidationBuffers {
+    return {
+      localbuf: [true, []],
+      remotebuf: [true, []]
+    }
+  }
 
   /**
    * Constructs a validation executor and registers the basic
@@ -28,7 +42,24 @@ export class ValidationExecutor {
    * assembly.
    */
   localOnly(assembly: ProjectAssembly): EnforcementTuple {
-    return this.#localValidator.applyOn(assembly);
+    const localres = this.#localValidator.applyOn(assembly);
+    this.validationbuffers.localbuf = localres;
+    return localres;
+  }
+
+  remoteOnly(assembly: ProjectAssembly): EnforcementTuple {
+    
+    const localres = this.##remoteValidator.applyOn(assembly);
+    this.validationbuffers.localbuf = localres;
+    return localres;
+  }
+
+  /**
+   * Gets the latest results after a run
+   * The buffer will contain results after validation has occured
+   */
+  getBuffers(): ValidationBuffers {
+    return this.validationbuffers;
   }
 
   /**

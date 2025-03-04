@@ -117,6 +117,9 @@ export class LocalValidator {
  */
 export class RemoteValidator {
 
+  applyOn(_assembly: ProjectAssembly): EnforcementTuple {
+    return [true, []];
+  }
   
   
 }
