@@ -1,5 +1,8 @@
 import React from "react";
 import styles from '../styles/ErrorList.module.css';
+import RottnestContainer from "../container/RottnestContainer";
+import { RuleResult } from "../../vald/Validator";
+import { symbols } from "d3";
 
 /**
  * The error data will provide a
@@ -19,7 +22,8 @@ type ErrorData = {
  * property for it to be highlighted
  */
 type ErrorItemData = {
-	errorData: ErrorData
+	idx: number
+	errorData: RuleResult
 	selected: boolean
 	updateSelected: (idx: number) => void
 }
@@ -36,6 +40,7 @@ type ErrorListData = {
  * of an array of errors
  */
 type ErrorListing = {
+	rtc: RottnestContainer
 	errors: Array<ErrorData>
 }
 
@@ -48,13 +53,16 @@ class ErrorItem extends React.Component<ErrorItemData, {}> {
 
 
 	render() {
-		
-		const ident = this.props.errorData.ident;
-		const errorName = this.props.errorData.name;
+		const idx = this.props.idx;
+		const ident = this.props.errorData.code;
+		const errorName = this.props.errorData.code;
+		const errorDesc = this.props.errorData.msg;
+		const errorKind = this.props.errorData.kind;
 		const isSelected = this.props.selected;
-		const parentUpdateFn = this.props.updateSelected;	
+		const parentUpdateFn = this.props.updateSelected;
+		
 		const updateFn = () => {
-			parentUpdateFn(ident)
+			parentUpdateFn(idx)
 		}
 
 		return (
@@ -63,9 +71,12 @@ class ErrorItem extends React.Component<ErrorItemData, {}> {
 					isSelected ? 
 					styles.errorItem :
 					styles.selectedErrorItem 
-				} 
+				}
 				onClick={updateFn}>
-				{errorName}
+				<span>{errorName}</span>
+				<span>: </span>
+				<span>{errorKind}</span>
+				<div>{errorDesc}</div>
 			</li>
 		)
 	}
@@ -93,13 +104,23 @@ class ErrorList extends React.Component<ErrorListing, ErrorListData> {
 	 * the default styling will be applied
 	 */
 	render() {
+		const rtc = this.props.rtc;
 		const headerName = 'Errors';
+		rtc.opers.validate(rtc); //TODO: This needs to be prompted elsewhere
+		const errBuffers = rtc.state.valexec.getBuffers();
+		const [_valid, localres] = errBuffers.localbuf;
+		const selfRef = this;
 
-		const errors = this.props.errors.map(
-			e => <ErrorItem errorData={e} 
-					selected={e.ident === 
-					this.state.selectedIndex }
-					updateSelected={this.updateSelected}
+		const selUpdateFn = (idx: number) => {
+			selfRef.updateSelected(idx);
+		}
+		
+		const errors = localres.map(
+			(e, i) => <ErrorItem
+					idx={i}
+					errorData={e} 
+					selected={i === this.state.selectedIndex }
+					updateSelected={selUpdateFn}
 
 				/>
 		);
@@ -107,7 +128,7 @@ class ErrorList extends React.Component<ErrorListing, ErrorListData> {
 			<div className={styles.errorList}>
 				<header className={styles.errorListHeader}>
 					{headerName}</header>
-			<ul>
+			<ul className={styles.errorListUL}>
 				{errors}
 			</ul>
 			</div>

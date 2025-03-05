@@ -148,9 +148,7 @@ export class RegionContainer
 						}
 					} />
 					
-				<ErrorList 
-					{...ContainerDefaults
-						.errorList} />
+				<ErrorList rtc={container} errors={[]}/>
 			</div>
 		)
 	}

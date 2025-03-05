@@ -1,5 +1,5 @@
 
-import {ProjectDetails} from '../../model/Project';
+import {ProjectAssembly, ProjectDetails} from '../../model/Project';
 import {RegionDataList } from '../../model/RegionDataList';
 import {RunResultBuffer} from '../../model/RunResult.ts';
 import { ContainerSchema } from './Schema.ts';
@@ -8,6 +8,8 @@ import { RottnestKindMap } from '../../model/RegionKindMap';
 import { RottCallGraph, RottCallGraphDefault } from '../../model/CallGraph';
 import { AppServiceClient } from '../../net/AppService';
 import AppServiceModule from '../../net/AppServiceModule';
+import RottnestContainer from '../container/RottnestContainer.tsx';
+import { ValidationExecutor } from '../../vald/Validation.ts';
 
 
 export type AppCommData = {
@@ -59,6 +61,8 @@ export type RottnestState = {
 	errorMessage: string
 	graphViewData: RottCallGraph
 	rrBuffer: RunResultBuffer
+	valexec: ValidationExecutor
+	
 }
 
 /**
@@ -71,6 +75,10 @@ type RottnestContainerAggr = {
   rtsubkinds: RottnestKindMap
 }
 
+/**
+ * List of subkinds, subkinds get reported from the
+ * backend
+ */
 let RottnestSubKinds: RottnestKindMap = {
 	bus: [{ name: 'Not Selected' }],	
 	register: [{ name: 'Not Selected'}],
@@ -132,13 +140,13 @@ const RTStateDefault: RottnestState =
 		},
 		graphViewData: RottCallGraphDefault(),	
 		visData: {},
-		rrBuffer: new RunResultBuffer()
+		rrBuffer: new RunResultBuffer(),
+		valexec: ValidationExecutor.Make()
 };
 
 
 export type RottnestContainerOperations = {
-  
-  validate: 
+  validate: (rtc: RottnestContainer) => void
 }
 
 export class RottnestContainerSchema implements ContainerSchema<
@@ -147,6 +155,10 @@ export class RottnestContainerSchema implements ContainerSchema<
 
   data: RottnestContainerAggr = RottnestContainerSchema.DataDefaults();
 
+	/**
+	 * Returns defaults of the data that will represent
+	 * the state objects, commdata and subkinds
+	 */
   static DataDefaults(): RottnestContainerAggr {
     return {
 			rtstate: RTStateDefault,
@@ -156,21 +168,40 @@ export class RottnestContainerSchema implements ContainerSchema<
   }
 
   getDefaults(): RottnestContainerAggr {
-
     return {
-        rtstate: RTStateDefault,
-        rtcommdata: RTCommData,
-        rtsubkinds: RottnestSubKinds
+        rtstate: { ...RTStateDefault },
+        rtcommdata: { ...RTCommData },
+        rtsubkinds: { ...RottnestSubKinds }
     };
   }
 
+	/**
+	 * Will return an aggregate object with
+	 * state, commdata and subkinds
+	 */
   getData(): RottnestContainerAggr {
     return this.data;
   }
 
+	/**
+	 * Returns a set of operations that will
+	 * operate on the container
+	 */
   getOperations(): RottnestContainerOperations {
     return {
-    	
+
+			/**
+			 * Validates the project assembly against the validation
+			 * ruleset implemented
+			 * The ruleset 
+			 */
+    	validate: (rtc: RottnestContainer) => {
+				const valexec = rtc.state.valexec;
+				const projasm = rtc.getProjectAssembly();
+
+				valexec.localOnly(projasm);
+    		
+    	}
     };
   }
   

@@ -56,7 +56,7 @@ export class RottGraphMSG implements DeRott  {
 	}
 
 	fromJSON(jsonObj: any): this | null {
-		
+		console.log(jsonObj)
 		//Assume it is a JSON object
 		const data = jsonObj['payload'];
 		const graph = data['graph_view']['graph'];
@@ -143,9 +143,8 @@ export class RottRouterTypesMSG implements DeRott  {
 			const key = k.toLowerCase();
 			const rDefName = data[k].default;
 			const rOptions = data[k].options;
-			
 			if(this.subtypeMap.has(key)) {
-
+				
 				for(const v of rOptions) {
 					const rtrs = this
 						.subtypeMap.get(key);
@@ -162,7 +161,7 @@ export class RottRouterTypesMSG implements DeRott  {
 				}
 			} else {
 				console.error('Unable to '
-					 + 'decode message');
+					 + 'decode message: ' + key);
 			}
 
 		}
@@ -200,7 +199,7 @@ export class RottSubTypesMSG implements DeRott  {
 	}
 
 	fromJSON(mdata: any) {
-		const data = mdata['subtypes'];
+		const data = mdata['payload'];
 			for(const k in data) {
 			const lowerK = k.toLowerCase();
 			let lowerKey = 

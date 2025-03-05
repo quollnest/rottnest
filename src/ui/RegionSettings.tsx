@@ -342,7 +342,6 @@ class RegionSettings extends React
 		if(currentObj !== null && currentObj !== undefined 
 		   && currentObj.routerKind === null) {
 			
-			console.log(currentObj);
 			
 			let regData: RegionData = currentObj
 				.shallowDuplicate();

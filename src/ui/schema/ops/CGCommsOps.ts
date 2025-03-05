@@ -2,7 +2,8 @@ import { AppServiceClient } from "../../../net/AppService";
 import { MSG_REMAP } from "../../../net/MessageRemap";
 import { RottRunResultMSG } from "../../../net/Messages";
 import RottnestContainer from "../../container/RottnestContainer";
-import { CommEventOps, CommOpQueue, CommsActions } from "./CommsOps";
+import { CommEventOps, CommsActions } from "./CommsOps";
+
 
 /**
  *
@@ -12,7 +13,7 @@ import { CommEventOps, CommOpQueue, CommsActions } from "./CommsOps";
  * 
  * 
  */
-export const RTCCommEvents: CommEventOps<RottnestContainer> = {
+export const CGCommEvents: CommEventOps<RottnestContainer> = {
   recvSubType: {
     evkey: MSG_REMAP['subtype'],
     evtrigger: (appService: AppServiceClient, rtc: RottnestContainer, m: any) => {
@@ -22,7 +23,8 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 				rtc.updateSubTypes(kinds);
 
 				appService
-				.sendMessage(MSG_REMAP['get_router']);
+				.sendObj(MSG_REMAP['get_router']
+				,'');
 			}
 		}
   },
@@ -33,8 +35,9 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
       let kinds = appService
 					.retrieveRouters(
 						rtc.state.subTypes,m);
+					console.log(kinds, m);
 				if(kinds) {
-					rtc.updateRouterList(kinds);
+					rtc.updateSubTypes(kinds);
 				}
 		}
   },
@@ -134,33 +137,8 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 }
 
 /**
- * Initial dispatch operations that occur when `open` even occurs
- * on the socket
- */
-const RTCDispatchOperations = [
-	{
-		opkey: "initial",
-		operation: (appService: AppServiceClient, _rtc: RottnestContainer) => {
-			if(appService.isConnected()) {	
-				appService.sendMessage(MSG_REMAP['subtype']);
-				appService.sendMessage(MSG_REMAP['get_root_graph']);
-				appService.sendMessage(MSG_REMAP['get_args']);
-			}
-		}
-	},
-	
-]
-
-/**
  * CommunicationActions for RottnestContainer, allows one
  * to define it in a file and pass it to where it is needed
  */
 export const RTCCommActions
   = CommsActions.MakeCommsWith<RottnestContainer>(RTCCommEvents);
-
-
-/**
- * Open operations that will be triggered, it is just a list of 1
- */
-export const RTCOpenOperations
-	= CommOpQueue.MakeDispatchWith<RottnestContainer>(RTCDispatchOperations)

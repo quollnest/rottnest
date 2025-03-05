@@ -47,9 +47,13 @@ export class ValidationExecutor {
     return localres;
   }
 
+  /**
+   * Will apply the remote rules on the architecture object
+   * TODO: Not implemented fully yet
+   */
   remoteOnly(assembly: ProjectAssembly): EnforcementTuple {
     
-    const localres = this.##remoteValidator.applyOn(assembly);
+    const localres = this.#remoteValidator.applyOn(assembly);
     this.validationbuffers.localbuf = localres;
     return localres;
   }
@@ -62,12 +66,5 @@ export class ValidationExecutor {
     return this.validationbuffers;
   }
 
-  /**
-   * Will apply the remote rules on the architecture object
-   * TODO: Not implemented fully yet
-   */
-  remoteOnly(): boolean {
-    return false;
-  }
   
 }

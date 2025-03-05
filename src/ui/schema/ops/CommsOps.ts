@@ -1,5 +1,10 @@
 import { AppServiceClient } from "../../../net/AppService";
 
+export type CommDispatch<T> = {
+  opkey: string
+  operation: (as: AppServiceClient, ctx: T) => void
+}
+
 /**
  * CommOperation, type parameter is utilised
  * as a way to ensure the context is known and that registered
@@ -83,3 +88,50 @@ export class CommsActions<T> {
   
 }
 
+
+export class CommOpQueue<T> {
+  #queue: Array<CommDispatch<T>> = [];
+
+  /**
+   * Adds a dispatch method to the queue
+   */
+  push(op: CommDispatch<T>) {
+    this.#queue.push(op);
+  }
+
+  /**
+   * Adds a list of dispatch methods to the queue
+   */
+  pushMany(ops: Array<CommDispatch<T>>) {
+    this.#queue.push(...ops);
+  }
+
+  /**
+   * Triggers the operation of all the dispatch methods in the queue
+   */
+  applyAll(aps: AppServiceClient, ctx: T) {
+    for(const op of this.#queue) {
+      op.operation(aps, ctx);
+    }
+  }
+
+  /**
+   * Applies the first dispatch method and removes it 
+   */
+  applyThenDequeue(aps: AppServiceClient, ctx: T) {
+    const op = this.#queue.shift();
+    if(op) {
+      op.operation(aps, ctx);
+    }
+  }
+
+  /**
+   *
+   */
+  static MakeDispatchWith<T>(ops: Array<CommDispatch<T>>) {
+    const dispatcher: CommOpQueue<T> = new CommOpQueue();
+    dispatcher.pushMany(ops);
+    return dispatcher;
+  }
+   
+}

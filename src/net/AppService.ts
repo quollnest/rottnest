@@ -97,6 +97,18 @@ export class AppServiceClient {
 		}
 	}
 
+	sendMessage(message: string) {
+		
+		if(this.socket) {
+			this.socket.send(
+				JSON.stringify({
+					message,
+					payload: {}
+				})	
+			);
+		}
+	}
+
 	sendObj(message: string, payload: any) {
 			
 		if(this.socket) {
@@ -220,7 +232,6 @@ export class AppServiceClient {
 		data.parseData();
 		const realData = data
 			.parseDataTo(msgContainer);
-
 		if(realData) {
 			return realData.subtypeMap;
 		}
