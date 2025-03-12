@@ -1,10 +1,10 @@
 import React from 'react';
-import { GridCell } from './grid/GridItem.tsx'
-import SelectionVisual from './grid/SelectionVisual.tsx';
+import { GridCell } from '../grid/GridItem.tsx'
+import SelectionVisual from '../grid/SelectionVisual.tsx';
 
-import styles from './styles/DesignSpace.module.css'
-import {RegionCell} from '../model/RegionData.ts';
-import {Workspace, WorkspaceData} from './workspace/Workspace.ts';
+import styles from '../styles/DesignSpace.module.css'
+import {RegionCell} from '../../model/RegionData.ts';
+import {Workspace, WorkspaceData} from '../workspace/Workspace.ts';
 
 /**
  * Selection Box
@@ -576,8 +576,8 @@ export class DesignSpace extends React.Component<GridData, GridState>
 						top: 
 						gref.state
 						.gridPosition[1],
-						width: 
-						`${zoomValue}%`,
+						//columnCount: gwidth,
+						width: `${zoomValue}%`,
 						gridTemplateColumns: 
 						`repeat(${gwidth},1fr)`
 					}}>

@@ -1,4 +1,3 @@
-
 .gridItem {
 	display: inline-grid;
 	border: 1px #35332f solid;
@@ -25,31 +24,31 @@
 }
 
 
-.Register {	
-	background-color: #e0e000;	
+.Register {
+	background-color: #e0e000;
 }
 
 .Bus {
-	background-color: #40c040;	
+	background-color: #40c040;
 }
 
-.BellState {	
-	background-color: #ff00ff;	
+.BellState {
+	background-color: #ff00ff;
 }
 
-.TFactory {	
-	background-color: #58b0f5;	
+.TFactory {
+	background-color: #58b0f5;
 }
 
-.Buffer {	
-	background-color: #e04040;	
+.Buffer {
+	background-color: #e04040;
 }
 
-.DetagSelected {	
+.DetagSelected {
 	border: 1px #ffffff solid !important
 }
 
-.RegisterSelected {	
+.RegisterSelected {
 	border: 1px #e0e000 solid !important
 }
 
@@ -57,16 +56,14 @@
 	border: 1px #40c040 solid !important
 }
 
-.BellStateSelected {	
+.BellStateSelected {
 	border: 1px #ff00ff solid !important
 }
 
-.TFactorySelected {	
+.TFactorySelected {
 	border: 1px #3820ff solid !important
 }
 
-.BufferSelected {	
+.BufferSelected {
 	border: 1px #e04040 solid !important
 }
-
-

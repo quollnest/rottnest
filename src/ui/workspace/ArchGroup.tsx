@@ -3,7 +3,7 @@ import {RegionContainer, ToolContainer}
 	from "../container/ColumnContainer"
 import { WorkspaceProps } from "./Workspace"
 import { WorkspaceGroup } from "./Workspace"
-import {DesignSpace} from "../DesignSpace"
+import {DesignSpace} from "../design/DesignSpace"
 import {ReactElement} from "react";
 import {WorkspaceZone} from "./WorkspaceZone";
 
