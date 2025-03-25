@@ -16,8 +16,8 @@ export class RottArchMSG {
 
 	toJsonStr(): string {
 		return JSON.stringify({
-			message: "use_arch",
-			originator: "rottnet",
+			message: "arch_lat2d_use",
+			originator: "rottnest",
 			payload: this.tschedData,
 		});
 	}
@@ -33,9 +33,9 @@ export class RottRunResultMSG {
 
 	toJsonStr(): string {
 		return JSON.stringify({
-			message: "run_result",
+			message: "arch_lat2d_run_result",
 			originator: "rottnest",
-			payload: this.archid,
+			payload: { 'arch_id' : this.archid },
 		});
 	}
 }

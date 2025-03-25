@@ -27,7 +27,7 @@ import {RottCallGraphDefault} from '../../model/CallGraph.ts';
 import ErrorDisplay from './ErrorDisplay.tsx';
 import { AppCommData, RottnestContainerOperations, RottnestContainerSchema, RottnestState } from '../schema/RottnestContainerSchema.ts';
 import { HelpDataCollection, HelpUISchema } from '../schema/HelpUISchema.ts';
-import { CommsActions } from '../schema/ops/CommsOps.ts';
+import { CommOpQueue, CommsActions } from '../schema/ops/CommsOps.ts';
 import { RTCCommActions, RTCOpenOperations } from '../schema/ops/RTCCommsOps.ts';
 
 

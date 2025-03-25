@@ -43,11 +43,8 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
     evtrigger: (appService: AppServiceClient, _: RottnestContainer, m: any) => {
       let someMsg = m 
 				if(someMsg) {
-					let arch_id = someMsg
-						.getJSON();
-					appService.runResult(
-					new RottRunResultMSG(
-						arch_id));
+					let arch_id = someMsg.getJSON().payload.arch_id;
+					appService.runResult(new RottRunResultMSG(arch_id));
 				}
 		  }
   },
@@ -71,11 +68,14 @@ export const RTCCommEvents: CommEventOps<RottnestContainer> = {
 			//the msg to be sent for
 			//get_graph
 			let rrBuf = rtc.getRRBuffer();
-
 			let json = m.interpretedData; 
 		
 			//A lot of heavy lifting done with this
 			//to address a terrible messaging system
+			if(json.payload.status === 'pending') {
+				//early return as we have no data
+				return;
+			}
 			const [rkind, mdat] = rrBuf.decodeAndSort(json.payload);
 			//appService
 			//	.sendObj('get_graph','');
