@@ -10,8 +10,13 @@ import {
 	ColorConfigMap,
 	VisRegion,
 	ColorMap,
-    VisRunResult}
+    VisRunResult,
+    PreRenderedPatches}
 from "./VisualiserElements";
+
+import vizexample from '../../assets/example.json';
+
+import { Workspace, WorkspaceData, WorkspaceProps } from "../workspace/Workspace";
 
 
 
@@ -32,23 +37,30 @@ export function DrawCellContents({rowidx, colidx, cell}: DrawCellProps):
   ReactElement {
   const symkey = cell.type as keyof SymbolKindMap;
   const cellobj = SymbolMap[symkey];
-    
   if(cellobj) {
     if("patch" in cellobj) {
       let x = colidx * CELL_SIZE;
       let y = rowidx * CELL_SIZE;
 
-      let text = <use href={cellobj.patch}
+      let text = <use href={`#${cellobj.skey}`}
+      	key={`cell_${rowidx}_${colidx}`}
 				x={x}
 				y={y}
+				fill={'black'}
+				stroke={'black'}
+				width={'100px'}
+				height={'100px'}
+				fontSize={CELL_SIZE * 0.5}
+				textAnchor={'middle'}
+				dominantBaseline={'middle'}
       	/>
 			return text;
 			
     } else {
-			
       let x = colidx * CELL_SIZE + CELL_SIZE * 0.5;
       let y = rowidx * CELL_SIZE + CELL_SIZE * 0.55;
       let text = <text
+      	key={`cell_${rowidx}_${colidx}`}
 				x={x}
 				y={y}
 				fontSize={CELL_SIZE * 0.5}
@@ -57,7 +69,6 @@ export function DrawCellContents({rowidx, colidx, cell}: DrawCellProps):
       >
       { cellobj.text !== undefined ? cellobj.text : '' }
       </text>
-    
 			return text;      
       
     }
@@ -249,21 +260,19 @@ export function PathRect(x: number, y: number, width: number,
 	/> 
 }
 
-export function DrawDataBackground(svgbg: SVGElement, svg: SVGElement,
-	data: VisRunResult) {
+//	const _sbg = DrawDataBackground(this.state.svgbg, this.state.svg,
+//		data);
+//	const _cly = DrawVisualInstance(this.state.svgfg, data,
+//		this.state.crfrm);
+export function DrawDataBackground(data: VisRunResult) {
 
-	
+
 	const width = data.width;
 	const height = data.height;
 
-	
-	svg.setAttribute('width', "100%");
-	svg.setAttribute('height', "720");
-
-	svgbg.innerHTML = "";
-
 	let widgetFactories = [];
 	let widgetRegions = [];
+	console.log(data);
 	for(const reg of data['regions']) {
 		const [region, factory] = DrawWidgetRegion(reg);
 
@@ -272,8 +281,7 @@ export function DrawDataBackground(svgbg: SVGElement, svg: SVGElement,
 		
 	}
 
-	let blayer = DrawBaseLayer(data.base_layer, width, height);
-
+	let [cells, contents] = DrawBaseLayer(data.base_layer, width, height);
 
 	let increment = 1000;
 	const layerN = data.layers.length
@@ -292,7 +300,7 @@ export function DrawDataBackground(svgbg: SVGElement, svg: SVGElement,
 	let optelements = [];
 	let i = 0;
 	for(i = 0; i < layerN + increment - 1; i += increment) {
-		let opt = <option value={i} label={`${i}`} />
+		let opt = <option value={i} label={`${i}`} key={`tm_option_${i}`} />
 		optelements.push(opt);
 		
 	}
@@ -311,56 +319,88 @@ export function DrawDataBackground(svgbg: SVGElement, svg: SVGElement,
 		</datalist>
 
 	//TODO: Update the frame range
-
-	return [blayer, tickmarks];
+	const svg_bg = <g>
+		{widgetRegions}
+		{cells}
+		{contents}
+		</g>
+	console.log(contents);
+	return [svg_bg, cells, contents, tickmarks,widgetFactories, widgetRegions];
 }
 
 
-export function DrawVisualInstance(
-	svgfg: SVGElement,
-	data: VisRunResult,
-	frameNum: number) {
+export function DrawVisualInstance(data: VisRunResult, frameNum: number) {
 
-	svgfg.innerHTML = '';//TODO: Zero's it out
+	// re-initialise the foreground element
 	
 	let layer = DrawLayer(data.layers[frameNum]);
 
 	//TODO: update frameBox 
-	
-	return layer;
+	const svgfg = <g>{layer}</g>
+	return [svgfg, layer];
 }
 
 
 export type SchedulerVisData = {
-	svgfg: SVGElement
-	svgbg: SVGElement
-	svgly: SVGElement
 	crfrm: number
+	initd: boolean
+}
+
+export type SchedulerVisProps = {
+	workspaceData: WorkspaceData
 }
 
 
-export class SchedulerVisualiser extends React.Component<VisRunResult,
-	SchedulerVisData> {
+export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
+	SchedulerVisData> implements Workspace {
+		
 
 	state: SchedulerVisData = {
-		svgfg: new SVGElement(),
-		svgbg: new SVGElement(),
-		svgly: new SVGElement(),
-		crfrm: 0
+		crfrm: 0,
+		initd: true
+	}
+
+	genDefs() {
+		const patches = [];
+		for(const prp of PreRenderedPatches) {
+			
+			const patch = (<svg id={prp.id} width={prp.width * CELL_SIZE + 'px'}
+				key={`def_patch_${prp.id}`}
+				height={prp.height * CELL_SIZE + 'px'}>
+				</svg>);
+			patches.push(patch);
+			//this.state.svgdefs.appendChild(patch);
+		}
+		return (
+			<defs>
+				{patches}			
+			</defs>
+		)
 	}
 
 	render() {
 		//TODO: Fix this part -> Notice lines 58 to 80 in original
-		const data = this.props;
+		const runresult = vizexample;
+		const data = runresult;
+		const defs = this.genDefs();
+		const vwidth = (data.width * 100) + 200;
+		const vheight = (data.height * 100) + 200;
+		const [sbg, _blayer, _tickmarks, _wfactories, _wregions] = DrawDataBackground(data);
+		const [sfg, _layer] = DrawVisualInstance(data, this.state.crfrm);
 
-		const sbg = DrawDataBackground(this.state.svgbg, this.state.svgly,
-			data);
-		
-		const cly = DrawVisualInstance(this.state.svgfg, data,
-			this.state.crfrm);
+		//DrawDataBackground
+		//DrawVisualInstance
 
+		//const svginst = this.state.svgd;
+		//ratio: 1:100
+		//TODO: Make it moveable and make it playable
 		return (
 			<>
+				<svg viewBox={`-100 -100 ${vwidth} ${vheight}`} width={'100%'} height={720} >
+					{defs}
+					{sbg}
+					{sfg}
+				</svg>
 			</>
 		);
 		

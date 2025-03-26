@@ -1,4 +1,4 @@
-import {SchedulerVisualiser} from "../vis/SchedulerVisualiser.tsx";
+import {SchedulerVisualiser} from "../vis/VisualiserOperations.tsx";
 import { WorkspaceData, WorkspaceGroup, WorkspaceProps } from "./Workspace"
 import {ReactElement} from "react";
 import {WorkspaceZone} from "./WorkspaceZone"
