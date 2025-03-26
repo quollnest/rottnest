@@ -5,8 +5,58 @@ import SurfaceCode from './assets/surface_code.svg'
 import MagicState from './assets/magic_state.svg'
 
 
+
+export type VisFactory = {	
+	loc_tl: Array<number> 
+	loc_br: Array<number>
+}
+
+
+export type VisRegion = {
+	name: string
+	loc_tl: Array<number>
+	loc_br: Array<number>
+	factories?: Array<VisFactory>
+}
+
+export type VisFrameData = {
+  currentFrame: number
+}
+
+
+export type VisGate = {
+	id: number
+	type: string
+	active_time?: number	
+	holds?: Array<[number, number]>
+} 
+
+
+export type VisRunResult = {
+	width: number
+	height: number
+	layers: any	
+	regions: Array<VisRegion>
+	base_layer: VisDataLayer
+}
+/**
+ * The data layer that will contain the necessary components
+ * TODO: Fix up types because WHO KNOWS WHAT IT IS
+ */
+export type VisDataLayer = {
+	board: Array<Array<VisCell>>
+	gates: Array<VisGate>
+	//factories?: Array<VisFactory>
+}
+
+
+/**
+ * VisCell that contains a locked_by field, it will
+ * be associated by some gate?
+ */
 export type VisCell = {
   type: string
+  locked_by?: number
 } 
 
 /**
@@ -19,31 +69,39 @@ export type PatchRenderData = {
   height: number
 }
 
+export type SymbolCell = {
+  text?: string
+  patch?: string
+}
+
+/**
+ * TBH, no clue what the this is, it just apparently has
+ * two numbers which resemble their coordinates
+ */
+export type CellComp = [number | null, number | null]
+
 /**
  * SymbolKindMap
  */
 export type SymbolKindMap = {
-	bell: { patch: string }
-	locked: { text: string }
-	reg: { patch: string }
-	route: { text: string }
-	magic_state: { patch: string }
-	cultivator: { text: string }
-	reserved: { text: string }
-	factory_output: { text: string }
-	route_buffer: { text: string }
-	other: { text: string }
-	unused: { text: string }
+	bell: SymbolCell
+	locked: SymbolCell
+	reg: SymbolCell
+	route: SymbolCell
+	magic_state: SymbolCell
+	cultivator: SymbolCell
+	reserved: SymbolCell
+	factory_output: SymbolCell
+	route_buffer: SymbolCell
+	other: SymbolCell
+	unused: SymbolCell
 }
-
-
-
 
 /**
  * ColorConfigMap provides a description
  * for a few subtypes
  */
-type ColorConfigMap = {
+export type ColorConfigMap = {
 	SingleRowRegisterRegion: string
 	MagicStateFactoryRegion: string
   CombShapedRegisterRegion: string

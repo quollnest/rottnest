@@ -1,46 +1,9 @@
 import React from "react";
-import style from "./styles/SchedulerVisual.module.css"
+import style from "../styles/SchedulerVisual.module.css"
 import {Workspace, WorkspaceData} from "../workspace/Workspace";
 
-import data_json from '../../assets/example_visual.json';
-import { CELL_SIZE, ColorMap, SymbolMap } from "./VisualiserElements";
-import { PathRect, RoundedRect } from "./VisualiserOperatiosn";
-
-
-
-/**
- * 
- */
-type VisCell = {
-	type: string
-}
-
-
-type VisCellLock = {
-	type: string
-	locked_by: number
-}
-
-type VisCellAggr = VisCell | VisCellLock;
-
-type VisGateActive = {
-	id: number
-	type: string
-	active_time: number	
-	holds: Array<[number, number]>
-} 
-
-
-type VisGate = VisGateActive;
-
-/**
- * 
- */
-type VisDataLayer = {
-	board: Array<Array<VisCellAggr>>
-	gates: Array<VisGate>
-	//factories?: Array<VisFactory>
-}
+import visexample from '../../assets/example.json';
+import { VisDataLayer, VisRunResult } from "./VisualiserElements";
 
 /**
  * 
@@ -55,17 +18,11 @@ type VisRegion = {
 /**
  * 
  */
-type VisFactory = {	
+export type VisFactory = {	
 	loc_tl: Array<number> 
 	loc_br: Array<number>
 }
 
-type VisRunResult = {
-	width: number
-	height: number
-	layers: any	
-	regions: Array<VisRegion>
-}
 
 
 /**
@@ -281,77 +238,7 @@ class SchedulerRenderer extends React.Component<
 		//this.viewBox = this.svg.viewBox.baseVal;
 	}
 
-	drawRoute(p1: [number, number], p2: [number, number]) {
 		
-		if (Math.abs(p1[0] - p2[0]) 
-		    + Math.abs(p1[1] - p2[1]) != 1) {
-			return;
-		}
-		const  x = Math.min(p1[1], p2[1]) 
-			* CELL_SIZE + CELL_SIZE * 0.2;
-			
-		const y = Math.min(p1[0], p2[0]) 
-			* CELL_SIZE + CELL_SIZE * 0.2;
-		
-		let width = 0; 
-		let height = 0;
-		if (p1[0] == p2[0]) {
-			width = CELL_SIZE * 1.6;
-			height = CELL_SIZE * 0.6;
-		} else {
-			width = CELL_SIZE * 0.6;
-			height = CELL_SIZE * 1.6;
-		}
-
-		let pr = PathRect(x, 
-						    y, 
-						width, 
-						height);
-		this.svgFG.appendChild(pr);
-	}
-
-	drawCellContents(rowIdx: number, 
-			colIdx: number, 
-			cell: VisCell) {
-
-		const SYMBOL_MAP = 
-			SymbolMap;
-
-		const clltype = 
-			cell.type as keyof SymbolKindMap;
-
-		if ("patch" in SYMBOL_MAP[clltype]) {
-			const x = colIdx * CELL_SIZE;
-			const y = rowIdx * CELL_SIZE;
-
-			const text = <use
-				x={x}
-				y={y}
-				href={`#${SYMBOL_MAP[clltype]
-						  .patch}`}
-				/>
-
-			this.svgFG.appendChild(text);
-		} else {
-			const x = colIdx * CELL_SIZE + CELL_SIZE 
-				* 0.5;
-			const y = rowIdx * CELL_SIZE + CELL_SIZE 
-				* 0.55;
-				
-			const text = (<use
-				x={x}
-				y={y}
-				fontSize={CELL_SIZE * 0.5}
-				textAnchor={'middle'}
-				dominantBaseline={'middle'}>
-			symbolmap[cell.type].text
-			</use>);
-
-			
-			this.svgFG.appendChild(text);
-		}
-	}
-	
 	baseCell(rowIdx: number, colIdx: number) {
 		const y = (rowIdx + 0.1) * CELL_SIZE;
 		const x = (colIdx + 0.1) * CELL_SIZE;
@@ -590,12 +477,15 @@ export class SchedulerVisualiser extends
 	}
 
 	render() {
+		console.log(visexample);
+		let data_json = visexample;
 		let data: VisRunResult = {
-			width: data_json.payload.width,
-			height: data_json.payload.height,
+			width: data_json.width,
+			height: data_json.height,
 			//TODO: Resolve the type info here
-			layers: data_json.payload.layers,
-			regions: data_json.payload.regions,
+			layers: data_json.layers,
+			regions: data_json.regions,
+			base_layer: data_json.base_layer
 
 		}
 
