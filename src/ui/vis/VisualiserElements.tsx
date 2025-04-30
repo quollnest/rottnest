@@ -164,6 +164,9 @@ export const SymbolMap: SymbolKindMap = {
 	unused: { skey:'unused', text: " "},
 };
 
+/**
+ * Color map for the visualiser
+ */
 export const ColorMap: ColorConfigMap = {
 	SingleRowRegisterRegion: "yellow",
   CombShapedRegisterRegion: "yellow",

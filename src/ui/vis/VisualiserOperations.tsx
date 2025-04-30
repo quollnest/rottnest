@@ -18,7 +18,7 @@ import vizexample from '../../assets/example.json';
 
 import { Workspace, WorkspaceData, WorkspaceProps } from "../workspace/Workspace";
 
-
+import style from "../styles/SchedulerVisualiser.module.css"
 
 
 /**
@@ -172,6 +172,9 @@ export function DrawWidgetRegion(region: VisRegion) {
 	return [reg, factories]
 }
 
+/**
+ * Draws the base layer of the visualisation image
+ */
 export function DrawBaseLayer(baseLayer: VisDataLayer, width: number, height: number) {
 	const cells: Array<ReactElement> = [];
 	const contents: Array<ReactElement> = [];
@@ -344,20 +347,111 @@ export function DrawVisualInstance(data: VisRunResult, frameNum: number) {
 export type SchedulerVisData = {
 	crfrm: number
 	initd: boolean
+	isPlaying: boolean
+	interval: ReturnType<typeof setInterval> | null
 }
 
 export type SchedulerVisProps = {
 	workspaceData: WorkspaceData
 }
 
+/**
+ * Props that will allow you to set the title of the button
+ * the onclick operation and the secondary data associated with it
+ * 
+ */
+export type SchedulerButtonProps = {
+	title: string
+	kind: SchedButtonKind
+	visParent: SchedulerVisualiser
+	onClickOp: (viz: SchedulerVisualiser) => void
+}
+
+
+/**
+ * ButtonKind enum, outlines how it will be styled
+ * and the kind of feedback it would typically give
+ */
+export enum SchedButtonKind {
+	Toggle,
+	
+}
+
+export class SchedulerControlButton extends React.Component<SchedulerButtonProps,{}>{
+
+
+	render() {
+
+		const title = this.props.title;
+		const opfn = this.props.onClickOp;
+		const viz = this.props.visParent;
+		
+		return (
+			<>
+				<button className={style.vizButton} onClick={(_e) => opfn(viz)}>{title}</button>
+			</>
+		)
+	}
+}
+
+
+/**
+ * The control state information that
+ * is used update/reflect the state of the controls
+ */
+export type SchedulerControlsProps = {
+	isPlaying: boolean,
+	frameIdx: number
+}
+
+/**
+ * The scheduler controls that 
+ */
+export class SchedulerControls extends React.Component<SchedulerControlsProps, {}> {
+
+	buttonSetData: Array<SchedulerButtonProps> = [
+		
+	];
+
+
+	render() {
+
+
+		return (
+			<></>
+		)
+	}
+}
+
 
 export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 	SchedulerVisData> implements Workspace {
 		
-
+	
 	state: SchedulerVisData = {
 		crfrm: 0,
-		initd: true
+		initd: true,
+		isPlaying: false,
+		interval: null
+	}
+
+	tick() {
+		this.state.crfrm += 1;
+		this.setState({...this.state})
+	}
+
+
+	componentDidMount() {
+		if(this.state.isPlaying) {
+			let self = this;
+			this.state.interval = setInterval(() => self.tick(), 1000);
+		}
+	}
+
+	componentWillUnmount() {
+		if(this.state.interval) {
+			clearInterval(this.state.interval);
+		}
 	}
 
 	genDefs() {
@@ -377,6 +471,8 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 			</defs>
 		)
 	}
+
+	
 
 	render() {
 		//TODO: Fix this part -> Notice lines 58 to 80 in original
