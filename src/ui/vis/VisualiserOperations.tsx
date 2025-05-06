@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import React, { MouseEvent, ReactElement } from "react";
 
 import {
 	CELL_SIZE,
@@ -14,11 +14,12 @@ import {
     PreRenderedPatches}
 from "./VisualiserElements";
 
-import vizexample from '../../assets/example.json';
-
-import { Workspace, WorkspaceData, WorkspaceProps } from "../workspace/Workspace";
+import { Workspace, WorkspaceData } from "../workspace/Workspace.ts";
 
 import style from "../styles/SchedulerVisualiser.module.css"
+import { OnVisualiserExportJSON, OnVisualiserFrameNext, OnVisualiserFramePrev, OnVisualiserPlay, OnVisualiserReset, OnVisualiserSaveAnimation, OnVisualiserSaveFrame } from "./VisualiserEvents.ts";
+import { DownloadFile } from "../../util/FileDownload.ts";
+import { createRoot } from "react-dom/client";
 
 
 /**
@@ -41,19 +42,21 @@ export function DrawCellContents({rowidx, colidx, cell}: DrawCellProps):
     if("patch" in cellobj) {
       let x = colidx * CELL_SIZE;
       let y = rowidx * CELL_SIZE;
+			console.log(cellobj.skey);
 
-      let text = <use href={`#${cellobj.skey}`}
+			const remote = cellobj.remote ? cellobj.remote : ''
+			
+      let text = <image href={`${remote}`}
       	key={`cell_${rowidx}_${colidx}`}
 				x={x}
 				y={y}
-				fill={'black'}
-				stroke={'black'}
 				width={'100px'}
 				height={'100px'}
 				fontSize={CELL_SIZE * 0.5}
 				textAnchor={'middle'}
 				dominantBaseline={'middle'}
-      	/>
+      	>
+      	</image>
 			return text;
 			
     } else {
@@ -242,7 +245,7 @@ export function RoundedRect(x: number,
 		fillOpacity={fill_opacity}
 		stroke={'black'}
 		strokeWidth={0.5}
-	/>  
+	/>
 }
 
 /**
@@ -259,14 +262,33 @@ export function PathRect(x: number, y: number, width: number,
 		fill={'orange'}
 		fillOpacity={0.3}
 		stroke={'black'}
-		strokeWidth={0.5}
 	/> 
 }
 
-//	const _sbg = DrawDataBackground(this.state.svgbg, this.state.svg,
-//		data);
-//	const _cly = DrawVisualInstance(this.state.svgfg, data,
-//		this.state.crfrm);
+export function ConstructTickmarks(layerN: number) {
+	
+	let increment = 1000;
+	if(layerN < 500) {
+		increment = 10;
+	} else if(layerN < 1000) {
+		increment = 20;
+	} else if(layerN < 5000) {
+		increment = 100;
+	} else if (layerN < 10000) {
+		increment = 200;
+	} else {
+		increment = 1000;
+	}
+
+	let tickmarks = [];
+	for(let i = 0; i < layerN + increment - 1; i += increment) {
+		tickmarks.push({ idx: i });
+		
+	}
+
+	return tickmarks;
+}
+
 export function DrawDataBackground(data: VisRunResult) {
 
 
@@ -300,26 +322,11 @@ export function DrawDataBackground(data: VisRunResult) {
 		increment = 1000;
 	}
 
-	let optelements = [];
-	let i = 0;
-	for(i = 0; i < layerN + increment - 1; i += increment) {
-		let opt = <option value={i} label={`${i}`} key={`tm_option_${i}`} />
-		optelements.push(opt);
+	let tickmarks = [];
+	for(let i = 0; i < layerN + increment - 1; i += increment) {
+		tickmarks.push({ idx: i });
 		
 	}
-
-	
-	let tickmarks = <datalist
-			id={"tickmarks"}
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				justifyContent: 'space-between',
-				writingMode: 'vertical-lr'
-			}}
-		>
-		{optelements}
-		</datalist>
 
 	//TODO: Update the frame range
 	const svg_bg = <g>
@@ -328,7 +335,7 @@ export function DrawDataBackground(data: VisRunResult) {
 		{contents}
 		</g>
 	console.log(contents);
-	return [svg_bg, cells, contents, tickmarks,widgetFactories, widgetRegions];
+	return [svg_bg, cells, contents, widgetFactories, widgetRegions];
 }
 
 
@@ -337,15 +344,16 @@ export function DrawVisualInstance(data: VisRunResult, frameNum: number) {
 	// re-initialise the foreground element
 	
 	let layer = DrawLayer(data.layers[frameNum]);
-
-	//TODO: update frameBox 
+	console.log(layer);
 	const svgfg = <g>{layer}</g>
 	return [svgfg, layer];
 }
 
 
 export type SchedulerVisData = {
+	data: any
 	crfrm: number
+	nframes: number
 	initd: boolean
 	isPlaying: boolean
 	interval: ReturnType<typeof setInterval> | null
@@ -353,6 +361,7 @@ export type SchedulerVisData = {
 
 export type SchedulerVisProps = {
 	workspaceData: WorkspaceData
+	data: any
 }
 
 /**
@@ -361,34 +370,55 @@ export type SchedulerVisProps = {
  * 
  */
 export type SchedulerButtonProps = {
-	title: string
-	kind: SchedButtonKind
+	title: [string, string | null]
 	visParent: SchedulerVisualiser
 	onClickOp: (viz: SchedulerVisualiser) => void
+	style: string
 }
-
 
 /**
- * ButtonKind enum, outlines how it will be styled
- * and the kind of feedback it would typically give
+ * Effectively just holds a singular value for input
+ * Used to ensure that we move to different frames on change
+ *
  */
-export enum SchedButtonKind {
-	Toggle,
-	
+export type SchedulerFrameData = {
+	frame: number
 }
 
-export class SchedulerControlButton extends React.Component<SchedulerButtonProps,{}>{
+/**
+ * Just keeps track of the pressed state, useful for the title switching
+ */
+export type SchedulerButtonData = {
+	toggleIdx: number
+}
 
+
+export class SchedulerControlButton extends React.Component<SchedulerButtonProps, SchedulerButtonData>{
+
+	data = {
+		toggleIdx: 0
+	}
 
 	render() {
 
-		const title = this.props.title;
+		const titles = this.props.title;
+		const firstTitle = titles[0];
+		const secondTitle = titles[1] != null ? titles[1] : titles[0];
+		const renTitles = [firstTitle, secondTitle];
+
+		
+		const toggleIdx = this.data.toggleIdx;
+		const title = renTitles[toggleIdx];
 		const opfn = this.props.onClickOp;
 		const viz = this.props.visParent;
+		const sname = this.props.style;
 		
 		return (
 			<>
-				<button className={style.vizButton} onClick={(_e) => opfn(viz)}>{title}</button>
+				<button className={style[sname]} onClick={(_e) => { this.data.toggleIdx = (toggleIdx + 1) % 2;
+					opfn(viz) }}>
+					{title}
+				</button>
 			</>
 		)
 	}
@@ -400,8 +430,43 @@ export class SchedulerControlButton extends React.Component<SchedulerButtonProps
  * is used update/reflect the state of the controls
  */
 export type SchedulerControlsProps = {
-	isPlaying: boolean,
+	isPlaying: boolean
 	frameIdx: number
+	parent: SchedulerVisualiser
+	tickmarks: Array<{idx: number}>
+}
+
+
+export type SchedulerFrameSliderProps = {
+	min: number
+	max: number
+	crfrm: number
+	tickmarks: Array<{idx: number}>
+}
+
+export function SchedulerFrameSlider(props: SchedulerFrameSliderProps) {
+
+	const min = props.min;
+	const max = props.max;
+	const crfrm = props.crfrm;
+	const tickmarks = props.tickmarks;
+	const renOpt = tickmarks.map((o) => <option value={o.idx} label={`${o.idx}`} key={`tm_option_${o.idx}`} /> );
+	
+	return (<>
+		<div className={style.frameContainer}>
+		<input className={style.frameSlider} type="range" name="frame" min={min} max={max}
+			value={crfrm} onChange={(_) => {}} list="tickmarks" />
+		</div>
+		<div className={style.frameContainer}>
+			<datalist
+			id={"tickmarks"}
+			className={style.frameTickmarks}>
+		{renOpt}
+		</datalist>
+		</div>
+		</>
+		
+	)
 }
 
 /**
@@ -409,16 +474,44 @@ export type SchedulerControlsProps = {
  */
 export class SchedulerControls extends React.Component<SchedulerControlsProps, {}> {
 
-	buttonSetData: Array<SchedulerButtonProps> = [
-		
+	
+
+	playRow: Array<SchedulerButtonProps> = [
+		{ title: ["Prev", null], visParent: this.props.parent, onClickOp: OnVisualiserFramePrev, style: "ctrlbtn" },
+		{ title: ["Play ⏵", "Pause ⏸"], visParent: this.props.parent, onClickOp: OnVisualiserPlay, style: "ctrlplay" },
+		{ title: ["Next", null], visParent: this.props.parent, onClickOp: OnVisualiserFrameNext, style: "ctrlbtn" },
+		{ title: ["Reset", null], visParent: this.props.parent, onClickOp: OnVisualiserReset, style: "ctrlbtn" },
+	];
+
+	saveRow: Array<SchedulerButtonProps> = [
+		{ title: ["Save", null], visParent: this.props.parent, onClickOp: OnVisualiserSaveFrame, style: "ctrlbtn_save" },
+		{ title: ["Save Animated", null], visParent: this.props.parent, onClickOp: OnVisualiserSaveAnimation, style: "ctrlbtn_save" },
+		{ title: ["Export", null], visParent: this.props.parent, onClickOp: OnVisualiserExportJSON, style: "ctrlbtn_save" },
 	];
 
 
 	render() {
-
+		const parent = this.props.parent;
+		const fmin = parent.getMin();
+		const fmax = parent.getMax();
+		const crfrm = this.props.frameIdx;
+		const tickmarks: Array<{idx: number}> = this.props.tickmarks;
+		const renPlayBtns = this.playRow.map((b) => <SchedulerControlButton {...b} />)	
+		const renSaveBtns = this.saveRow.map((b) => <SchedulerControlButton {...b} />)	
 
 		return (
-			<></>
+			<div className={style.vizControls}>
+				<div className={style.frameLabelContainer}>
+					<label className={style.frameLabel}>Cycle Snapshot</label>
+				</div>
+				<SchedulerFrameSlider min={fmin} max={fmax} crfrm={crfrm} tickmarks={tickmarks}/>
+				<div className={style.vizControlRow}>
+				{renPlayBtns}
+				</div>
+				<div className={style.vizControlRow}>
+				{renSaveBtns}
+				</div>
+			</div>
 		)
 	}
 }
@@ -432,19 +525,142 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		crfrm: 0,
 		initd: true,
 		isPlaying: false,
-		interval: null
+		interval: null,
+		nframes: this.props.data.layers.length,
+		data: this.props.data,
 	}
 
 	tick() {
-		this.state.crfrm += 1;
+		const nframes = this.state.nframes;
+		const fmidx = this.state.crfrm;
+		this.state.crfrm = (fmidx+1) < nframes ? fmidx + 1 : fmidx;
 		this.setState({...this.state})
 	}
 
+	togglePlay() {
+		this.state.isPlaying = !this.state.isPlaying;
+		if(this.state.isPlaying) {
+			let self = this;
+			this.state.interval = setInterval(() => self.tick(), 500);
+			this.setState({...this.state});
+		} else {
+			if(this.state.interval) {
+				clearInterval(this.state.interval);
+				this.setState({...this.state})
+			}
+		}
+	}
+
+	getMin() {
+		return 0;
+	}
+
+	getMax() {
+		return this.state.nframes;
+	}
+
+	nextFrame() {
+		const nframes = this.state.nframes;
+		const fmidx = this.state.crfrm;
+		this.state.crfrm = fmidx < nframes ? fmidx + 1 : fmidx;
+		if(this.state.interval) {
+			clearInterval(this.state.interval);
+		}
+		this.setState({...this.state})
+	}
+
+	prevFrame() {
+		
+		const fmidx = this.state.crfrm;
+		this.state.crfrm = fmidx > 0 ? fmidx - 1 : fmidx;
+		if(this.state.interval) {
+			clearInterval(this.state.interval);
+		}
+		this.setState({...this.state})
+	}
+
+	reset() {	
+		this.state.crfrm = 0;
+		if(this.state.interval) {
+			clearInterval(this.state.interval);
+		}
+		this.setState({...this.state})
+	}
+
+	saveFrame() {
+		this.saveSVG(false)
+	}
+
+
+	saveAnimation() {
+		this.saveSVG(true);
+	}
+
+	saveSVG(isAnimated: boolean) {
+		//TODO: Because this is not portable
+		const data = this.state.data;
+	  
+	  if (isAnimated) {
+			let svgClone = document.createElement("svg");
+	  	const root = createRoot(svgClone);
+			
+		  root.render(this.renderSVG(data, 0, true));
+
+	  	//TODO: Add in the attribute component here
+	    /*svgClone.removeChild(svgClone.lastChild);
+	    for (var i = 0; i < data["layers"].length; i++) {
+	      svg_fg = document.createElementNS(svgNS, "g");
+	      svg_fg.setAttribute("visibility", "hidden");
+
+	      var anim = document.createElementNS(svgNS, "set");
+	      anim.setAttribute("id", "frame" + i);
+	      anim.setAttribute("attributeName", "visibility");
+	      anim.setAttribute("to", "visible");
+	      if (i == 0) {
+	        anim.setAttribute("begin", `0; frame${data["layers"].length - 1}.end`);
+	      } else {
+	        anim.setAttribute("begin", `frame${i - 1}.end`);
+	      }
+	      anim.setAttribute("dur", 1 / FRAMERATE + "s");
+
+	      svg_fg.appendChild(anim);
+
+	      drawLayer(data["layers"][i]);
+	      svgClone.appendChild(svg_fg);*/
+
+		  const svgData = new XMLSerializer().serializeToString(svgClone);
+		  const b = new Blob([svgData],
+		  	{ type:"image/svg+xml" });
+
+			DownloadFile("frame.json", b);
+		
+	  } else {
+	  	//TODO: Check to see if this is working
+			const svgClone = document.createElement("svg");
+	  	const root = createRoot(svgClone);
+		  root.render(this.renderSVG(data, 0, true));
+
+		  const svgData = new XMLSerializer().serializeToString(svgClone);
+		  const b = new Blob([svgData],
+		  	{ type:"image/svg+xml" });
+
+			DownloadFile("frame.json", b);
+		
+	  }
+
+	}
+
+	saveJSON() {
+	  const b = new Blob([JSON.stringify(this.state.data)],
+	  	{ type:"application/json" });
+
+		DownloadFile("unit.json", b);		
+	}
 
 	componentDidMount() {
 		if(this.state.isPlaying) {
 			let self = this;
-			this.state.interval = setInterval(() => self.tick(), 1000);
+			this.state.interval = setInterval(() => self.tick(), 100);
 		}
 	}
 
@@ -463,8 +679,8 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 				height={prp.height * CELL_SIZE + 'px'}>
 				</svg>);
 			patches.push(patch);
-			//this.state.svgdefs.appendChild(patch);
 		}
+		console.log(patches);
 		return (
 			<defs>
 				{patches}			
@@ -472,31 +688,70 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		)
 	}
 
+	///TODO: Fix this so it can be used to collect all the components
+	renderSVG(data: any, idx: number, baseChange: boolean) {
+		
+		const defs = this.genDefs();
+		const vwidth = (data.width * 100) + 200;
+		const vheight = (data.height * 100) + 200;
+		if(baseChange) {
+			const [sbg, _blayer, _wfactories, _wregions] = DrawDataBackground(data);
+			const [sfg, _layer] = DrawVisualInstance(data, idx);
+
+			return (
+					<svg viewBox={`0 0 ${vwidth} ${vheight}`} width={'100%'} height={720}>
+						{defs}
+						{sbg}
+						{sfg}
+					</svg>
+			);
+		} else {
+			
+			const [sfg, _layer] = DrawVisualInstance(data, idx);
+			return (
+					<svg viewBox={`0 0 ${vwidth} ${vheight}`} width={'100%'} height={720}>
+						{sfg}
+					</svg>
+			);
+		}
+	}
 	
 
 	render() {
 		//TODO: Fix this part -> Notice lines 58 to 80 in original
-		const runresult = vizexample;
+		const runresult = this.props.data;
 		const data = runresult;
 		const defs = this.genDefs();
 		const vwidth = (data.width * 100) + 200;
 		const vheight = (data.height * 100) + 200;
-		const [sbg, _blayer, _tickmarks, _wfactories, _wregions] = DrawDataBackground(data);
+		const [sbg, _blayer, _wfactories, _wregions] = DrawDataBackground(data);
 		const [sfg, _layer] = DrawVisualInstance(data, this.state.crfrm);
+		const tickmarks = ConstructTickmarks(data.layers.length);
 
-		//DrawDataBackground
-		//DrawVisualInstance
+		const mouseDownHandler = (_e: MouseEvent<SVGElement>) => {
+			//TODO: Fix this			
+		};
+
+		const mouseUpHandler = (_e: MouseEvent<SVGElement>) => {
+			//TODO: Fix this
+		};
+		
 
 		//const svginst = this.state.svgd;
 		//ratio: 1:100
 		//TODO: Make it moveable and make it playable
+		const frameIdx = this.state.crfrm;
+		const isPlaying = this.state.isPlaying;
+		const self = this;
 		return (
 			<>
-				<svg viewBox={`-100 -100 ${vwidth} ${vheight}`} width={'100%'} height={720} >
+				<svg viewBox={`-100 -100 ${vwidth} ${vheight}`} width={'100%'} height={720} style={{backgroundColor: 'grey'}}
+					onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler}>
 					{defs}
 					{sbg}
 					{sfg}
 				</svg>
+				<SchedulerControls frameIdx={frameIdx} isPlaying={isPlaying} parent={self} tickmarks={tickmarks}/>
 			</>
 		);
 		

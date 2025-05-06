@@ -73,6 +73,8 @@ export type SymbolCell = {
 	skey: string
   text?: string
   patch?: string
+  remote?: string
+  
 }
 
 /**
@@ -151,15 +153,16 @@ export const PreRenderedPatches: Array<PatchRenderData> = [
  * Patch requires being looked up
  */
 export const SymbolMap: SymbolKindMap = {
-	bell: { skey:'bell_state' ,patch: "🔔" },
+	bell: { skey:'bell_state' ,patch: "🔔", remote: "bell_state.svg" },
 	locked: { skey:'locked', text: "🔒" },
-	reg: { skey:'register', patch: "surface_code" },
-	route: { skey:'route', text: "=" },
-	magic_state: { skey:'matgic_state', patch: "✨" },
+	reg: { skey:'register', patch: "surface_code", remote: "surface_code.svg" },
+	
+	route: { skey:'route', text: " " },
+	magic_state: { skey:'magic_state', patch: "✨", remote: "magic_state.svg" },
 	cultivator: { skey:'t_cultivator', text: "🌻" },
 	reserved: { skey:'reserved', text: "⛔" },
 	factory_output: { skey:'t_factory_output', text: "@" },
-	route_buffer: { skey:'route_buffer', text: "." },
+	route_buffer: { skey:'route_buffer', text: " " },
 	other: { skey:'other', text: "?" },
 	unused: { skey:'unused', text: " "},
 };
