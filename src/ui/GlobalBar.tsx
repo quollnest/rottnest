@@ -28,8 +28,7 @@ import {
 } from '@ant-design/icons'
 
 import styles from './styles/GlobalBar.module.css';
-import RottnestContainer 
-	from './container/RottnestContainer.tsx';
+import RottnestContainer from './container/RottnestContainer.tsx';
 import {ProjectDetails} from '../model/Project.ts';
 import LogoEvents from './global/LogoEvents.ts';
 
@@ -45,8 +44,6 @@ type GlobalBarProps = {
 		ProjectDetails]>
 }
 
-
-
 /**
  * BarItemEvents, these are callbacks
  * that each baritem object will have associated
@@ -57,7 +54,7 @@ type BarItemEvents = {
 }
 
 /**
- * BarItemData holds identifier, name
+ * BarItemDescription holds identifier, name
  * toolTip information and image reference
  */
 type BarItemDescription = {
@@ -82,42 +79,38 @@ type BarItemData = {
 
 
 /**
- * BarItem, will have functionality and
- * description information associated with the top bar
- * of the screen.
- *
- * Image may be included (still deciding if it is a png or not)
+ * Improved BarItem component with better styling
+ * and responsiveness
  */
-class BarItem extends React.Component<BarItemData, {}> {
-
-	render() {
-		const data = this.props;
-		const container = data.containerRef;
-		const projTup = this.props.updatable;
-		const val = projTup ? projTup[0] : '';
+const BarItem: React.FC<BarItemData> = (props) => {
+	const { containerRef, description, updatable } = props;
+	const val = updatable ? updatable[0] : '';
+	const events = description.events;
+	const ico = description.iconComponent;
+	const name = description.name;
+	const ident = description.id;
+	const tooltip = description.toolTip;
 	
-		const events = data.description.events;
-		const ico = this.props.description.iconComponent;
-		const name = this.props.description.name
-		const ident = this.props.description.id;
-
-		return (
-			<li key={ident}
-				onClick={ (_) => { 
-				events.leftClick(container) } }
-				className={data.description.style}>
-				{ico} <div>{val ? val : name}</div>
-			</li>
-		)
-	}
-}
+	return (
+		<li 
+			key={ident}
+			onClick={() => events.leftClick(containerRef)}
+			className={`${styles.barItem} ${description.style || ''}`}
+			title={tooltip}
+		>
+			<div className={styles.barItemContent}>
+				<span className={styles.barItemIcon}>{ico}</span>
+				{(val || name) && (
+					<span className={styles.barItemText}>{val || name}</span>
+				)}
+			</div>
+		</li>
+	);
+};
 
 /**
  * GlobalBar object that will be set at the top of the
  * application.
- *
- * Different styling information will be associated with
- * BarItems
  */
 class GlobalBar extends React.Component<GlobalBarProps, {}> {
 		
@@ -188,10 +181,10 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 		{ 
 			id: 200, 
 			name: "Reconnect", 
-			toolTip: "Access Help", 
+			toolTip: "Reconnect to API", 
 			image: "HelpImage",
 			events: ReconnectEvent,
-			style: styles.help,
+			style: styles.reconnect,
 			iconComponent: <RollbackOutlined />
 		},
 		{ 
@@ -222,14 +215,11 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			iconComponent: 
 				<>
 				<UploadOutlined />
-				<input className={styles
-					.hiddenFile} 
+				<input className={styles.hiddenFile} 
 					type="file" 
 					onChange={(e) => {
-						hiddenInputProc(e, 
-						this.props
-						.container)}}>
-					</input>
+						hiddenInputProc(e, containerRef);
+					}} />
 				</>
 		},
 		{ 
@@ -259,38 +249,29 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			style: styles.help,
 			iconComponent: <FlagOutlined />
 		},
-		
-		];
+	];
 
 	render() {
-		const compMap = this.props.componentMap;
-		const container = this.props.container;
-
-		const renderableBarItems = this.barItems.map(
-			(bi: BarItemDescription, idx: number) => 
-				<BarItem key={idx} 
-				containerRef={container}
-				description={bi} 
-				updatable={compMap.get(bi.id)} 
-				/>	
-		);
+		const { componentMap, container } = this.props;
 
 		return (
-			<div className={styles.globalBar}
-				onMouseMove={
-					(_) => {
-						container
-						.resetDSMove();
-					}
-				}>
-				<ul>
-				{renderableBarItems}
+			<div 
+				className={styles.globalBar}
+				onMouseMove={() => container.resetDSMove()}
+			>
+				<ul className={styles.barItemList}>
+					{this.barItems.map((item, idx) => (
+						<BarItem 
+							key={idx}
+							containerRef={container}
+							description={item}
+							updatable={componentMap.get(item.id)}
+						/>
+					))}
 				</ul>
 			</div>
-		)
-
+		);
 	}
 }
-
 
 export default GlobalBar;
