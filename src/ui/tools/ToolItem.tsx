@@ -65,13 +65,17 @@ export class ToolItem extends React.Component<ToolData, {}> {
 				ToolColours[tool.kind]}} /> :
 			<CloseSquareFilled style={{color: 
 				ToolColours[tool.kind]}} />;
+				
+		const helpId = tool.helpId || `${tool.kindName.toLowerCase().replace(' ', '_')}_tool`;
 		
 		return (
-			<li key={key} className={ 
-				selected ? styles.toolSelected : 
-					styles.tool}
-					onClick={updateSelected}>
-				
+			<li 
+				key={key} 
+				className={selected ? styles.toolSelected : styles.tool}
+				onClick={updateSelected}
+				data-component={helpId}
+				data-help-id={helpId}
+			>
 				{iconImg}
 				<span> </span>{tool.kindName}	
 			</li>

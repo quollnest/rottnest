@@ -1,6 +1,7 @@
 import React, {ReactElement} from 'react';
 
 import HelpEvent from './global/Help.ts';
+import TourEvent from './global/Tour.ts';
 import LoadEvent, { hiddenInputProc } from './global/Load.ts';
 import SaveEvent from './global/Save.ts';
 import UndoEvent from './global/Undo.ts';
@@ -24,7 +25,7 @@ import {
 	FlagOutlined,
 	PlusSquareOutlined,
 	PlaySquareOutlined,
-	RollbackOutlined
+	RollbackOutlined,
 } from '@ant-design/icons'
 
 import styles from './styles/GlobalBar.module.css';
@@ -44,8 +45,6 @@ type GlobalBarProps = {
 	componentMap: Map<number, [string, 
 		ProjectDetails]>
 }
-
-
 
 /**
  * BarItemEvents, these are callbacks
@@ -68,6 +67,7 @@ type BarItemDescription = {
 	style?: string
 	events: BarItemEvents
 	iconComponent: ReactElement
+	helpId?: string
 }
 
 /**
@@ -100,12 +100,17 @@ class BarItem extends React.Component<BarItemData, {}> {
 		const ico = this.props.description.iconComponent;
 		const name = this.props.description.name
 		const ident = this.props.description.id;
+		
+		const helpAttributes = this.props.description.helpId ? {
+			'data-component': this.props.description.helpId,
+			'data-help-id': this.props.description.helpId
+		} : {};
 
 		return (
 			<li key={ident}
-				onClick={ (_) => { 
-				events.leftClick(container) } }
-				className={data.description.style}>
+				onClick={(_) => { events.leftClick(container) }}
+				className={data.description.style}
+				{...helpAttributes}>
 				{ico} <div>{val ? val : name}</div>
 			</li>
 		)
@@ -138,7 +143,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "MagnifyPlus",
 			events: ZoomInEvent,
 			style: styles.zoomIn,
-			iconComponent: <ZoomInOutlined />
+			iconComponent: <ZoomInOutlined />,
+			helpId: "zoom_controls"
 		},
 		{ 
 			id: 100, 
@@ -148,6 +154,7 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			events: NullEvents,
 			style: styles.zoomValue,
 			iconComponent: <></>,
+			helpId: "zoom_controls"
 		},
 		{ 
 			id: 1, 
@@ -156,7 +163,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "MagnifyNegative",
 			events: ZoomOutEvent,
 			style: styles.zoomOut,
-			iconComponent: <ZoomOutOutlined />
+			iconComponent: <ZoomOutOutlined />,
+			helpId: "zoom_controls"
 		},
 		{ 
 			id: 2, 
@@ -165,7 +173,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "UndoArrow",
 			events: UndoEvent,
 			style: styles.undo,
-			iconComponent: <UndoOutlined />
+			iconComponent: <UndoOutlined />,
+			helpId: "undo_redo"
 		},
 		{ 
 			id: 3, 
@@ -174,7 +183,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "RedoArrow",
 			events: RedoEvent,
 			style: styles.redo,
-			iconComponent: <RedoOutlined />
+			iconComponent: <RedoOutlined />,
+			helpId: "undo_redo"
 		},
 		{ 
 			id: 10, 
@@ -192,7 +202,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "HelpImage",
 			events: ReconnectEvent,
 			style: styles.help,
-			iconComponent: <RollbackOutlined />
+			iconComponent: <RollbackOutlined />,
+			helpId: "reconnect",
 		},
 		{ 
 			id: 10, 
@@ -201,7 +212,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "Run",
 			events: RunEvents,
 			style: styles.run,
-			iconComponent: <PlaySquareOutlined />
+			iconComponent: <PlaySquareOutlined />,
+			helpId: "compile_button"
 		},
 		{ 
 			id: 4, 
@@ -210,7 +222,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "SaveImage",
 			events: SaveEvent,
 			style: styles.save,
-			iconComponent: <SaveOutlined />
+			iconComponent: <SaveOutlined />,
+			helpId: "save",
 		},
 		{ 
 			id: 5, 
@@ -219,6 +232,7 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "LoadImage",
 			events: LoadEvent,
 			style: styles.load,
+			helpId: "load",
 			iconComponent: 
 				<>
 				<UploadOutlined />
@@ -239,7 +253,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "NewProjectImage",
 			events: NewProjectEvent,
 			style: styles.newProject,
-			iconComponent: <PlusSquareOutlined />
+			iconComponent: <PlusSquareOutlined />,
+			helpId: "new",
 		},
 		{ 
 			id: 6, 
@@ -248,7 +263,8 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "SettingsImage",
 			events: SettingsEvent,
 			style: styles.settings,
-			iconComponent: <SettingOutlined />
+			iconComponent: <SettingOutlined />,
+			helpId: "settings",
 		},
 		{ 
 			id: 7, 
@@ -257,9 +273,9 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			image: "HelpImage",
 			events: HelpEvent,
 			style: styles.help,
-			iconComponent: <FlagOutlined />
+			iconComponent: <FlagOutlined />,
+			helpId: "help",
 		},
-		
 		];
 
 	render() {
@@ -276,7 +292,10 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 		);
 
 		return (
-			<div className={styles.globalBar}
+			<div 
+				className={styles.globalBar}
+				data-component="toolbox"
+				data-help-id="toolbox"
 				onMouseMove={
 					(_) => {
 						container
@@ -291,6 +310,5 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 
 	}
 }
-
 
 export default GlobalBar;

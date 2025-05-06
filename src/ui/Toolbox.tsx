@@ -22,6 +22,8 @@ import RottnestContainer from './container/RottnestContainer.tsx';
 type ToolboxProps = {
 	toolbox: { headerName: string }
 	container: RottnestContainer
+	'data-component'?: string,
+	'data-help-id'?: string,
 }
 
 
@@ -59,42 +61,48 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 			kindName: 'Selector',
 			imageUrl: 'selector_img.svg',
 			events: SelectorToolOperations,
-			description: "Use the selector"
+			description: "Use the selector",
+			helpId: "selector_tool"
 		},
 		{
 			kind : 1,
 			kindName: 'Buffer',
 			imageUrl: 'buffer_img.svg',
 			events: BufferToolOperations,
-			description: "Mark buffers in your design"
+			description: "Mark buffers in your design",
+			helpId: "buffer_tool"
 		},
 		{
 			kind : 2,
 			kindName: 'Bus',
 			imageUrl: 'bus_img.svg',
 			events: BusToolOperations,
-			description: "Mark busses in your design"
+			description: "Mark busses in your design",
+			helpId: "bus_tool",
 		},
 		{
 			kind : 3,
 			kindName: 'Factory',
 			imageUrl: 'factory_img.svg',
 			events: FactoryToolOperations,
-			description: "Mark factories in your design"
+			description: "Mark factories in your design",
+			helpId: "factory_tool",
 		},
 		{
 			kind : 4,
 			kindName: 'Bell State',
 			imageUrl: 'bellstate_img.svg',
 			events: BellStateToolOperations,
-			description: "Mark bellstates in your design"
+			description: "Mark bellstates in your design",
+			helpId: "bellstate_tool",
 		},
 		{
 			kind : 5,
 			kindName: 'Register',
 			imageUrl: 'register_img.svg',
 			events: RegisterToolOperations,
-			description: "Mark registers in your design"
+			description: "Mark registers in your design",
+			helpId: "register_tool",
 
 		},
 		{
@@ -102,14 +110,16 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 			kindName: 'Unselect',
 			imageUrl: 'unselector_img.svg',
 			events: UnselectToolOperations,
-			description: "Use the unselect tool"
+			description: "Use the unselect tool",
+			helpId: "unselect_tool",
 		},
 		{
 			kind : 7,
 			kindName: 'Pan',
 			imageUrl: 'pantool_img.svg',
 			events: PanToolOperations,
-			description: "Use the pan tool"
+			description: "Use the pan tool",
+			helpId: "pan_tool",
 		},
 	]
 
@@ -149,12 +159,29 @@ class Toolbox extends React.Component<ToolboxProps, ToolboxState> {
 				isSelected={this.state
 					.selectedToolIndex === idx} 
 				toolParent={parent} />);
+		
+		const { 'data-component': dataComponent, 'data-help-id': dataHelpId } = this.props;
+		
 		return (
-			<div className={styles.toolbox}>
-				<header className={styles
-					.toolboxHeader}>
-					{headerName}</header>
-				{toolItems}
+			<div 
+				className={styles.toolbox}
+				data-component={dataComponent || "toolbox_panel"}
+				data-help-id={dataHelpId || "toolbox_panel"}
+			>
+				<header 
+					className={styles.toolboxHeader}
+					data-component="toolbox_header" 
+					data-help-id="toolbox_header"
+				>
+					{headerName}
+				</header>
+				<div 
+					data-component="toolbox_items"
+					data-help-id="toolbox_items"
+					className={styles.toolboxItems || ""}
+				>
+					{toolItems}
+				</div>
 			</div>
 		)
 	}

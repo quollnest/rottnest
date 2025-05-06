@@ -15,6 +15,8 @@ import {SubKind} from '../model/RegionKindMap';
 type ToolboxOptionsProps = {
 	container: RottnestContainer
 	headerName: string
+	'data-component'?: string,
+	'data-help-id'?: string
 }
 
 
@@ -44,13 +46,20 @@ class PaintModeTool extends React.Component<PaintModeProps, {}> {
 		const upfn = this.props.pmodeUpdate;
 
 		return (
-			<div className={styles.toolSegment}>
-			<input className={styles.paintMode}
-				name="paintmode" type="checkbox" 
-				checked={pmode} 
-				onChange={() => upfn(!pmode)} />
-			<label>Enable Paint Mode (Experimental)
-			</label>
+			<div 
+				className={styles.toolSegment}
+				data-component="paint_mode_tool"
+				data-help-id="paint_mode_tool"
+			>
+				<input 
+					className={styles.paintMode}
+					name="paintmode" 
+					type="checkbox" 
+					checked={pmode} 
+					onChange={() => upfn(!pmode)} 
+				/>
+				<label>Enable Paint Mode (Experimental)
+				</label>
 			</div>
 		)
 	}
@@ -127,15 +136,23 @@ class ToolSubTypeList extends React.Component
 				);
 			}
 		}
-
+		
 		return ( 
-			<div className={styles.toolOption}>
-			<label>Region Type</label>
-			<select name="toolSubKinds" 
-			onChange={regionSelect} 
-			value={getSelectedKind}>
-				{renderedOptions}
-			</select>
+			<div 
+				className={styles.toolOption}
+				data-component="tool_subtype_list"
+				data-help-id="tool_subtype_list"
+			>
+				<label>Region Type</label>
+				<select 
+					name="toolSubKinds" 
+					onChange={regionSelect} 
+					value={getSelectedKind}
+					data-component="tool_subtype_select"
+					data-help-id="tool_subtype_select"
+				>
+					{renderedOptions}
+				</select>
 			</div>
 		)	
 	}
@@ -205,16 +222,32 @@ class ToolboxOptions extends React.Component<ToolboxOptionsProps,
 			/> 
 			</>
 			: <></> 
-
+		
+		const { 'data-component': dataComponent, 'data-help-id': dataHelpId } = this.props;
 
 		return (
-			<div className={styles.toolboxOptions}>
-				<header className={styles
-					.toolboxOptionsHeader}>
-					{headerName}</header>
-				{optionRender}
+			<div
+				className={styles.toolboxOptions}
+				data-component={dataComponent || "toolbox_options"}
+				data-help-id={dataHelpId || "toolbox_options"}
+			>
+				<header
+					className={styles.toolboxOptionsHeader}
+					data-component="toolbox_options_header"
+					data-help-id="toolbox_options_header"
+				>
+					{headerName}
+				</header>
+				<div
+					data-component="toolbox_options_content"
+					data-help-id="toolbox_options_content"
+					className={styles.toolboxOptionsContent || ""}
+				>
+					{optionRender}
+				</div>
 			</div>
 		)
+
 	}
 
 }
