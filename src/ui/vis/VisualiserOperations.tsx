@@ -361,7 +361,6 @@ export type SchedulerVisData = {
 
 export type SchedulerVisProps = {
 	workspaceData: WorkspaceData
-	data: any
 }
 
 /**
@@ -526,8 +525,8 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		initd: true,
 		isPlaying: false,
 		interval: null,
-		nframes: this.props.data.layers.length,
-		data: this.props.data,
+		nframes: this.props.workspaceData.container.getVisData().layers.length,
+		data: this.props.workspaceData.container.getVisData(),
 	}
 
 	tick() {
@@ -719,8 +718,7 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 
 	render() {
 		//TODO: Fix this part -> Notice lines 58 to 80 in original
-		const runresult = this.props.data;
-		const data = runresult;
+		const data = this.state.data;
 		const defs = this.genDefs();
 		const vwidth = (data.width * 100) + 200;
 		const vheight = (data.height * 100) + 200;

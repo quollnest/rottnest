@@ -119,6 +119,10 @@ class RottnestContainer
 
 	}
 
+	getVisData() {
+		return this.state.visData;
+	}
+
 	gotoVizWithData(data: any) {
 		this.state.tabData.selectedTabIndex = 2;
 		this.state.tabData.availableTabs[2] = true;
