@@ -25,13 +25,14 @@ import {
 	PlusSquareOutlined,
 	PlaySquareOutlined,
 	RollbackOutlined
-} from '@ant-design/icons'
+} from '@ant-design/icons';
 
 import styles from './styles/GlobalBar.module.css';
 import RottnestContainer from './container/RottnestContainer.tsx';
 import {ProjectDetails} from '../model/Project.ts';
 import LogoEvents from './global/LogoEvents.ts';
-
+// Import the ConnectionStatusButton component
+import ConnectionStatusButton from './global/DynamicButton.tsx';
 
 /**
  * GlobalBarProps, has a reference to
@@ -218,7 +219,7 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 				<input className={styles.hiddenFile} 
 					type="file" 
 					onChange={(e) => {
-						hiddenInputProc(e, containerRef);
+						hiddenInputProc(e, this.props.container);
 					}} />
 				</>
 		},
@@ -253,6 +254,34 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 
 	render() {
 		const { componentMap, container } = this.props;
+		
+		// Create a new array for rendering the components
+		const renderItems = [];
+		
+		// Process each bar item
+		this.barItems.forEach((item, idx) => {
+			// Check if this is the reconnect button
+			if (item.name === "Reconnect" && item.events === ReconnectEvent) {
+				// Use our ConnectionStatusButton instead
+				renderItems.push(
+					<ConnectionStatusButton 
+						key={`connection-${idx}`}
+						container={container}
+						onClick={() => ReconnectEvent.leftClick(container)}
+					/>
+				);
+			} else {
+				// Use the standard BarItem component
+				renderItems.push(
+					<BarItem 
+						key={idx}
+						containerRef={container}
+						description={item}
+						updatable={componentMap.get(item.id)}
+					/>
+				);
+			}
+		});
 
 		return (
 			<div 
@@ -260,14 +289,7 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 				onMouseMove={() => container.resetDSMove()}
 			>
 				<ul className={styles.barItemList}>
-					{this.barItems.map((item, idx) => (
-						<BarItem 
-							key={idx}
-							containerRef={container}
-							description={item}
-							updatable={componentMap.get(item.id)}
-						/>
-					))}
+					{renderItems}
 				</ul>
 			</div>
 		);

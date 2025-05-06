@@ -246,3 +246,9 @@ export class AppServiceClient {
 	}
 
 }
+
+// Static function to check if connection is ready
+export function ConnectionReady(): boolean {
+  	const instance = GetAppServiceInstance();
+  	return instance.isConnected();
+}

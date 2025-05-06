@@ -5,6 +5,7 @@
   border-bottom: 1px #35332f solid;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   user-select: none;
+  overflow: hidden; /* Prevent overflow */
 }
 
 .barItemList {
@@ -13,6 +14,7 @@
   padding: 0;
   margin: 0;
   list-style-type: none;
+  flex-wrap: nowrap; /* Prevent wrapping */
 }
 
 .hiddenFile {
@@ -28,13 +30,15 @@
 .barItem {
   display: flex;
   padding: 0;
-  min-width: 60px;
+  min-width: 30px; /* Reduced from 60px to allow more space */
   color: #b3b3b3;
   cursor: pointer;
   position: relative;
   transition: background-color 0.2s, color 0.2s;
   align-items: center;
   justify-content: center;
+  flex-shrink: 1; /* Allow items to shrink */
+  overflow: hidden; /* Hide overflow content */
 }
 
 .barItem:hover {
@@ -53,9 +57,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 10px 5px; /* Reduced horizontal padding */
   width: 100%;
   height: 100%;
+  overflow: hidden; /* Hide overflow content */
 }
 
 /* Icon styling */
@@ -65,22 +70,27 @@
   justify-content: center;
   margin-right: 4px;
   font-size: 16px;
+  flex-shrink: 0; /* Don't allow icons to shrink */
 }
 
 /* Text styling */
 .barItemText {
   font-size: 12px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Show ellipsis for text overflow */
+  transition: opacity 0.2s ease;
 }
 
 /* Logo styling */
 .containerLogo {
-  flex: 1 !important;
+  flex: 0.8 !important; /* Reduced from 1 */
   border-right: 1px #35332f solid;
-  min-width: 80px !important;
+  min-width: 60px !important; /* Reduced from 80px */
   font-weight: bold;
   color: #d4d4d4;
   background-color: #201e1a;
+  flex-shrink: 0; /* Don't allow logo to shrink */
 }
 
 .containerLogo:hover {
@@ -90,6 +100,7 @@
 /* Zoom controls */
 .zoomIn, .zoomOut, .zoomValue {
   flex: 0.2 !important;
+  min-width: 30px; /* Ensure minimum width */
 }
 
 .zoomValue {
@@ -105,19 +116,22 @@
 
 /* Undo and redo buttons */
 .undo, .redo {
-  flex: 0.5 !important;
+  flex: 0.4 !important; /* Reduced from 0.5 */
+  min-width: 40px; /* Set minimum width */
 }
 
 .undo {
   border-left: 1px #35332f solid;
 }
 
-/* Separator */
+/* Separator - give it high priority to shrink first */
 .separator {
   flex: 4 !important;
   border-left: 1px #35332f solid;
   cursor: default;
   background-color: transparent;
+  flex-shrink: 2; /* Allow this to shrink more than other items */
+  min-width: 20px; /* Minimum width for separator */
 }
 
 .separator:hover {
@@ -127,6 +141,7 @@
 /* Action buttons */
 .save, .load, .settings, .newProject, .help, .run, .reconnect {
   flex: 0.5 !important;
+  min-width: 40px; /* Set minimum width */
 }
 
 .save, .newProject {
@@ -151,13 +166,40 @@
   color: #8ab6f5;
 }
 
-/* Button states - for future implementation of connection status */
+/* Connection status states */
 .connected {
   color: #77cc66;
 }
 
+.connected:hover {
+  color: #8ce079;
+}
+
 .disconnected {
   color: #cc6666;
+}
+
+.disconnected:hover {
+  color: #e07979;
+}
+
+.connecting {
+  color: #e0a033;
+}
+
+.connecting:hover {
+  color: #f5b444;
+}
+
+/* Spinning animation for the connecting state */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 1.5s linear infinite;
+  display: inline-block;
 }
 
 /* Settings button */
@@ -168,4 +210,45 @@
 /* Help button */
 .help {
   flex: 0.5 !important;
+}
+
+/* Responsive text hiding for small screens */
+@media (max-width: 800px) {
+  .barItem .barItemText {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+  }
+  
+  .barItemContent {
+    padding: 10px 3px;
+  }
+  
+  .barItem {
+    min-width: 24px;
+  }
+}
+
+/* Tooltip enhancement for when text is hidden */
+.barItem:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1a1a1a;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.barItem:hover:hover::after {
+  opacity: 1;
 }
