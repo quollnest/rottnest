@@ -40,13 +40,17 @@ export class ToolContainer extends
 		const container = this.props
 			.workspaceData.container;
 		return (
-			<div className={toolStyle.toolContainer}
+			<div 
+				className={toolStyle.toolContainer}
+				data-component="tool_container"
+				data-help-id="tool_container"
 				onMouseMove={
 					(_) => {
 						container
 						.resetDSMove();
 					}
-				}>
+				}
+			>
 				<Toolbox 
 					toolbox={ 
 						{ headerName: 
@@ -54,10 +58,15 @@ export class ToolContainer extends
 						.toolbox.headerName 
 						} 
 					} 
-					container={container}/>
+					container={container}
+					data-component="toolbox_panel"
+					data-help-id="toolbox_panel"
+				/>
 				<ToolboxOptions  
 					headerName={"Options"}
 					container={container}
+					data-component="toolbox_options"
+					data-help-id="toolbox_options"
 				/>
 			</div>
 		)
@@ -102,53 +111,71 @@ export class RegionContainer
 			if(regData.connectionToIdx !== null) {
 				connectedIdx = regData
 				.connectionToIdx;
-			}		
+			}				return (
+			<div className={styles.toolboxOptions}>
+				<header className={styles
+					.toolboxOptionsHeader}>
+					{headerName}</header>
+				{optionRender}
+			</div>
+		)
 			if(regData.connectionToKind!== null) {
 				connectedKind = regData
 				.connectionToKind;
 			}
 		} 
-		
+
 		return (
-			<div className={regionStyle
-				.regionContainer}
+			<div
+				className={regionStyle.regionContainer}
+				data-component="region_container"
+				data-help-id="region_container"
 				onMouseMove={
 					(_) => {
 						container
 						.resetDSMove();
 					}
-				}>
-				<RegionList 
-					regions={regionList} 
+				}
+			>
+				<RegionList
+					regions={regionList}
 					container={container}
-					/>
-				<RegionSettings 
+					data-component="region_list"
+					data-help-id="region_list"
+				/>
+				<RegionSettings
 					container={container}
+					data-component="region_settings"
+					data-help-id="region_settings"
 					subTypes={
 						{
-						subtypes: 
+						subtypes:
 						 subtypesCol,
-						currentlySelected: 
+						currentlySelected:
 						 regListInfo
 						 .selectedIdx
 						}
-					} 
+					}
 					connections={
 						{
-						connections: 
+						connections:
 						 connRecs,
-						connectedIdx: 
+						connectedIdx:
 						 connectedIdx,
 						connectedKind:
 						 connectedKind
 						}
-					} />
-					
-				<ErrorList 
-					{...ContainerDefaults
-						.errorList} />
+					}
+				/>
+
+				<ErrorList
+					{...ContainerDefaults.errorList}
+					data-component="error_list"
+					data-help-id="error_list"
+				/>
 			</div>
 		)
+
 	}
 }
 

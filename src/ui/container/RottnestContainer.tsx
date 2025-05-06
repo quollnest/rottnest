@@ -29,6 +29,9 @@ import {RottCallGraph, RottCallGraphDefault} from '../../model/CallGraph.ts';
 import ErrorDisplay from './ErrorDisplay.tsx';
 import {RunResultBuffer} from '../../model/RunResult.ts';
 
+import HelpService from '../help/HelpService';  
+import { withHelpAttributes } from '../help/HelpAttributes';
+
 /**
  * At the moment, nothing interesting
  */
@@ -43,6 +46,8 @@ type RottnestAppState = {
 	settingsActive: boolean
 	newProjectActive: boolean
 	helpActive: boolean
+	tourMode: boolean
+    	tourStep: number
 	colourblindActive: boolean
 	zoomValue: number
 	componentData: {
@@ -161,6 +166,8 @@ class RottnestContainer
 			zoomValue: 100,
 			colourblindActive: false,
 			helpActive: false,
+			tourMode: false, 
+       	 		tourStep: 0,
 			componentData: {
 				selectedTool: 0,
 				selectedSubTool: 0,
@@ -373,8 +380,14 @@ class RottnestContainer
 		}
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
 		this.readyAppService();
+
+		try {
+			this.helpData = await HelpService.loadHelpData('en');
+		} catch(err) {
+			console.error("Failed to load help data:", err);
+		}
 
 		//const appService = AppServiceModule
 		//	.GetAppServiceInstance();
@@ -392,6 +405,12 @@ class RottnestContainer
 			}*/
 
 		//}
+	}
+
+	componentWillUnmount() {
+  		if (this.state.appStateData.helpActive) {
+    			document.removeEventListener('keydown', this.handleEscKey);
+  		}
 	}
 
 	monitorComponent: ComponentMonitor = {
@@ -488,11 +507,29 @@ class RottnestContainer
 			selectedObj.markAsDead();	
 		}
 	}
-
+	
 	toggleHelp() {
-		const v = this.state.appStateData.helpActive; 
-		this.state.appStateData.helpActive = !v;
-		this.triggerUpdate();
+  		const helpActive = !this.state.appStateData.helpActive;
+
+  		this.setState({
+    			appStateData: {
+      				...this.state.appStateData,
+      				helpActive,
+      				tourMode: false
+    			}
+  		});
+
+		if (helpActive) {
+    			document.addEventListener('keydown', this.handleEscKey);
+  		} else {
+    			document.removeEventListener('keydown', this.handleEscKey);
+  		}
+	}
+
+	handleEscKey = (event: KeyboardEvent) => {
+  		if (event.key === 'Escape' && this.state.appStateData.helpActive) {
+    			this.toggleHelp();
+  		}
 	}
 
 	selectCurrentRegion(kind: string, idx: number) {
@@ -1031,66 +1068,55 @@ class RottnestContainer
 			= idx % tabs.length;
 		this.triggerUpdate();
 	}
-	
+
 	render() {
 		const rottContainer = this;
 		const updateables = new Map();
 		const zoomValue = this.state
 			.appStateData.zoomValue;
-		
+	
 		const settingsisActive = !this.state.appStateData
 			.settingsActive;
 		const newProjectActive = this.state.appStateData
 			.newProjectActive;
 
-
 		const newProjectElement = newProjectActive ? 
-			<NewProjectForm rootContainer={
-				rottContainer}
-				/> :
-			<></>
-		
+			<NewProjectForm rootContainer={rottContainer}/> :
+		<></>
+	
 		updateables.set(100, [`${zoomValue}%`, 
-				rottContainer]);
-		
-		
-		const helpComponent = this.state
-			.appStateData.helpActive ?
-				<HelpContainer 
-					helperData={this
-						.helpData}
-					toggleOff={
-					() => {
-						rottContainer
-						.toggleHelp()
-					}
-				}
-				/> :
-				<></>
-		const errormsg = this.state.errorMessage;
-		const errorComponent = this.state
-			.errorDisplay ? 
-				<ErrorDisplay message={errormsg} 
-					rootContainer={this} /> :
-				<></>
+			rottContainer]);
+	
+		const errorComponent = this.state.errorDisplay ? 
+			<ErrorDisplay message={this.state.errorMessage} 
+				rootContainer={this} /> :
+			<></>;
+	
+		// Help Componenet
+		const helpComponent = this.state.appStateData.helpActive ?
+  			<HelpContainer 
+    				toggleOff={() => this.toggleHelp()}
+    				helpData={this.helpData}
+  			/> :
+  		<></>;
 
 		return (
 			<div className={styles.rottnest}>
-				<SettingsForm rootContainer={
-					rottContainer}
-					isHidden={
-					settingsisActive} 
-					projectDetails={this.state
-						.projectDetails}
-					/>
+				<SettingsForm   rootContainer={rottContainer}
+						isHidden={settingsisActive} 
+						projectDetails={this.state.projectDetails}
+				/>
 				{newProjectElement}
 				{errorComponent}
 				{helpComponent}
-				<GlobalBar componentMap={updateables}
-				container={rottContainer} />
-				
+			
+				<GlobalBar 	componentMap={updateables}
+						container={rottContainer} 
+				/>
+			
 				<WorkspaceContainer 
-					container={rottContainer}/>
+						container={rottContainer}
+				/>
 			</div>
 		)
 	}

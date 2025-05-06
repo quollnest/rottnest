@@ -1,0 +1,144 @@
+{
+  "language": "en",
+  "version": "1.0",
+  "helpItems": [
+    {
+      "id": "zoom_controls",
+      "title": "Zoom Controls",
+      "content": "Use these controls to zoom in and out of your design space, making it easier to work with complex architectures.",
+      "targetSelector": ".zoomIn, .zoomOut, .zoomValue"
+    },
+    {
+      "id": "undo_redo",
+      "title": "Undo/Redo",
+      "content": "Use these buttons to undo or redo your recent actions, making it easy to correct mistakes or try different approaches.",
+      "targetSelector": ".undo, .redo"
+    },
+    {
+      "id": "compile_button",
+      "title": "Run Button",
+      "content": "Sends your architecture to the compiler to generate a runnable implementation. Results will be available in the Call Graph and Run Chart tabs.",
+      "targetSelector": ".run"
+    },
+    {
+      "id": "buffer_tool",
+      "title": "Buffer Tool",
+      "content": "Creates buffer regions that can store and forward data between components in your architecture."
+    },
+    {
+      "id": "bus_tool",
+      "title": "Bus Tool",
+      "content": "Creates bus regions that act as communication channels between components, allowing data to be transferred across your architecture."
+    },
+    {
+      "id": "factory_tool",
+      "title": "Factory Tool",
+      "content": "Creates factory regions that represent processing units in your architecture, capable of transforming or manipulating data."
+    },
+    {
+      "id": "bellstate_tool",
+      "title": "Bellstate Tool",
+      "content": "Creates bellstate regions that represent conditional state transitions in your graph architecture."
+    },
+    {
+      "id": "register_tool",
+      "title": "Register Tool",
+      "content": "Creates register regions that can store persistent values in your architecture."
+    },
+    {
+      "id": "toolbox_items",
+      "title": "Tool Items",
+      "content": "Collection of tools that can be selected to create different types of architecture components."
+    },
+    {
+      "id": "selector_tool",
+      "title": "Selector Tool",
+      "content": "Use this tool to select and interact with existing regions in your architecture."
+    },
+    {
+      "id": "unselect_tool",
+      "title": "Unselect Tool",
+      "content": "Use this tool to clear the current selection and remove highlighted regions."
+    },
+    {
+      "id": "pan_tool",
+      "title": "Pan Tool",
+      "content": "Use this tool to move around your design space by dragging the canvas."
+    },
+    {
+      "id": "toolbox_options",
+      "title": "Tool Options",
+      "content": "Configure options for the currently selected tool, such as subtypes and specific parameters."
+    },
+    {
+      "id": "toolbox_options_content",
+      "title": "Tool Options Content",
+      "content": "Container for the options and settings related to the currently selected tool."
+    },
+    {
+      "id": "paint_mode_tool",
+      "title": "Paint Mode",
+      "content": "Enables continuous drawing mode where you can click and drag to create multiple regions at once."
+    },
+    {
+      "id": "tool_subtype_list",
+      "title": "Region Type Selection",
+      "content": "Select the specific subtype of region you want to create with the currently selected tool."
+    },
+    {
+      "id": "tool_subtype_select",
+      "title": "Region Subtype Dropdown",
+      "content": "Choose from available subtypes for the current region kind (buffer, bus, factory, etc.)."
+    },
+    {
+      "id": "region_container",
+      "title": "Region Panel",
+      "content": "This panel displays and manages the regions in your architecture."
+    },
+    {
+      "id": "region_list",
+      "title": "Region List",
+      "content": "Displays all regions in your architecture. Select a region to view and edit its properties."
+    },
+    {
+      "id": "region_settings",
+      "title": "Region Settings",
+      "content": "Configure properties for the selected region, including its connections to other regions."
+    },
+    {
+      "id": "error_list",
+      "title": "Error List",
+      "content": "Displays any errors or warnings in your architecture design."
+    },
+    {
+      "id": "save",
+      "title": "Save Button",
+      "content": "Saves your current architecture design to a file on your computer."
+    },
+    {
+      "id": "load",
+      "title": "Load Button",
+      "content": "Loads an architecture design from a file on your computer."
+    },
+    {
+      "id": "new",
+      "title": "New Project Button",
+      "content": "Creates a new architecture project, clearing the current design."
+    },
+    {
+      "id": "settings",
+      "title": "Settings Button",
+      "content": "Opens the project settings dialog where you can adjust properties like size and description."
+    },
+    {
+      "id": "help",
+      "title": "Help Button",
+      "content": "Shows this help overlay with information about the different components and tools."
+    },
+    {
+      "id": "reconnect",
+      "title": "Reconnect Button",
+      "content": "Reconnects to the backend service if the connection was lost or interrupted."
+    }
+  ]
+}
