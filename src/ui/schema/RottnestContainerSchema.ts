@@ -12,6 +12,7 @@ import RottnestContainer from '../container/RottnestContainer.tsx';
 import { ValidationExecutor } from '../../vald/Validation.ts';
 
 
+import visdata from '../../assets/example.json';
 import VisData from '../vis/VisData.ts';
 
 export type AppCommData = {
@@ -141,7 +142,8 @@ const RTStateDefault: RottnestState =
 				'Visualiser', 'Run Chart']
 		},
 		graphViewData: RottCallGraphDefault(),	
-		visData: VisData.empty(),
+		//visData: VisData.empty(),
+		visData: visdata,
 		rrBuffer: new RunResultBuffer(),
 		valexec: ValidationExecutor.Make()
 };

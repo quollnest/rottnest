@@ -1,5 +1,5 @@
 import React, { MouseEvent, ReactElement } from "react";
-
+import ReactDOM from 'react-dom';
 import {
 	CELL_SIZE,
 	SymbolKindMap,
@@ -11,7 +11,8 @@ import {
 	VisRegion,
 	ColorMap,
     VisRunResult,
-    PreRenderedPatches}
+    PreRenderedPatches,
+    FRAMERATE}
 from "./VisualiserElements";
 
 import { Workspace, WorkspaceData } from "../workspace/Workspace.ts";
@@ -19,7 +20,6 @@ import { Workspace, WorkspaceData } from "../workspace/Workspace.ts";
 import style from "../styles/SchedulerVisualiser.module.css"
 import { OnVisualiserExportJSON, OnVisualiserFrameNext, OnVisualiserFramePrev, OnVisualiserPlay, OnVisualiserReset, OnVisualiserSaveAnimation, OnVisualiserSaveFrame } from "./VisualiserEvents.ts";
 import { DownloadFile } from "../../util/FileDownload.ts";
-import { createRoot } from "react-dom/client";
 
 
 /**
@@ -599,53 +599,58 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 	saveSVG(isAnimated: boolean) {
 		//TODO: Because this is not portable
 		const data = this.state.data;
-	  
+	  const nframes = this.getMax();
 	  if (isAnimated) {
-			let svgClone = document.createElement("svg");
-	  	const root = createRoot(svgClone);
-			
-		  root.render(this.renderSVG(data, 0, true));
 
-	  	//TODO: Add in the attribute component here
-	    /*svgClone.removeChild(svgClone.lastChild);
-	    for (var i = 0; i < data["layers"].length; i++) {
-	      svg_fg = document.createElementNS(svgNS, "g");
-	      svg_fg.setAttribute("visibility", "hidden");
+			let svgroot = document.createElement("div");
+	  	ReactDOM.render(this.renderSVG(data, 0, true), svgroot)
 
-	      var anim = document.createElementNS(svgNS, "set");
-	      anim.setAttribute("id", "frame" + i);
-	      anim.setAttribute("attributeName", "visibility");
-	      anim.setAttribute("to", "visible");
-	      if (i == 0) {
-	        anim.setAttribute("begin", `0; frame${data["layers"].length - 1}.end`);
-	      } else {
-	        anim.setAttribute("begin", `frame${i - 1}.end`);
+			const svgClone = svgroot.firstChild;
+			if(svgClone) {
+				for(let i = 1; i < this.getMax(); i++) {
+				
+					const svgfake = document.createElement("div");
+			  	ReactDOM.render(this.renderSVG(data, i, true), svgfake)
+					const svgFrame = svgfake.children[0];
+					if(svgFrame) {
+						svgFrame.setAttribute('visibility', 'hidden');
+				
+						let anim = document.createElement('set');
+			      anim.setAttribute("id", "frame" + i);
+			      anim.setAttribute("attributeName", "visibility");
+			      anim.setAttribute("to", "visible");
+			      if(i===0) {
+			      	anim.setAttribute('begin', `0; frame${nframes - 1}.end`);
+			      } else {
+			      	anim.setAttribute('begin', `frame${i - 1}.end`);
+		      	
+			      }
+			      anim.setAttribute('dur', 1/FRAMERATE + 's');
+				  	ReactDOM.render(this.renderSVG(data, i, true), svgfake);
+			      svgFrame.appendChild(anim);
+			      svgClone.appendChild(svgFrame);
+		      }
+
 	      }
-	      anim.setAttribute("dur", 1 / FRAMERATE + "s");
+			  const svgData = new XMLSerializer().serializeToString(svgClone);
+			  const b = new Blob([svgData],
+			  	{ type:"image/svg+xml" });
 
-	      svg_fg.appendChild(anim);
+				DownloadFile("animation.svg", b);
+			}			
 
-	      drawLayer(data["layers"][i]);
-	      svgClone.appendChild(svg_fg);*/
-
-		  const svgData = new XMLSerializer().serializeToString(svgClone);
-		  const b = new Blob([svgData],
-		  	{ type:"image/svg+xml" });
-
-			DownloadFile("frame.json", b);
-		
 	  } else {
-	  	//TODO: Check to see if this is working
-			const svgClone = document.createElement("svg");
-	  	const root = createRoot(svgClone);
-		  root.render(this.renderSVG(data, 0, true));
+			const svgroot = document.createElement("div");
+	  	ReactDOM.render(this.renderSVG(data, 0, true), svgroot)
 
-		  const svgData = new XMLSerializer().serializeToString(svgClone);
-		  const b = new Blob([svgData],
-		  	{ type:"image/svg+xml" });
+			const svgClone = svgroot.firstChild;
+			if(svgClone) {
+			  const svgData = new XMLSerializer().serializeToString(svgClone);
+			  const b = new Blob([svgData],
+			  	{ type:"image/svg+xml" });
 
-			DownloadFile("frame.json", b);
-		
+				DownloadFile("frame.json", b);
+			}
 	  }
 
 	}
@@ -680,7 +685,6 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 				</svg>);
 			patches.push(patch);
 		}
-		console.log(patches);
 		return (
 			<defs>
 				{patches}			
