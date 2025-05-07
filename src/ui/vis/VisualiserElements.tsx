@@ -1,8 +1,8 @@
 import { ReactElement } from 'react';
-import BellState from './assets/bell_state.svg'
-import SurfaceCodeDouble from './assets/surface_code_double.svg'
-import SurfaceCode from './assets/surface_code.svg'
-import MagicState from './assets/magic_state.svg'
+import BellState from './BellState.tsx'
+import SurfaceCodeDouble from './SurfaceCodeDouble.tsx'
+import SurfaceCode from './SurfaceCode.tsx'
+import MagicState from './MagicState.tsx'
 
 
 
@@ -153,12 +153,11 @@ export const PreRenderedPatches: Array<PatchRenderData> = [
  * Patch requires being looked up
  */
 export const SymbolMap: SymbolKindMap = {
-	bell: { skey:'bell_state' ,patch: "🔔", remote: "bell_state.svg" },
+	bell: { skey:'bell_state' ,patch: "🔔", remote: "bell_state" },
 	locked: { skey:'locked', text: "🔒" },
-	reg: { skey:'register', patch: "surface_code", remote: "surface_code.svg" },
-	
+	reg: { skey:'register', patch: "surface_code", remote: "surface_code" },
 	route: { skey:'route', text: " " },
-	magic_state: { skey:'magic_state', patch: "✨", remote: "magic_state.svg" },
+	magic_state: { skey:'magic_state', patch: "✨", remote: "magic_state" },
 	cultivator: { skey:'t_cultivator', text: "🌻" },
 	reserved: { skey:'reserved', text: "⛔" },
 	factory_output: { skey:'t_factory_output', text: "@" },

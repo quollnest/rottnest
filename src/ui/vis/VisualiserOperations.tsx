@@ -15,6 +15,8 @@ import {
     FRAMERATE}
 from "./VisualiserElements";
 
+
+
 import { Workspace, WorkspaceData } from "../workspace/Workspace.ts";
 
 import style from "../styles/SchedulerVisualiser.module.css"
@@ -46,7 +48,7 @@ export function DrawCellContents({rowidx, colidx, cell}: DrawCellProps):
 
 			const remote = cellobj.remote ? cellobj.remote : ''
 			
-      let text = <image href={`${remote}`}
+      let text = <use href={`#${remote}`}
       	key={`cell_${rowidx}_${colidx}`}
 				x={x}
 				y={y}
@@ -56,7 +58,7 @@ export function DrawCellContents({rowidx, colidx, cell}: DrawCellProps):
 				textAnchor={'middle'}
 				dominantBaseline={'middle'}
       	>
-      	</image>
+      	</use>
 			return text;
 			
     } else {
@@ -596,62 +598,85 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		this.saveSVG(true);
 	}
 
+	/// We construct a static markup and componentise everything
 	saveSVG(isAnimated: boolean) {
-		//TODO: Because this is not portable
+
 		const data = this.state.data;
 	  const nframes = this.getMax();
-	  if (isAnimated) {
+		const vwidth = (data.width * 100) + 200;
+		const vheight = (data.height * 100) + 200;
 
-			let svgroot = document.createElement("div");
-	  	ReactDOM.render(this.renderSVG(data, 0, true), svgroot)
+		let svgcontainer = <svg></svg>;
 
-			const svgClone = svgroot.firstChild;
-			if(svgClone) {
-				for(let i = 1; i < this.getMax(); i++) {
+
+
+		//1. Construct first frame
+		let [defs, bg, fg] = this.renderSVG(data, 0, true);
+
+		
+  	//2. If animated
+		if(isAnimated) {
+			const gobjList = [];
+			for(let i = 0; i < this.getMax(); i++) {
+				let [frame, _layers] = this.renderSVG(data, i, false);
 				
-					const svgfake = document.createElement("div");
-			  	ReactDOM.render(this.renderSVG(data, i, true), svgfake)
-					const svgFrame = svgfake.children[0];
-					if(svgFrame) {
-						svgFrame.setAttribute('visibility', 'hidden');
-				
-						let anim = document.createElement('set');
-			      anim.setAttribute("id", "frame" + i);
-			      anim.setAttribute("attributeName", "visibility");
-			      anim.setAttribute("to", "visible");
-			      if(i===0) {
-			      	anim.setAttribute('begin', `0; frame${nframes - 1}.end`);
-			      } else {
-			      	anim.setAttribute('begin', `frame${i - 1}.end`);
-		      	
-			      }
-			      anim.setAttribute('dur', 1/FRAMERATE + 's');
-				  	ReactDOM.render(this.renderSVG(data, i, true), svgfake);
-			      svgFrame.appendChild(anim);
-			      svgClone.appendChild(svgFrame);
-		      }
+				//Renders out the frame into a separate dom element
+				//const fg = this.renderSVG(data, i, true);
 
+				//3. Gets the frame at a particular index
+	      let begin = `frame${i - 1}.end`;
+				if(i === 0) {
+	      	begin = `0; frame${nframes - 1}.end`;
 	      }
-			  const svgData = new XMLSerializer().serializeToString(svgClone);
-			  const b = new Blob([svgData],
-			  	{ type:"image/svg+xml" });
 
-				DownloadFile("animation.svg", b);
-			}			
+	      //Construct animobj to be added to g
+				let animobj = <set begin={begin}
+					attributeName={'visibility'}
+					to={'visible'}
+					dur={ `${1/FRAMERATE}s`}
+					id={`frame${i}`}
+					
+				/>;
 
-	  } else {
-			const svgroot = document.createElement("div");
-	  	ReactDOM.render(this.renderSVG(data, 0, true), svgroot)
+				//Construct g
+				let gobj = <g visibility={'hidden'} >
+					{animobj}
+					{frame}
+					
+				</g>;
 
-			const svgClone = svgroot.firstChild;
-			if(svgClone) {
-			  const svgData = new XMLSerializer().serializeToString(svgClone);
-			  const b = new Blob([svgData],
-			  	{ type:"image/svg+xml" });
+				gobjList.push(gobj);
 
-				DownloadFile("frame.json", b);
-			}
+      }
+      
+			svgcontainer = <svg viewBox={ `0 0 ${vwidth} ${vheight}`}
+				width={'100%'} height={'720'}
+				style={{backgroundColor: 'grey'}}>
+				{defs}
+				{bg}
+				{gobjList}
+			</svg>;
+
+		} else {
+		
+			svgcontainer = <svg viewBox={ `0 0 ${vwidth} ${vheight}`}
+				width={'100%'} height={'720'}
+				style={{backgroundColor: 'grey'}}
+				>
+				{defs}
+				{bg}
+				{fg}
+			</svg>;
 	  }
+		const svgcon = document.createElement('svg');
+
+		ReactDOM.render(<>{svgcontainer}</>, svgcon);
+		
+		const svgxml = new XMLSerializer().serializeToString(svgcon);		
+		const svgmarkup = svgxml;
+	  //const svgmarkup = renderToStaticMarkup(svgxml);
+	  const b = new Blob([svgmarkup], { type:"image/svg+xml" });
+		DownloadFile("output.svg", b);
 
 	}
 
@@ -678,11 +703,15 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 	genDefs() {
 		const patches = [];
 		for(const prp of PreRenderedPatches) {
+			patches.push();
 			
-			const patch = (<svg id={prp.id} width={prp.width * CELL_SIZE + 'px'}
+			const patch = prp.element;
+			/*const patch = (<svg id={prp.id} width={prp.width * CELL_SIZE + 'px'}
 				key={`def_patch_${prp.id}`}
+				viewBox={"-300 -1000 -1900 1500"}
+				style={{}}
 				height={prp.height * CELL_SIZE + 'px'}>
-				</svg>);
+				</svg>);*/
 			patches.push(patch);
 		}
 		return (
@@ -696,26 +725,20 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 	renderSVG(data: any, idx: number, baseChange: boolean) {
 		
 		const defs = this.genDefs();
-		const vwidth = (data.width * 100) + 200;
-		const vheight = (data.height * 100) + 200;
 		if(baseChange) {
 			const [sbg, _blayer, _wfactories, _wregions] = DrawDataBackground(data);
 			const [sfg, _layer] = DrawVisualInstance(data, idx);
 
 			return (
-					<svg viewBox={`0 0 ${vwidth} ${vheight}`} width={'100%'} height={720}>
-						{defs}
-						{sbg}
-						{sfg}
-					</svg>
+						[defs,
+						sbg,
+						sfg]
 			);
 		} else {
 			
-			const [sfg, _layer] = DrawVisualInstance(data, idx);
+			const [sfg, layer] = DrawVisualInstance(data, idx);
 			return (
-					<svg viewBox={`0 0 ${vwidth} ${vheight}`} width={'100%'} height={720}>
-						{sfg}
-					</svg>
+				[sfg, layer]
 			);
 		}
 	}
