@@ -1,0 +1,86 @@
+.schedulerButton {
+  margin-top: 1em;
+  width: 100%;
+  border-radius: 0;
+  border-top: 1px #35332f solid;
+  border-bottom: 1px #35332f solid;
+  color: white;
+}
+
+
+.vizControls {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  background-color: #1e1d19;
+  border-top: 1px #35332f solid;
+}
+
+.vizControlRow {
+  margin-top: 0.5em;
+  justify-content: center;
+  display: flex;
+  flex-flow: row;
+}
+
+
+.ctrlbtn {
+  color: white;
+  margin-left: 1em;
+  background-color: #35332f;
+  border-radius: 5px;
+}
+
+.ctrlplay {
+  color: white;
+  width: 8em;
+  margin-left: 1em;
+  background-color: #242c5f;
+  border-radius: 5px;
+}
+
+.ctrlbtn_save {
+  color: white;
+  margin-left: 0.5em;
+  background-color: #00000000;
+  border: 1px #35337f solid;
+}
+
+.frameContainer {
+  display: flex;
+  direction: column;
+  flex: 0.5;
+  width: 100%;
+}
+
+.frameLabelContainer {
+  display: flex;
+  flex: 0;
+  justify-content: center;
+  flex-direction: row
+}
+
+.frameLabel {
+  font-size: 12pt;
+  margin-top: 1em;
+  margin-bottom: 0.25em;
+
+}
+
+.frameSlider {
+  flex: 1;
+  margin: 2em;
+  margin-bottom: 1em;
+  margin-top: 0em;
+}
+
+.frameTickmarks {
+  display: flex;
+  flex: 1;
+  margin: 2em;
+  margin-top: 0em;
+  flex-direction: column;
+  justify-content: space-between;
+  writing-mode: vertical-lr;
+}

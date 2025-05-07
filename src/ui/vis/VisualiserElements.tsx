@@ -1,8 +1,8 @@
 import { ReactElement } from 'react';
-import BellState from './assets/bell_state.svg'
-import SurfaceCodeDouble from './assets/surface_code_double.svg'
-import SurfaceCode from './assets/surface_code.svg'
-import MagicState from './assets/magic_state.svg'
+import BellState from './BellState.tsx'
+import SurfaceCodeDouble from './SurfaceCodeDouble.tsx'
+import SurfaceCode from './SurfaceCode.tsx'
+import MagicState from './MagicState.tsx'
 
 
 
@@ -32,6 +32,13 @@ export type VisGate = {
 } 
 
 
+export type VisRunResult = {
+	width: number
+	height: number
+	layers: any	
+	regions: Array<VisRegion>
+	base_layer: VisDataLayer
+}
 /**
  * The data layer that will contain the necessary components
  * TODO: Fix up types because WHO KNOWS WHAT IT IS
@@ -63,8 +70,11 @@ export type PatchRenderData = {
 }
 
 export type SymbolCell = {
+	skey: string
   text?: string
   patch?: string
+  remote?: string
+  
 }
 
 /**
@@ -143,19 +153,22 @@ export const PreRenderedPatches: Array<PatchRenderData> = [
  * Patch requires being looked up
  */
 export const SymbolMap: SymbolKindMap = {
-	bell: { patch: "🔔" },
-	locked: { text: "🔒" },
-	reg: { patch: "surface_code" },
-	route: { text: "=" },
-	magic_state: { patch: "✨" },
-	cultivator: { text: "🌻" },
-	reserved: { text: "⛔" },
-	factory_output: { text: "@" },
-	route_buffer: { text: "." },
-	other: { text: "?" },
-	unused: { text: " "},
+	bell: { skey:'bell_state' ,patch: "🔔", remote: "bell_state" },
+	locked: { skey:'locked', text: "🔒" },
+	reg: { skey:'register', patch: "surface_code", remote: "surface_code" },
+	route: { skey:'route', text: " " },
+	magic_state: { skey:'magic_state', patch: "✨", remote: "magic_state" },
+	cultivator: { skey:'t_cultivator', text: "🌻" },
+	reserved: { skey:'reserved', text: "⛔" },
+	factory_output: { skey:'t_factory_output', text: "@" },
+	route_buffer: { skey:'route_buffer', text: " " },
+	other: { skey:'other', text: "?" },
+	unused: { skey:'unused', text: " "},
 };
 
+/**
+ * Color map for the visualiser
+ */
 export const ColorMap: ColorConfigMap = {
 	SingleRowRegisterRegion: "yellow",
   CombShapedRegisterRegion: "yellow",
@@ -165,3 +178,4 @@ export const ColorMap: ColorConfigMap = {
   BellRegion: "magenta",
   RouteBus: "green",
 };
+

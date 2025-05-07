@@ -1,7 +1,7 @@
-import {SchedulerVisualiser} from "../SchedulerIFrame";
+import {SchedulerVisualiser} from "../vis/VisualiserOperations.tsx";
 import { WorkspaceData, WorkspaceGroup, WorkspaceProps } from "./Workspace"
 import {ReactElement} from "react";
-import {WorkspaceZone} from "./WorkspaceZone";
+import {WorkspaceZone} from "./WorkspaceZone"
 import {CGGraphColumn, CGNodeColumn} from "../callgraph/CallGraphColumn";
 
 export class VisualiserGroup implements WorkspaceGroup {
@@ -12,7 +12,8 @@ export class VisualiserGroup implements WorkspaceGroup {
 			bufferMap: data.workspaceData.bufferMap
 		};
 
-		const svisSpace = <SchedulerVisualiser {...nWorkSpace}  />;
+		const svisSpace = <SchedulerVisualiser workspaceData={nWorkSpace}  />;
+		
 
 		const group = [
 			<CGGraphColumn 

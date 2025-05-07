@@ -1,5 +1,5 @@
 
-import {ProjectAssembly, ProjectDetails} from '../../model/Project';
+import {ProjectDetails} from '../../model/Project';
 import {RegionDataList } from '../../model/RegionDataList';
 import {RunResultBuffer} from '../../model/RunResult.ts';
 import { ContainerSchema } from './Schema.ts';
@@ -11,6 +11,9 @@ import AppServiceModule from '../../net/AppServiceModule';
 import RottnestContainer from '../container/RottnestContainer.tsx';
 import { ValidationExecutor } from '../../vald/Validation.ts';
 
+
+import visdata from '../../assets/example.json';
+import VisData from '../vis/VisData.ts';
 
 export type AppCommData = {
 	appService: AppServiceClient
@@ -134,12 +137,13 @@ const RTStateDefault: RottnestState =
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, false, false, false],
+			availableTabs: [true, false, true, false],
 			tabNames: ['Architecture', 'Call Graph', 
 				'Visualiser', 'Run Chart']
 		},
 		graphViewData: RottCallGraphDefault(),	
-		visData: {},
+		//visData: VisData.empty(),
+		visData: visdata,
 		rrBuffer: new RunResultBuffer(),
 		valexec: ValidationExecutor.Make()
 };

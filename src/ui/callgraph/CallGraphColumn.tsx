@@ -57,7 +57,7 @@ class CGSelectedNodeBox extends React.Component<CGNodeData,
 		const container = this.props.workspaceData.container;
 		
 		const appService = container.commData.appService;
-		appService.sendObj('run_graph_node', {
+		appService.sendObj('cg_lat2d_run_graph_node', {
 				gid: data.idx
 			})
 	}
@@ -403,7 +403,7 @@ class RootListItem
 		const aps = this.container.commData.appService;
 		if(this.rootIdx === 'root') {
 			this.rlist = new Set(['root']);	
-			aps.sendObj('get_root_graph', {});
+			aps.sendObj('cg_lat2d_get_root_graph', {});
 			let nnode = {
 				idx: this.rootIdx
 			};
@@ -435,7 +435,7 @@ class RootListItem
 
 			this.bufferMap
 				.insert('root_node',nstr);
-			aps.sendObj('get_graph',  {gid: this.rootIdx });
+			aps.sendObj('cg_lat2d_get_graph',  {gid: this.rootIdx });
 			//this.refresh(nSet);
 			this.bufferMap.commit();
 		}

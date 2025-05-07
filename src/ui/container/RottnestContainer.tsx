@@ -27,9 +27,12 @@ import {RottCallGraphDefault} from '../../model/CallGraph.ts';
 import ErrorDisplay from './ErrorDisplay.tsx';
 import { AppCommData, RottnestContainerOperations, RottnestContainerSchema, RottnestState } from '../schema/RottnestContainerSchema.ts';
 import { HelpDataCollection, HelpUISchema } from '../schema/HelpUISchema.ts';
-import { CommsActions } from '../schema/ops/CommsOps.ts';
+import { CommOpQueue, CommsActions } from '../schema/ops/CommsOps.ts';
 import { RTCCommActions, RTCOpenOperations } from '../schema/ops/RTCCommsOps.ts';
 
+import VisData from '../vis/VisData.ts';
+
+//import visdata from '../../assets/example.json';
 
 /**
  * At the moment, nothing interesting
@@ -117,6 +120,10 @@ class RottnestContainer
 		
 		this.commData.appService.connect();
 
+	}
+
+	getVisData() {
+		return this.state.visData;
 	}
 
 	gotoVizWithData(data: any) {
@@ -436,7 +443,9 @@ class RottnestContainer
 				'Visualiser', 'Run Chart']
 		};
 		this.state.graphViewData = RottCallGraphDefault(),	
-		this.state.visData = {};
+		this.state.visData = VisData.empty();
+		console.log(this.state.visData);
+		debugger;
 		this.regionStack = new RegionsSnapshotStack();
 		this.currentRDBuffer = new RegionData();
 
