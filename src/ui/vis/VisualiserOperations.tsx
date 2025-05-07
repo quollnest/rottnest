@@ -199,26 +199,27 @@ export function DrawBaseLayer(baseLayer: VisDataLayer, width: number, height: nu
  * gates that are held and the locks
  * TODO: Clarify on the layer/draw order
  */
-export function DrawLayer(layer: VisDataLayer) {
+export function DrawLayer(layer: VisDataLayer | null) {
 	const cells: Array<ReactElement> = [];
 	const locks: Array<ReactElement> = [];
 	const routes: Array<ReactElement> = []; 
-	
-	for (const [rowidx, row] of layer.board.entries()) {
-    for (const [colidx, cell] of row.entries()) {
-      cells.push(DrawCellContents({ rowidx, colidx, cell }));
-    }
-  }
-  for (const gate of layer.gates) {
-  	if(gate.holds !== undefined) {
-	    for (const cell of gate.holds) {
-	      locks.push(DrawLock(cell));
+	if(layer != null) {
+		for (const [rowidx, row] of layer.board.entries()) {
+	    for (const [colidx, cell] of row.entries()) {
+	      cells.push(DrawCellContents({ rowidx, colidx, cell }));
 	    }
+	  }
+	  for (const gate of layer.gates) {
+	  	if(gate.holds !== undefined) {
+		    for (const cell of gate.holds) {
+		      locks.push(DrawLock(cell));
+		    }
     
-	    for (let i = 0; i < gate.holds.length - 1; i++) {
-	      routes.push(DrawRoute(gate.holds[i], gate.holds[i + 1]));
+		    for (let i = 0; i < gate.holds.length - 1; i++) {
+		      routes.push(DrawRoute(gate.holds[i], gate.holds[i + 1]));
+		    }
 	    }
-    }
+	  }
   }
 	return [cells, locks, routes]
 }
@@ -342,7 +343,6 @@ export function DrawDataBackground(data: VisRunResult) {
 export function DrawVisualInstance(data: VisRunResult, frameNum: number) {
 
 	// re-initialise the foreground element
-	
 	let layer = DrawLayer(data.layers[frameNum]);
 	console.log(layer);
 	const svgfg = <g>{layer}</g>
@@ -353,7 +353,6 @@ export function DrawVisualInstance(data: VisRunResult, frameNum: number) {
 export type SchedulerVisData = {
 	data: any
 	crfrm: number
-	nframes: number
 	initd: boolean
 	isPlaying: boolean
 	interval: ReturnType<typeof setInterval> | null
@@ -495,8 +494,11 @@ export class SchedulerControls extends React.Component<SchedulerControlsProps, {
 		const fmax = parent.getMax();
 		const crfrm = this.props.frameIdx;
 		const tickmarks: Array<{idx: number}> = this.props.tickmarks;
-		const renPlayBtns = this.playRow.map((b) => <SchedulerControlButton {...b} />)	
-		const renSaveBtns = this.saveRow.map((b) => <SchedulerControlButton {...b} />)	
+		const renPlayBtns = this.playRow
+			.map((b, i) => <SchedulerControlButton key={`sch_play_${i}`} {...b} />)	
+		const renSaveBtns = this.saveRow
+			.map((b, i) => <SchedulerControlButton key={`sch_save_${i}`} {...b} />)	
+		
 
 		return (
 			<div className={style.vizControls}>
@@ -525,12 +527,11 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		initd: true,
 		isPlaying: false,
 		interval: null,
-		nframes: this.props.workspaceData.container.getVisData().layers.length,
 		data: this.props.workspaceData.container.getVisData(),
 	}
 
 	tick() {
-		const nframes = this.state.nframes;
+		const nframes = this.getMax();
 		const fmidx = this.state.crfrm;
 		this.state.crfrm = (fmidx+1) < nframes ? fmidx + 1 : fmidx;
 		this.setState({...this.state})
@@ -555,11 +556,11 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 	}
 
 	getMax() {
-		return this.state.nframes;
+		return this.state.data.layers.length;
 	}
 
 	nextFrame() {
-		const nframes = this.state.nframes;
+		const nframes = this.getMax();
 		const fmidx = this.state.crfrm;
 		this.state.crfrm = fmidx < nframes ? fmidx + 1 : fmidx;
 		if(this.state.interval) {
@@ -717,7 +718,11 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 	
 
 	render() {
+
+
+		
 		//TODO: Fix this part -> Notice lines 58 to 80 in original
+
 		const data = this.state.data;
 		const defs = this.genDefs();
 		const vwidth = (data.width * 100) + 200;

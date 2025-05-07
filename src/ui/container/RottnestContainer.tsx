@@ -30,6 +30,9 @@ import { HelpDataCollection, HelpUISchema } from '../schema/HelpUISchema.ts';
 import { CommOpQueue, CommsActions } from '../schema/ops/CommsOps.ts';
 import { RTCCommActions, RTCOpenOperations } from '../schema/ops/RTCCommsOps.ts';
 
+import VisData from '../vis/VisData.ts';
+
+//import visdata from '../../assets/example.json';
 
 /**
  * At the moment, nothing interesting
@@ -440,7 +443,9 @@ class RottnestContainer
 				'Visualiser', 'Run Chart']
 		};
 		this.state.graphViewData = RottCallGraphDefault(),	
-		this.state.visData = {};
+		this.state.visData = VisData.empty();
+		console.log(this.state.visData);
+		debugger;
 		this.regionStack = new RegionsSnapshotStack();
 		this.currentRDBuffer = new RegionData();
 
