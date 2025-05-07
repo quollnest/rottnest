@@ -1,6 +1,11 @@
 import { SchedulerVisualiser } from "./VisualiserOperations.tsx";
 
 
+export function OnRangeChange(visualiser: SchedulerVisualiser, value: number) {
+  visualiser.changeFrame(value);
+}
+
+
 /**
  * The visualiser is playing, it will step through frames at a particular rate
  * this rate will be defined by the player at the moment un we specify a form

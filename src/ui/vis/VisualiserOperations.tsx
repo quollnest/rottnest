@@ -20,7 +20,7 @@ from "./VisualiserElements";
 import { Workspace, WorkspaceData } from "../workspace/Workspace.ts";
 
 import style from "../styles/SchedulerVisualiser.module.css"
-import { OnVisualiserExportJSON, OnVisualiserFrameNext, OnVisualiserFramePrev, OnVisualiserPlay, OnVisualiserReset, OnVisualiserSaveAnimation, OnVisualiserSaveFrame } from "./VisualiserEvents.ts";
+import { OnRangeChange, OnVisualiserExportJSON, OnVisualiserFrameNext, OnVisualiserFramePrev, OnVisualiserPlay, OnVisualiserReset, OnVisualiserSaveAnimation, OnVisualiserSaveFrame } from "./VisualiserEvents.ts";
 import { DownloadFile } from "../../util/FileDownload.ts";
 
 
@@ -357,6 +357,8 @@ export type SchedulerVisData = {
 	crfrm: number
 	initd: boolean
 	isPlaying: boolean
+	offsets: [number, number]
+	midDown: boolean
 	interval: ReturnType<typeof setInterval> | null
 }
 
@@ -442,6 +444,7 @@ export type SchedulerFrameSliderProps = {
 	max: number
 	crfrm: number
 	tickmarks: Array<{idx: number}>
+	parent: SchedulerVisualiser
 }
 
 export function SchedulerFrameSlider(props: SchedulerFrameSliderProps) {
@@ -450,12 +453,15 @@ export function SchedulerFrameSlider(props: SchedulerFrameSliderProps) {
 	const max = props.max;
 	const crfrm = props.crfrm;
 	const tickmarks = props.tickmarks;
+	const vis = props.parent;
 	const renOpt = tickmarks.map((o) => <option value={o.idx} label={`${o.idx}`} key={`tm_option_${o.idx}`} /> );
 	
 	return (<>
 		<div className={style.frameContainer}>
 		<input className={style.frameSlider} type="range" name="frame" min={min} max={max}
-			value={crfrm} onChange={(_) => {}} list="tickmarks" />
+			value={crfrm} onChange={(e) => {
+				OnRangeChange(vis, Number(e.target.value))
+			}} list="tickmarks" />
 		</div>
 		<div className={style.frameContainer}>
 			<datalist
@@ -507,7 +513,8 @@ export class SchedulerControls extends React.Component<SchedulerControlsProps, {
 				<div className={style.frameLabelContainer}>
 					<label className={style.frameLabel}>Cycle Snapshot</label>
 				</div>
-				<SchedulerFrameSlider min={fmin} max={fmax} crfrm={crfrm} tickmarks={tickmarks}/>
+				<SchedulerFrameSlider parent={parent}
+					min={fmin} max={fmax} crfrm={crfrm} tickmarks={tickmarks}/>
 				<div className={style.vizControlRow}>
 				{renPlayBtns}
 				</div>
@@ -530,6 +537,8 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		isPlaying: false,
 		interval: null,
 		data: this.props.workspaceData.container.getVisData(),
+		offsets: [0, 0],
+		midDown: false,
 	}
 
 	tick() {
@@ -593,7 +602,6 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		this.saveSVG(false)
 	}
 
-
 	saveAnimation() {
 		this.saveSVG(true);
 	}
@@ -605,10 +613,7 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 	  const nframes = this.getMax();
 		const vwidth = (data.width * 100) + 200;
 		const vheight = (data.height * 100) + 200;
-
 		let svgcontainer = <svg></svg>;
-
-
 
 		//1. Construct first frame
 		let [defs, bg, fg] = this.renderSVG(data, 0, true);
@@ -721,7 +726,6 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		)
 	}
 
-	///TODO: Fix this so it can be used to collect all the components
 	renderSVG(data: any, idx: number, baseChange: boolean) {
 		
 		const defs = this.genDefs();
@@ -743,12 +747,14 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		}
 	}
 	
+	changeFrame(v: number) {
+		const nstate = {...this.state};
+		nstate.crfrm = v;
+		this.setState(nstate);
+	}
+
 
 	render() {
-
-
-		
-		//TODO: Fix this part -> Notice lines 58 to 80 in original
 
 		const data = this.state.data;
 		const defs = this.genDefs();
@@ -757,26 +763,80 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		const [sbg, _blayer, _wfactories, _wregions] = DrawDataBackground(data);
 		const [sfg, _layer] = DrawVisualInstance(data, this.state.crfrm);
 		const tickmarks = ConstructTickmarks(data.layers.length);
+		const self = this;
 
-		const mouseDownHandler = (_e: MouseEvent<SVGElement>) => {
-			//TODO: Fix this			
+		const mouseDownHandler = (e: MouseEvent<SVGElement>) => {
+
+			if(e.button === 1) {
+				
+				const x = e.movementX;
+				const y = e.movementY;
+
+				const nState = {...this.state};
+				const [oX, oY] = nState.offsets;
+
+				const nPos: [number, number] = [
+					oX + x,
+					oY + y
+				];
+
+				nState.offsets = nPos;
+				nState.midDown = true;
+
+				this.setState(nState);
+			}
+			
 		};
 
-		const mouseUpHandler = (_e: MouseEvent<SVGElement>) => {
-			//TODO: Fix this
+		const mouseMove = (e: MouseEvent<SVGElement>) => {
+			if(self.state.midDown) {
+				
+			const x = e.movementX;
+			const y = e.movementY;
+
+			let newGS = {...this.state};
+			let [oX, oY] = newGS.offsets;
+			newGS.offsets = [
+				oX + x,
+				oY + y
+			];
+			this.setState(newGS);
+			}	
+		}
+
+		const mouseUpHandler = (e: MouseEvent<SVGElement>) => {
+
+			if(e.button === 1) {
+				
+				const x = e.movementX;
+				const y = e.movementY;
+
+				const nState = {...this.state};
+				const [oX, oY] = nState.offsets;
+
+				const nPos: [number, number] = [
+					oX + x,
+					oY + y
+				];
+
+				nState.offsets = nPos;
+				nState.midDown = false;
+
+				this.setState(nState);
+			}
 		};
 		
-
+		const [ox, oy] = self.state.offsets;
 		//const svginst = this.state.svgd;
 		//ratio: 1:100
 		//TODO: Make it moveable and make it playable
 		const frameIdx = this.state.crfrm;
 		const isPlaying = this.state.isPlaying;
-		const self = this;
 		return (
 			<>
-				<svg viewBox={`-100 -100 ${vwidth} ${vheight}`} width={'100%'} height={720} style={{backgroundColor: 'grey'}}
-					onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler}>
+				<svg viewBox={`${-100-ox} ${-100-oy} ${vwidth} ${vheight}`} width={'100%'} height={720} style={{backgroundColor: 'grey'}}
+					onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler}
+					onMouseMove={mouseMove}>
 					{defs}
 					{sbg}
 					{sfg}
