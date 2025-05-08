@@ -30,15 +30,15 @@
 .barItem {
   display: flex;
   padding: 0;
-  min-width: 30px; /* Reduced from 60px to allow more space */
+  min-width: 20px; /* Reduced from 60px to allow more space */
   color: #b3b3b3;
   cursor: pointer;
   position: relative;
   transition: background-color 0.2s, color 0.2s;
   align-items: center;
   justify-content: center;
-  flex-shrink: 1; /* Allow items to shrink */
-  overflow: hidden; /* Hide overflow content */
+  flex-shrink: 1;
+  overflow: hidden;
 }
 
 .barItem:hover {
@@ -126,12 +126,12 @@
 
 /* Separator - give it high priority to shrink first */
 .separator {
-  flex: 4 !important;
+  flex: 2 !important;
   border-left: 1px #35332f solid;
   cursor: default;
   background-color: transparent;
-  flex-shrink: 2; /* Allow this to shrink more than other items */
-  min-width: 20px; /* Minimum width for separator */
+  flex-shrink: 3; 
+  min-width: 10px; 
 }
 
 .separator:hover {

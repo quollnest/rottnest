@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { RollbackOutlined, CheckCircleOutlined, DisconnectOutlined } from '@ant-design/icons';
 import styles from '../styles/GlobalBar.module.css';
 import RottnestContainer from './container/RottnestContainer.tsx';
-// Import the specific functions from AppService instead of importing as default
-import * as AppServiceModule from '../../net/AppService.ts';
+// Import the specific functions from AppService
+import { ConnectionReady, GetAppServiceInstance } from '../../net/AppService.ts';
 
 type ConnectionStatusProps = {
   container: RottnestContainer;
@@ -21,47 +21,34 @@ enum ConnectionState {
  * and allows reconnecting to the backend
  */
 const ConnectionStatusButton: React.FC<ConnectionStatusProps> = ({ container, onClick }) => {
-  // Safe check if we can access the AppService instance
-  const getAppServiceInstance = () => {
-    if (typeof AppServiceModule.GetAppServiceInstance === 'function') {
-      return AppServiceModule.GetAppServiceInstance();
-    }
-    return null;
-  };
-  
-  // Check if connection is ready
-  const checkConnectionReady = () => {
-    const appService = getAppServiceInstance();
-    if (appService && typeof appService.isConnected === 'function') {
-      return appService.isConnected();
-    }
-    return false;
-  };
-  
-  // Check if connection is in progress
-  const checkIsConnecting = () => {
-    const appService = getAppServiceInstance();
-    if (appService && typeof appService.isConnecting === 'function') {
-      return appService.isConnecting();
-    }
-    return false;
-  };
-
   const [connectionState, setConnectionState] = useState<ConnectionState>(
-    checkConnectionReady() 
+    ConnectionReady() 
       ? ConnectionState.CONNECTED 
       : ConnectionState.DISCONNECTED
   );
   
+  // Handler for the click event
+  const handleClick = () => {
+    // If we're not connected, try to reconnect
+    if (connectionState !== ConnectionState.CONNECTED) {
+      const appService = GetAppServiceInstance();
+      appService.reconnect();
+      setConnectionState(ConnectionState.CONNECTING);
+    }
+    
+    // Also call the parent's onClick handler if provided
+    if (onClick) {
+      onClick();
+    }
+  };
+  
   useEffect(() => {
     // Set up connection status check
     const checkConnection = () => {
-      const isConnected = checkConnectionReady();
-      const isConnecting = checkIsConnecting();
-      
-      if (isConnected) {
+      const appService = GetAppServiceInstance();
+      if (appService.isConnected()) {
         setConnectionState(ConnectionState.CONNECTED);
-      } else if (isConnecting) {
+      } else if (appService.isConnecting()) {
         setConnectionState(ConnectionState.CONNECTING);
       } else {
         setConnectionState(ConnectionState.DISCONNECTED);
@@ -74,38 +61,26 @@ const ConnectionStatusButton: React.FC<ConnectionStatusProps> = ({ container, on
     // Set up periodic connection check
     const interval = setInterval(checkConnection, 2000);
     
-    // Try to register event listeners if possible
-    const tryRegisterListeners = () => {
-      const appService = getAppServiceInstance();
-      if (!appService || !appService.on) return () => {};
-      
-      const onConnect = () => setConnectionState(ConnectionState.CONNECTED);
-      const onDisconnect = () => setConnectionState(ConnectionState.DISCONNECTED);
-      const onConnecting = () => setConnectionState(ConnectionState.CONNECTING);
-      
-      try {
-        appService.on('connect', onConnect);
-        appService.on('disconnect', onDisconnect);
-        appService.on('connecting', onConnecting);
-        
-        return () => {
-          if (appService.off) {
-            appService.off('connect', onConnect);
-            appService.off('disconnect', onDisconnect);
-            appService.off('connecting', onConnecting);
-          }
-        };
-      } catch (error) {
-        console.error("Error setting up connection listeners:", error);
-        return () => {};
-      }
-    };
+    // Register event handlers
+    const appService = GetAppServiceInstance();
     
-    const cleanupListeners = tryRegisterListeners();
+    // Create a wrapper function for connection open event
+    const handleOpen = () => {
+      setConnectionState(ConnectionState.CONNECTED);
+    };
+
+    const handleDisconnect = () => {
+    	setConnectionState(ConnectionState.DISCONNECTED);
+    };
+
+    appService.registerDisconnectFn(handleDisconnect);
+    
+    // Register the open function with the AppServiceClient
+    appService.registerOpenFn(handleOpen);
     
     return () => {
       clearInterval(interval);
-      cleanupListeners();
+      // Note: There's no way to unregister the open handler in the current AppServiceClient
     };
   }, []);
   
@@ -127,7 +102,6 @@ const ConnectionStatusButton: React.FC<ConnectionStatusProps> = ({ container, on
       case ConnectionState.CONNECTED:
         return "Connected to API";
       case ConnectionState.DISCONNECTED:
-
         return "Disconnected from API - Click to reconnect";
       case ConnectionState.CONNECTING:
         return "Connecting to API...";
@@ -138,7 +112,7 @@ const ConnectionStatusButton: React.FC<ConnectionStatusProps> = ({ container, on
   
   return (
     <li 
-      onClick={onClick}
+      onClick={handleClick}
       className={`${styles.barItem} ${styles.reconnect} ${styles[connectionState]}`}
       title={getTooltip()}
     >
