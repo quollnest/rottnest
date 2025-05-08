@@ -271,8 +271,9 @@ let _appServiceInstance: AppServiceClient | null = null;
 
 // Function to get or create the AppServiceClient instance
 export function GetAppServiceInstance(): AppServiceClient {
-  if (!_appServiceInstance) {
-    _appServiceInstance = new AppServiceClient(APP_URL);
-  }
-  return _appServiceInstance;
+  	if (!_appServiceInstance) {
+    		_appServiceInstance = new AppServiceClient(APP_URL);
+  	}
+  	
+	return _appServiceInstance;
 }
