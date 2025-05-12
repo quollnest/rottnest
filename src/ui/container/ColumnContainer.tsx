@@ -118,6 +118,10 @@ export class RegionContainer
 				connectedIdx = regData
 				.connectionToIdx;
 			}
+			if(regData.connectionToKind!== null) {
+				connectedKind = regData
+				.connectionToKind;
+			}
 		} 
 		
 		return (

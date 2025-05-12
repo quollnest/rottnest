@@ -957,7 +957,6 @@ export class RegionDataList {
 			factories: [],
 			buffers: []
 		};
-		
 		regions.bus = fdata.bus
 			.map((rd) => RegionData.fromFlatten(rd));
 		regions.registers = fdata.registers

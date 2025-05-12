@@ -92,18 +92,16 @@ class RegionConnectorOptions extends React.Component
 
 				
 					console.log(dirIndex);
-					const kindPlu = 
-						RegionData
-						.PluraliseKind(
-						kindKey);
-					settings
-					.updateDirOfSelected(
+					const kindPlu = RegionData.PluraliseKind(kindKey);
+					console.log(kindPlu);
+					settings.updateDirOfSelected(
 						conDir, 
 						kindPlu,
 						dirIndex);
 				}
 			}
 		}
+
 
 		return (
 			<div className={styles
@@ -393,6 +391,7 @@ class RegionSettings extends React
 	updateDirOfSelected(conDirIdx: number, 
 			    conKind: string, 
 			    dir: number) {
+
 		const currentObj = this.rottContainer
 			.getSelectedRegionData();
 		const regList = this.rottContainer

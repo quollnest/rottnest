@@ -138,7 +138,7 @@ const RTStateDefault: RottnestState =
 		},		
 		tabData: {
 			selectedTabIndex: 0,
-			availableTabs: [true, false, true, false],
+			availableTabs: [true, false, false, false],
 			tabNames: ['Architecture', 'Call Graph', 
 				'Visualiser', 'Run Chart']
 		},
