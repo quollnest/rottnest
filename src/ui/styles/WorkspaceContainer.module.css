@@ -1,4 +1,3 @@
-
 .workspaceContainer {
 	display: flex;
 	flex-direction: row;
@@ -7,7 +6,7 @@
 }
 
 .workspaceTabBar {
-	min-height: 1em;
+	min-height: 1.5em;
 	flex-flow: column;
 	width: 100%;
 	border-bottom: 1px #35332f solid;
@@ -17,12 +16,12 @@
 
 }
 
-.workTabUnavailable {	
+.workTabUnavailable {
 	color: #555555;
 
 }
 
-.workTab {	
+.workTab {
 	border: 1px #35332f solid;
 	background-color: #232122;
 	padding-left: 2em;
@@ -35,11 +34,11 @@
 }
 
 .workspaceZone {
-	display: block;
+	display: flex;
+	flex-direction: column;
 	position: relative;
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
 	user-select: none;
 }
-

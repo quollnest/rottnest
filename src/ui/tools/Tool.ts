@@ -22,6 +22,7 @@ export type Tool = {
 	imageUrl: string
 	events: ToolOperation
 	description: string
+	helpId: string
 }
 
 

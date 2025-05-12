@@ -1,4 +1,3 @@
-
 .badGraph {
 	text-align: center;
 	width: 100%;
@@ -6,7 +5,7 @@
 
 .retryButton {
 	color: white;
-	
+
 }
 
 .vizNotReady {
@@ -25,7 +24,7 @@
 .rootListHeader {
 	text-align: center;
 	margin-top: 2em;
-	background-color: #232122;	
+	background-color: #232122;
 	border-top: 1px #35332f solid;
 	border-bottom: 1px #35332f solid;
 }
@@ -41,7 +40,7 @@
 }
 
 .rListItemText {
-	padding-right: 1em;	
+	padding-right: 1em;
 	margin-right: 1em;
 	display: flex;
 	flex: 1;
@@ -85,8 +84,8 @@
 
 .widgetContainerHeader {
 	text-align: center;
-	background-color: #232122;	
-	border-bottom: 1px #35332f solid; 
+	background-color: #232122;
+	border-bottom: 1px #35332f solid;
 }
 
 .widgetSVGLineStack {
@@ -102,7 +101,7 @@
 	height: 120%;
 	display: flex;
 	margin-top: 10px;
-	padding-top:5em;
+	padding-top: 5em;
 	border: 1px solid #35332f;
 }
 
@@ -111,7 +110,7 @@
 }
 
 .widgetObjectBody {
-	
+
 	min-height: 20px;
 }
 
@@ -140,7 +139,7 @@
 
 .cuStatus {
 	border-top: 1px #35332f solid;
-	overflow-x:hidden;
+	overflow-x: hidden;
 }
 
 .widgetObject {
@@ -148,13 +147,13 @@
 	max-width: 80px;
 	min-width: 80px;
 	min-height: 20px;
-	
+
 	background-color: #25231f;
 	border: 1px #45442f solid;
 }
 
 .widgetObject:hover {
-	
+
 	background-color: #35332f;
 	border: 1px #85442f solid;
 }

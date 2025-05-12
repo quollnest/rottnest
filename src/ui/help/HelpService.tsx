@@ -1,4 +1,4 @@
-import { HelpBoxData } from './HelpContainer';
+import { HelpBoxData } from '../container/HelpContainer';
 
 export type HelpJsonData = {
   	language: string;

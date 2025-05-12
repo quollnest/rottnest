@@ -1,13 +1,13 @@
 import RottnestContainer from "../container/RottnestContainer"
 
-const leftClick = (r: RottnestContainer) => { 
+const leftClick = (_r: RottnestContainer) => { 
 
 	//FUN DEBUG MESSAGE
-	const aps = r.commData
+	/*const _aps = r.commData
 		.appService.sendObj('debug_send', 
 		{
 			testdata: 'glhf!'
-		});
+		});*/
 
 }
 

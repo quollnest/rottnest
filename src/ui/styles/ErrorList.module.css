@@ -1,13 +1,33 @@
-
 .errorList {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
-	border-top: 1px #35332f solid; 
+	border-top: 1px #35332f solid;
 }
 
 .errorListHeader {
 	text-align: center;
-	background-color: #232122;	
-	border-bottom: 1px #35332f solid; 
+	background-color: #232122;
+	border-bottom: 1px #35332f solid;
+}
+
+.errorListUL {
+	padding: 0;
+	margin: 0;
+}
+
+.errorItem {
+	padding: 0.5em;
+	list-style: none;
+	background-color: #232122;
+
+}
+
+.selectedErrorItem {
+	margin: 0;
+	padding: 0.5em;
+	list-style: none;
+	background-color: #232122;
+
+	border-bottom: 1px #35332f solid;
 }

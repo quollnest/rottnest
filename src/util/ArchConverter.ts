@@ -24,7 +24,6 @@ export default class ArchConverter {
 		
 		let tmap: Map<string, TSchedDataNode> = new Map();
 		let root = null; //Will be set to register
-		
 		let registerSet = false;
 		
 		for(let i = 0; i < flattenList.length; i++) {
@@ -83,7 +82,6 @@ export default class ArchConverter {
 					const parentKey = ArchConverter
 						.MakeKindIdxKey(conPair.kind, 
 								conPair.idx);
-					console.log(parentKey);
 					const parentRef = tmap.get(parentKey);
 					if(parentRef) {
 						parentRef.downstream.push(obj);

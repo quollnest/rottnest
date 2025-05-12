@@ -1,7 +1,9 @@
 
-import { RottnestKindMap, RottnestRouterKindMap } from '../model/RegionKindMap.ts'
+import { RottnestKindMap, RottnestRouterKindMap }
+	from '../model/RegionKindMap.ts'
 import { TSchedData } from '../model/TSchedData.ts';
-import {CUReqResult, CUReqResultDummy, RottGraphEntry, RottCallGraph} from '../model/CallGraph.ts';
+import {CUReqResult, CUReqResultDummy, RottCallGraph}
+	from '../model/CallGraph.ts';
 import { DeRott } from './Serialisation'
 
 export class RottArchMSG {
@@ -14,7 +16,8 @@ export class RottArchMSG {
 
 	toJsonStr(): string {
 		return JSON.stringify({
-			cmd: "use_arch",
+			message: "arch_lat2d_use",
+			originator: "rottnest",
 			payload: this.tschedData,
 		});
 	}
@@ -30,8 +33,9 @@ export class RottRunResultMSG {
 
 	toJsonStr(): string {
 		return JSON.stringify({
-			cmd: "run_result",
-			payload: this.archid,
+			message: "arch_lat2d_run_result",
+			originator: "rottnest",
+			payload: { 'arch_id' : this.archid },
 		});
 	}
 }
@@ -52,7 +56,7 @@ export class RottGraphMSG implements DeRott  {
 	}
 
 	fromJSON(jsonObj: any): this | null {
-		
+		console.log(jsonObj)
 		//Assume it is a JSON object
 		const data = jsonObj['payload'];
 		const graph = data['graph_view']['graph'];
@@ -139,9 +143,8 @@ export class RottRouterTypesMSG implements DeRott  {
 			const key = k.toLowerCase();
 			const rDefName = data[k].default;
 			const rOptions = data[k].options;
-			
 			if(this.subtypeMap.has(key)) {
-
+				
 				for(const v of rOptions) {
 					const rtrs = this
 						.subtypeMap.get(key);
@@ -158,7 +161,7 @@ export class RottRouterTypesMSG implements DeRott  {
 				}
 			} else {
 				console.error('Unable to '
-					 + 'decode message');
+					 + 'decode message: ' + key);
 			}
 
 		}
@@ -196,7 +199,7 @@ export class RottSubTypesMSG implements DeRott  {
 	}
 
 	fromJSON(mdata: any) {
-		const data = mdata['subtypes'];
+		const data = mdata['payload'];
 			for(const k in data) {
 			const lowerK = k.toLowerCase();
 			let lowerKey = 

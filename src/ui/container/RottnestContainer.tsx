@@ -1,107 +1,54 @@
 import React from 'react';
 import GlobalBar from '../GlobalBar';
-import {ProjectDetails,
-	ProjectAssembly,
-	ProjectDump} 
-	from '../../model/Project';
+
+import WorkspaceContainer from './DesignerContainer.tsx';
+import SettingsForm from './SettingsForm';
+import NewProjectForm from './NewProjectForm';
+import ErrorDisplay from './ErrorDisplay.tsx';
+import HelpService from '../help/HelpService';  
+import VisData from '../vis/VisData.ts';
+import AppServiceModule from '../../net/AppServiceModule.ts';
+
+import { RegionsSnapshotStack } 
+	from '../../model/RegionSnapshotStack';
+import { DesignSpace } from '../DesignSpace';
+import { RouterAggr} from '../../net/Messages.ts';
+import { HelpContainer } from './HelpContainer.tsx';
+import { RottCallGraphDefault } from '../../model/CallGraph.ts';
+import { AppCommData, RottnestContainerOperations, RottnestContainerSchema, RottnestState } from '../schema/RottnestContainerSchema.ts';
+import { HelpDataCollection, HelpUISchema } from '../schema/HelpUISchema.ts';
+import { CommOpQueue, CommsActions } from '../schema/ops/CommsOps.ts';
+import { RTCCommActions, RTCOpenOperations } from '../schema/ops/RTCCommsOps.ts';
+import { RottnestKindMap, SubKind } 
+	from '../../model/RegionKindMap.ts'
+import {ProjectDetails, ProjectAssembly, ProjectDump } from '../../model/Project';
 import {RegionDataList } from '../../model/RegionDataList';
 import { RegionCell, RegionData, Regions } 
 	from '../../model/RegionData';
 
-import WorkspaceContainer from './RowContainer';
-import SettingsForm from './SettingsForm';
-
-import { RegionsSnapshotStack } 
-	from '../../model/RegionSnapshotStack';
 
 import styles from '../styles/RottnestContainer.module.css';
-import {DesignSpace} from '../DesignSpace';
-import NewProjectForm from './NewProjectForm';
-import { RottnestKindMap, SubKind } 
-	from '../../model/RegionKindMap.ts'
 
-import {AppServiceClient} from '../../net/AppService.ts';
-
-import AppServiceModule from '../../net/AppServiceModule.ts';
-import {RottRunResultMSG, RouterAggr} from '../../net/Messages.ts';
-import {HelpContainer, HelpBoxData} from './HelpContainer.tsx';
-import {RottCallGraph, RottCallGraphDefault} from '../../model/CallGraph.ts';
-import ErrorDisplay from './ErrorDisplay.tsx';
-import {RunResultBuffer} from '../../model/RunResult.ts';
-
-import HelpService from '../help/HelpService';  
 
 /**
  * At the moment, nothing interesting
  */
-type RottnestProperties = {}
-
-/**
- *  Container State information
- *  that can be updated by other components
- *  or internally.
- */
-type RottnestAppState = {
-	settingsActive: boolean
-	newProjectActive: boolean
-	helpActive: boolean
-	tourMode: boolean
-    	tourStep: number
-	colourblindActive: boolean
-	zoomValue: number
-	componentData: {
-		selectedTool: number
-		selectedSubTool: number
-		selectedRegion: number
-		selectedRegionType: string | null 
-	}
-}
-
-let RottnestSubKinds: RottnestKindMap = {
-	bus: [{ name: 'Not Selected' }],	
-	register: [{ name: 'Not Selected'}],
-	bellstate: [{ name: 'Not Selected'}],
-	factory: [{ name: 'Not Selected'}],
-	buffer: [{ name: 'Not Selected' }]	
-}
+type RottnestProperties = {};
 
 
-/**
- * Maintains state information related to
- * rendering and data
- */
-type RottnestState = {
-	projectDetails: ProjectDetails
-	appStateData: RottnestAppState
-	regionList: RegionDataList
-	subTypes: RottnestKindMap
-	routerList: Map<string, RouterAggr>
-	tabData: TabViewStateData
-	subTypesRecvd: boolean
-	visData: any
-	routerListRcvd: boolean
-	selectedRouterIndex: number
-	errorDisplay: boolean
-	errorMessage: string
-	graphViewData: RottCallGraph
-	rrBuffer: RunResultBuffer 
-}
+
+
+
+
+
 
 type ComponentMonitor = {
 	designSpace: DesignSpace | null
 	settingsForm: SettingsForm | null
 }
 
-type AppCommData = {
-	appService: AppServiceClient
 
-}
 
-type TabViewStateData = {	
-	selectedTabIndex: number
-	tabNames: Array<string>
-	availableTabs: Array<boolean>
-}
 
 /**
  * Container for the main application
@@ -109,41 +56,27 @@ type TabViewStateData = {
  * components rendered underneath it
  *
  */
-class RottnestContainer 
-	extends React.Component<RottnestProperties, 
+class RottnestContainer extends React.Component<RottnestProperties, 
 	RottnestState> {
 
-	commData: AppCommData = {
-		appService: AppServiceModule
-			.GetAppServiceInstance()
-	};
+	rtcCommsActions: CommsActions<RottnestContainer>
+		= RTCCommActions;
+	rtcCommsDispatch: CommOpQueue<RottnestContainer>
+		= RTCOpenOperations;
+	
+	schemaData: RottnestContainerSchema
+		= new RottnestContainerSchema()
+	
+	commData: AppCommData = this.schemaData
+		.getData()
+		.rtcommdata;
 
-	helpData: Array<HelpBoxData> = [
-		{
-			title: "Toolbox",
-			content: `
-			Tool used to mark different `+
-				`regions and select` +
-			`existing regions
-			`,
-			coords: [70, 70],
+	helpData: HelpDataCollection
+		= HelpUISchema.DataDefaults();
 
-		},
-		/*{
-			title: "Region List",
-			content: `
-			Lists the regions that have 
-			been marked
-			by the user
-			`,
-			coords: [550, 90],
-			rightPointer: true
+	opers: RottnestContainerOperations = this.schemaData.getOperations();
 
-		},*/
-
-	];
-
-	state: RottnestState = {
+  /*state: RottnestState = {
 		projectDetails: {
 			projectName: 'Project1', 
 			author: 'User',
@@ -184,6 +117,13 @@ class RottnestContainer
 		visData: {},
 		rrBuffer: new RunResultBuffer()
 	};
+||||||| 91fa41d
+		},*/
+
+
+	state: RottnestState = this.schemaData
+		.getData()
+		.rtstate;
 	
 	regionStack: RegionsSnapshotStack = 
 		new RegionsSnapshotStack();
@@ -208,160 +148,22 @@ class RottnestContainer
 			.ConnectionReady();
 		const appService = AppServiceModule
 			.GetAppServiceInstance();
-
-		if(appReady) { return; }		
 		const selfRef = this;
+		
+		if(appReady) { return; }
 
-		appService.registerReciverKinds(
-			'subtype', (m: any) => {
-				let kinds = appService
-					.retrieveSubTypes(m);
-				if(kinds) {
-					selfRef
-					.updateSubTypes(kinds);
+		selfRef.rtcCommsActions.ApplyInternal(
+			selfRef.commData.appService, selfRef);
 
-					appService
-					.sendObj('get_router'
-					,'');
-				}
-			}
-		);
-		appService.registerReciverKinds(
-			'get_router', (m: any) => {
-				let kinds = appService
-					.retrieveRouters(
-						this.state.subTypes,
-						m);
-				if(kinds) {
-					selfRef
-					.updateSubTypes(kinds);
-				}
-			}
-		);
-		appService.registerReciverKinds(
-			'use_arch', (m: any) => {
-				let someMsg = m 
-				if(someMsg) {
-					let arch_id = someMsg
-						.getJSON();
-					appService.runResult(
-					new RottRunResultMSG(
-						arch_id));
-				}
-			}
-		);
-		appService.registerReciverKinds(
-			'err', (m: any) => {
-				let someMsg = JSON.stringify(m); 
-				this.state.errorMessage = someMsg;
-				this.state.errorDisplay = true;
-				console.error(`Error occurred: ${someMsg}`);
-				this.triggerUpdate();
-			}
-		);
-		appService.registerReciverKinds(
-			'run_result', (m: any) => {
-				//TODO Set the graph id for
-				//the msg to be sent for
-				//get_graph
-				let rrBuf = selfRef.getRRBuffer();
-
-				let json = m.interpretedData; 
-			
-				//A lot of heavy lifting done with this
-				//to address a terrible messaging system
-				const [rkind, mdat] = rrBuf.decodeAndSort(json.payload);
-				//appService
-				//	.sendObj('get_graph','');
-				
-				let shouldUpdate = false;
-				if(rkind === "CUIDObj" || rkind === "CUIDTotal") {
-					selfRef.state.tabData
-					.availableTabs[3]
-						= true;
-					
-					selfRef.state.tabData
-					.availableTabs[1]
-						= true;
-					shouldUpdate = true;
-				}
-				if(rkind === "VisualResult") {
-					selfRef.state.visData = mdat;
-					selfRef.state.tabData
-					.availableTabs[2]
-						= true;
-					shouldUpdate = true;
-				}
-				if(shouldUpdate) {
-					selfRef.triggerUpdate();
-				}
-				//This needs to trigger
-				//a retrieval on get_graph
-			}
-		);
-
-		appService.registerReciverKinds(
-			'get_router', (m: any) => {
-				let kinds = appService
-					.retrieveRouters(
-					this.state.subTypes,
-						m);
-				if(kinds) {
-					selfRef
-					.updateRouterList(kinds);
-				}
-
-			}
-		);
-
-		appService.registerReciverKinds(
-			'get_args', (m: any) => {
-
-				/*let kinds = appService
-					.retrieveArgs(m);
-				if(kinds) {
-				selfRef
-				.updateArgsList(kinds);
-				
-				}*/
-
-			}
-		);
-		appService.registerReciverKinds(
-			'get_root_graph', (m: any) => {
-				let graph = appService
-					.decodeGraph(m);
-				if(graph) {
-					this.state.graphViewData
-					= graph;
-				}
-				
-				/*let kinds = appService
-					.retrieveArgs(m);
-				if(kinds) {
-				selfRef
-				.updateArgsList(kinds);
-				
-				}*/
-
-			}
-		);
-		appService.registerOpenFn(() => {
-			if(appService.isConnected()) {	
-				appService
-					.sendObj('subtype','');
-				appService
-					.sendObj('get_root_graph',
-						 {});
-				appService.sendObj('get_args'
-					,'');
-			}
-		});
-
-		//Send out data
+		appService.registerOpenFn(() => { selfRef
+			.rtcCommsDispatch.applyAll(appService, selfRef); });
 		
 		this.commData.appService.connect();
 
+	}
+
+	getVisData() {
+		return this.state.visData;
 	}
 
 	gotoVizWithData(data: any) {
@@ -483,6 +285,7 @@ class RottnestContainer
 	updateRouterList(routers: Map<string, RouterAggr>) {
 		this.state.routerList = routers;
 		this.state.routerListRcvd = true;
+		this.opers.validate(this);
 		this.triggerUpdate();
 	}
 
@@ -490,6 +293,7 @@ class RottnestContainer
 	updateSubTypes(subTypes: RottnestKindMap) {
 		this.state.subTypes = subTypes;
 		this.state.subTypesRecvd = true;
+		this.opers.validate(this);
 		this.triggerUpdate();
 	}
 	
@@ -557,6 +361,7 @@ class RottnestContainer
 		const key = RegionData.SingularKind(
 			keyObj) as keyof RottnestKindMap;
 
+		//TODO: You are apparently a map?
 
 		if(key !== null) {
 			return {
@@ -607,7 +412,7 @@ class RottnestContainer
 		this.state.appStateData
 			.componentData
 			.selectedSubTool = subTypeIndex;
-
+		this.opers.validate(this);
 		this.triggerUpdate();
 	}
 
@@ -623,6 +428,7 @@ class RottnestContainer
 			.selectedRegionType 
 				= RegionData.PluraliseKind(
 					aggrData.kind);
+			this.opers.validate(this);
 			this.triggerUpdate();
 		} else {
 			//reset
@@ -631,7 +437,8 @@ class RottnestContainer
 				= -1; 
 			this.state.appStateData.componentData
 			.selectedRegionType 
-				= null;			
+				= null;
+			this.opers.validate(this);
 			this.triggerUpdate();
 
 		}
@@ -679,25 +486,15 @@ class RottnestContainer
 	}
 
 	updateSelectedRegionData(regData: RegionData) {
-		this.updateSelectedRegionDataNoUpdate(regData);	
+		this.updateSelectedRegionDataNoUpdate(regData);
+		this.opers.validate(this);
 		this.triggerUpdate();
 	}
 
 	resetData() {
 		this.state.regionList = new RegionDataList();
-		this.state.appStateData = {
-			settingsActive: false,
-			newProjectActive: false,
-			zoomValue: 100,
-			colourblindActive: false,
-			helpActive: false,
-			componentData: {
-				selectedTool: 0,
-				selectedSubTool: 0,
-				selectedRegion: 0,
-				selectedRegionType: null
-			},
-		};
+		//TODO: May want to check to see if this works
+		this.state.appStateData = this.schemaData.getDefaults().rtstate.appStateData;
 		this.state.tabData = {
 			selectedTabIndex: 0,
 			availableTabs: [true, false, false, false],
@@ -705,7 +502,9 @@ class RottnestContainer
 				'Visualiser', 'Run Chart']
 		};
 		this.state.graphViewData = RottCallGraphDefault(),	
-		this.state.visData = {};
+		this.state.visData = VisData.empty();
+		console.log(this.state.visData);
+		debugger;
 		this.regionStack = new RegionsSnapshotStack();
 		this.currentRDBuffer = new RegionData();
 
@@ -846,6 +645,7 @@ class RottnestContainer
 			this.onRegion();
 			this.state.regionList
 				.cleanupIntersections(oldBuffer);
+			this.opers.validate(this);
 			this.triggerUpdate();
 		} else {
 			const rkey = this.toolToRegionKey();
@@ -913,7 +713,8 @@ class RottnestContainer
 		);
 		if(res) {
 			this.state.regionList = res;
-			this.triggerUpdate()
+			this.opers.validate(this);
+			this.triggerUpdate();
 		}
 		
 	}
@@ -924,7 +725,7 @@ class RottnestContainer
 		);
 		if(res) {
 			this.state.regionList = res;
-			this.triggerUpdate()
+			this.triggerUpdate();
 		}
 		
 	}
@@ -972,7 +773,7 @@ class RottnestContainer
 	 * Updates the state and triggers a
 	 * re-render
 	 */
-	triggerUpdate() {	
+	triggerUpdate() {
 		const newState = {...this.state};
 		this.setState(newState);
 	}
@@ -990,6 +791,7 @@ class RottnestContainer
 	cancelNewProject() {
 		this.state.appStateData.newProjectActive = false;
 		this.resetData();
+		this.opers.validate(this);
 		this.triggerUpdate();
 	}
 

@@ -88,7 +88,6 @@ export class RunResultBuffer {
 		return this.endComps;
 	}
 
-	
 	isHashVolumes(jsonObj: any): boolean {
 		const noCUID = !this.isCUIDObj(jsonObj);
 		const hasTSource = jsonObj.t_source !== undefined;

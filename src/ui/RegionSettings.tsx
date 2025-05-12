@@ -2,7 +2,7 @@ import React from "react";
 import styles from './styles/RegionSettings.module.css';
 import RottnestContainer from "./container/RottnestContainer";
 import {RegionData} from "../model/RegionData";
-import {RottnestRouterKindMap, SubKind} from "../model/RegionKindMap";
+import {SubKind} from "../model/RegionKindMap";
 
 
 type RegionConnection = {
@@ -264,7 +264,8 @@ class RegionSubTypeList extends React.Component
 	}
 }
 
-
+//TODO: Dead code, will need to re-evaluate where it goes next
+/*
 type RegionFactoryKindData = {
 	container: RottnestContainer
 	defaultValue: number
@@ -272,7 +273,7 @@ type RegionFactoryKindData = {
 
 type RegionFactoryKindState = {
 	bstateValue: number 
-}
+}*/
 
 /**
  * RegionSettings, when a region is selected from the
@@ -280,7 +281,7 @@ type RegionFactoryKindState = {
  * that can be changed for that region
  *
  */
-class RegionBellStateSettings 
+/*class RegionBellStateSettings 
 	extends React.Component<RegionFactoryKindData,
 	RegionFactoryKindState> {
 
@@ -313,7 +314,7 @@ class RegionBellStateSettings
 			</div>
 		)	}
 
-}
+}*/
 
 
 
@@ -342,7 +343,6 @@ class RegionSettings extends React
 		if(currentObj !== null && currentObj !== undefined 
 		   && currentObj.routerKind === null) {
 			
-			console.log(currentObj);
 			
 			let regData: RegionData = currentObj
 				.shallowDuplicate();

@@ -23,8 +23,8 @@ interface CGUpdatable {
 	getCoords(): CGObjectLineUpdatable	
 }
 
-
-
+//TODO: We need to re-evaluate the usage of the call graph here
+/*
 
 class UpdatableLineRef implements CGUpdatable {
 	
@@ -58,7 +58,7 @@ class UpdatableLineRef implements CGUpdatable {
 	registerContext(ctx: any): void {
 		this.ctx = ctx;
 	}
-}
+}*/
 
 type CGPositionData = {
 	x: number
@@ -280,7 +280,7 @@ class CGObject extends React.Component<CGDispData,
 				if(this.props.cuReqData === null ||
 				  this.props.cuReqData.status 
 					!== 'complete') {
-					this.apservice.sendObj('get_graph', {
+					this.apservice.sendObj('cg_lat2d_get_graph', {
 						'gid': this.data.idx
 					});
 					this.state.cuReady = true;
@@ -522,10 +522,11 @@ export class CallGraphSpace extends
 		super(props);
 		const container = this.props.container;
 		const aService = container.commData.appService;
-		aService.hookContext(this,'status_response');
-		aService.hookContext(this,'get_graph');
-		aService.hookContext(this,'get_root_graph');
-		aService.hookContext(this,'run_result');
+		aService.hookContext(this,'cg_lat2d_status_response');
+		aService.hookContext(this,'cg_lat2d_get_graph');
+		aService.hookContext(this,'cg_lat2d_get_root_graph');
+		aService.hookContext(this,'cg_lat2d_run_graph_node');
+		aService.hookContext(this,'arch_lat2d_run_result');
 	}
 	
 	serviceHook(asm: AppServiceMessage): void {
@@ -554,7 +555,7 @@ export class CallGraphSpace extends
 						= {...this.state}
 					this.setState(nState);
 				}
-			} else if(jsonObj.message === 'get_graph') {
+			} else if(jsonObj.message === 'cg_lat2d_get_graph') {
 				//let gid = jsonObj.gid;
 				let graph = appService
 					.decodeGraph(asm);
@@ -603,7 +604,7 @@ export class CallGraphSpace extends
 				nState.refresh = true;
 				cgspace.setState(nState);
 
-			} else if(jsonObj.message === 'get_root_graph') {
+			} else if(jsonObj.message === 'cg_lat2d_get_root_graph') {
 				let graph = appService
 					.decodeGraph(asm);
 				let expands = true;
@@ -627,7 +628,8 @@ export class CallGraphSpace extends
 				nState.refresh = true;
 				cgspace.setState(nState);
 
-			} else if(jsonObj.message === 'run_result') {
+			} else if(jsonObj.message === 'arch_lat2d_run_result' ||
+				jsonObj.message === 'cg_lat2d_run_graph_node') {
 			
 				//TODO Set the graph id for
 				//the msg to be sent for
@@ -872,13 +874,14 @@ export class CallGraphSpace extends
 				.map((ldw: CGTreeDisplayData) => { 
 						
 					return ldw.layerData
-				.map((wl: CGTreeLayerData, lidx: number) => {
+				.map((wl: CGTreeLayerData, _lidx: number) => {
+					//TODO: Re-evaluate the computation of lines between callgraph components
 					// const wlLength 
 					// 	= wl.layerElements.length;
 					// calcdHeight += 5;
 					cidx += 1;
             const wlRes = wl.layerElements.map(
-              (w: CGLayerEntry, idx: number) => {
+              (w: CGLayerEntry, _idx: number) => {
                 const wname = waggr.graph.graph.get(w.entryIdx)?.name;
                 /*let yoff = 0;
 						let sidx = idx+1;
@@ -1109,7 +1112,7 @@ export class CallGraphSpace extends
 
 						const aps = cgref.appService;
 						cgref.resetState();
-						aps.sendObj('get_root_graph', JSON.stringify(
+						aps.sendObj('cg_lat2d_get_root_graph', JSON.stringify(
 							{ gid: 0 }
 						));
 						

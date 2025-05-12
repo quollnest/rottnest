@@ -207,12 +207,12 @@ const GenerateLine = (
 	yScale: d3.ScaleLinear<number, number> | d3.ScaleLogarithmic<number, number>, 
 	selKey: CUAggrKey,
 	colorStr: string,
-	key: string, idx: number):  ReactElement => {	
+	key: string, _idx: number):  ReactElement => {	
 
 	const lbuilder = d3
 			.line<DataAggrIdentifier>()
 			.x((d) => xScale(d.mxid ?? 0))
-			.y((d, ids) => yScale(data.aggrMap[selKey][ids] ?? 0));
+			.y((_d, ids) => yScale(data.aggrMap[selKey][ids] ?? 0));
 
 	const lres = lbuilder(data.idxs);
 

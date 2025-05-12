@@ -23,7 +23,7 @@ export const HelpContainer: React.FC<HelpContainerProps> = ({ toggleOff, helpDat
 
   	// Debounce function to make hover smoother
   	const debounce = (func: Function, wait: number) => {
-    		let timeout: NodeJS.Timeout;
+    		let timeout: ReturnType<typeof setTimeout>;
     		return (...args: any[]) => {
       			clearTimeout(timeout);
       			timeout = setTimeout(() => func(...args), wait);
@@ -31,7 +31,8 @@ export const HelpContainer: React.FC<HelpContainerProps> = ({ toggleOff, helpDat
   	};
 
   	useEffect(() => {
-    
+      //TODO: We may need to re-evaluate the direct usage of the dom elements
+      // here, 
     	document.querySelectorAll('input[type="file"]').forEach(input => {
       		if (input instanceof HTMLElement) {
         		input.style.display = 'none';
@@ -64,7 +65,8 @@ export const HelpContainer: React.FC<HelpContainerProps> = ({ toggleOff, helpDat
     	document.addEventListener('keydown', handleKeyDown);
     
     	let currentHighlightedElement: Element | null = null;
-    	let currentHelpItem: HelpBoxData | null = null;
+    	//TODO: Identify where this particular variable is being utilised and why
+    	//let currentHelpItem: HelpBoxData | null = null;
     
     	// Debounced tooltip update to avoid rapid changes
     	const updateTooltip = debounce((element: Element, helpItem: HelpBoxData) => {
@@ -79,25 +81,25 @@ export const HelpContainer: React.FC<HelpContainerProps> = ({ toggleOff, helpDat
         		const tooltipWidth = 320; // Max tooltip width
         		
 			if (x + tooltipWidth > viewportWidth) {
-          			x = Math.max(0, rect.left - tooltipWidth - 10);
-          
-          			if (x <= 0) {
-            				x = Math.max(0, Math.min(viewportWidth - tooltipWidth, rect.left));
-            					if (rect.top > viewportHeight / 2) {
-              						y = rect.top - 150; // Height of tooltip + margin
-            					} else {
-              						y = rect.bottom + 10;
-            					}
-          			}			
-        		}
-        
-        		if (y + 150 > viewportHeight - 60) {
-          			y = Math.max(10, viewportHeight - 210); 
-        		}
-        
-        		setTooltipPosition({ x, y });
-        		setActiveTooltip(helpItem);
+      			x = Math.max(0, rect.left - tooltipWidth - 10);
+      
+      			if (x <= 0) {
+      				x = Math.max(0, Math.min(viewportWidth - tooltipWidth, rect.left));
+    					if (rect.top > viewportHeight / 2) {
+      						y = rect.top - 150; // Height of tooltip + margin
+    					} else {
+      						y = rect.bottom + 10;
+    					}
+      			}			
       		}
+      
+      		if (y + 150 > viewportHeight - 60) {
+        			y = Math.max(10, viewportHeight - 210); 
+      		}
+      
+      		setTooltipPosition({ x, y });
+      		setActiveTooltip(helpItem);
+    		}
     	}, 50); // 50ms debounce
     
     	// Main mouse move handler
@@ -138,7 +140,7 @@ export const HelpContainer: React.FC<HelpContainerProps> = ({ toggleOff, helpDat
           			if (!(helpElement instanceof HTMLInputElement && helpElement.type === 'file')) {
             				helpElement.classList.add(styles.helpHighlighted);
             				currentHighlightedElement = helpElement;
-           	 			currentHelpItem = helpItem;
+           	 			  //currentHelpItem = helpItem;
             
             				updateTooltip(helpElement, helpItem);
           			}
@@ -146,7 +148,7 @@ export const HelpContainer: React.FC<HelpContainerProps> = ({ toggleOff, helpDat
       		} else if (currentHighlightedElement) {
         		currentHighlightedElement.classList.remove(styles.helpHighlighted);
         		currentHighlightedElement = null;
-        		currentHelpItem = null;
+        		//currentHelpItem = null;
         		setActiveTooltip(null);
       		}
     	};

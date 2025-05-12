@@ -2,15 +2,19 @@ import React from 'react';
 import Toolbox from '../Toolbox';
 import ToolboxOptions from '../ToolboxOptions';
 import RegionList from '../RegionList';
-import ErrorList from '../ErrorList';
-
-import toolStyle from '../styles/ToolContainer.module.css'
-import regionStyle from '../styles/RegionContainer.module.css'
+import ErrorList from '../err/ErrorList';
 import RegionSettings from '../RegionSettings';
 import {RottnestKindMap} from '../../model/RegionKindMap';
 import {RegionData} from '../../model/RegionData';
 import {Workspace, WorkspaceProps} from '../workspace/Workspace';
 
+import toolStyle from '../styles/ToolContainer.module.css'
+import regionStyle from '../styles/RegionContainer.module.css'
+
+/**
+ * ContainerDefaults,
+ * Not really used anymore
+ */
 const ContainerDefaults = {
 	toolbox: { 
 		headerName: "Toolbox",
@@ -159,11 +163,12 @@ export class RegionContainer
 					}
 				/>
 
-				<ErrorList
-					{...ContainerDefaults.errorList}
+					
+					
+				<ErrorList rtc={container} errors={[]}
 					data-component="error_list"
 					data-help-id="error_list"
-				/>
+					/>
 			</div>
 		)
 
