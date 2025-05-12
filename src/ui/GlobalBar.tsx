@@ -1,7 +1,6 @@
 import React, {ReactElement} from 'react';
 
 import HelpEvent from './global/Help.ts';
-import TourEvent from './global/Tour.ts';
 import LoadEvent, { hiddenInputProc } from './global/Load.ts';
 import SaveEvent from './global/Save.ts';
 import UndoEvent from './global/Undo.ts';
@@ -26,14 +25,14 @@ import {
 	PlusSquareOutlined,
 	PlaySquareOutlined,
 	RollbackOutlined,
-} from '@ant-design/icons'
+} from '@ant-design/icons';
 
 import styles from './styles/GlobalBar.module.css';
-import RottnestContainer 
-	from './container/RottnestContainer.tsx';
+import RottnestContainer from './container/RottnestContainer.tsx';
 import {ProjectDetails} from '../model/Project.ts';
 import LogoEvents from './global/LogoEvents.ts';
-
+// Import the ConnectionStatusButton component
+import ConnectionStatusButton from './global/DynamicButton.tsx';
 
 /**
  * GlobalBarProps, has a reference to
@@ -56,7 +55,7 @@ type BarItemEvents = {
 }
 
 /**
- * BarItemData holds identifier, name
+ * BarItemDescription holds identifier, name
  * toolTip information and image reference
  */
 type BarItemDescription = {
@@ -82,47 +81,38 @@ type BarItemData = {
 
 
 /**
- * BarItem, will have functionality and
- * description information associated with the top bar
- * of the screen.
- *
- * Image may be included (still deciding if it is a png or not)
+ * Improved BarItem component with better styling
+ * and responsiveness
  */
-class BarItem extends React.Component<BarItemData, {}> {
-
-	render() {
-		const data = this.props;
-		const container = data.containerRef;
-		const projTup = this.props.updatable;
-		const val = projTup ? projTup[0] : '';
+const BarItem: React.FC<BarItemData> = (props) => {
+	const { containerRef, description, updatable } = props;
+	const val = updatable ? updatable[0] : '';
+	const events = description.events;
+	const ico = description.iconComponent;
+	const name = description.name;
+	const ident = description.id;
+	const tooltip = description.toolTip;
 	
-		const events = data.description.events;
-		const ico = this.props.description.iconComponent;
-		const name = this.props.description.name
-		const ident = this.props.description.id;
-		
-		const helpAttributes = this.props.description.helpId ? {
-			'data-component': this.props.description.helpId,
-			'data-help-id': this.props.description.helpId
-		} : {};
-
-		return (
-			<li key={ident}
-				onClick={(_) => { events.leftClick(container) }}
-				className={data.description.style}
-				{...helpAttributes}>
-				{ico} <div>{val ? val : name}</div>
-			</li>
-		)
-	}
-}
+	return (
+		<li 
+			key={ident}
+			onClick={() => events.leftClick(containerRef)}
+			className={`${styles.barItem} ${description.style || ''}`}
+			title={tooltip}
+		>
+			<div className={styles.barItemContent}>
+				<span className={styles.barItemIcon}>{ico}</span>
+				{(val || name) && (
+					<span className={styles.barItemText}>{val || name}</span>
+				)}
+			</div>
+		</li>
+	);
+};
 
 /**
  * GlobalBar object that will be set at the top of the
  * application.
- *
- * Different styling information will be associated with
- * BarItems
  */
 class GlobalBar extends React.Component<GlobalBarProps, {}> {
 		
@@ -198,12 +188,12 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 		{ 
 			id: 200, 
 			name: "Reconnect", 
-			toolTip: "Access Help", 
+			toolTip: "Reconnect to API", 
 			image: "HelpImage",
 			events: ReconnectEvent,
-			style: styles.help,
-			iconComponent: <RollbackOutlined />,
 			helpId: "reconnect",
+			style: styles.reconnect,
+			iconComponent: <RollbackOutlined />
 		},
 		{ 
 			id: 10, 
@@ -236,14 +226,11 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			iconComponent: 
 				<>
 				<UploadOutlined />
-				<input className={styles
-					.hiddenFile} 
+				<input className={styles.hiddenFile} 
 					type="file" 
 					onChange={(e) => {
-						hiddenInputProc(e, 
-						this.props
-						.container)}}>
-					</input>
+						hiddenInputProc(e, this.props.container);
+					}} />
 				</>
 		},
 		{ 
@@ -276,20 +263,39 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 			iconComponent: <FlagOutlined />,
 			helpId: "help",
 		},
-		];
+	];
 
 	render() {
-		const compMap = this.props.componentMap;
-		const container = this.props.container;
-
-		const renderableBarItems = this.barItems.map(
-			(bi: BarItemDescription, idx: number) => 
-				<BarItem key={idx} 
-				containerRef={container}
-				description={bi} 
-				updatable={compMap.get(bi.id)} 
-				/>	
-		);
+		const { componentMap, container } = this.props;
+		
+		// Create a new array for rendering the components
+		// TODO: Got to update the renderables
+		const renderItems: Array<ReactElement> = [];
+		
+		// Process each bar item
+		this.barItems.forEach((item, idx) => {
+			// Check if this is the reconnect button
+			if (item.name === "Reconnect" && item.events === ReconnectEvent) {
+				// Use our ConnectionStatusButton instead
+				renderItems.push(
+					<ConnectionStatusButton 
+						key={`connection-${idx}`}
+						container={container}
+						onClick={() => ReconnectEvent.leftClick(container)}
+					/>
+				);
+			} else {
+				// Use the standard BarItem component
+				renderItems.push(
+					<BarItem 
+						key={idx}
+						containerRef={container}
+						description={item}
+						updatable={componentMap.get(item.id)}
+					/>
+				);
+			}
+		});
 
 		return (
 			<div 
@@ -302,12 +308,11 @@ class GlobalBar extends React.Component<GlobalBarProps, {}> {
 						.resetDSMove();
 					}
 				}>
-				<ul>
-				{renderableBarItems}
+				<ul className={styles.barItemList}>
+					{renderItems}
 				</ul>
 			</div>
-		)
-
+		);
 	}
 }
 

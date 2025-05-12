@@ -21,6 +21,7 @@ const ContainerDefaults = {
 		toolKind: 0,
 	},
 	regionList: {
+		headerName: "Regions",
 		regions: []
 	},
 	errorList: {
@@ -107,24 +108,14 @@ export class RegionContainer
 		const regData = container.getSelectedRegionData();
 		let connectedIdx = 0;
 		let connectedKind = null;
+		
 		if(regData) {
 			if(regData.connectionToIdx !== null) {
 				connectedIdx = regData
 				.connectionToIdx;
-			}				return (
-			<div className={styles.toolboxOptions}>
-				<header className={styles
-					.toolboxOptionsHeader}>
-					{headerName}</header>
-				{optionRender}
-			</div>
-		)
-			if(regData.connectionToKind!== null) {
-				connectedKind = regData
-				.connectionToKind;
 			}
 		} 
-
+		
 		return (
 			<div
 				className={regionStyle.regionContainer}

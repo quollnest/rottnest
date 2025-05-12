@@ -30,7 +30,6 @@ import ErrorDisplay from './ErrorDisplay.tsx';
 import {RunResultBuffer} from '../../model/RunResult.ts';
 
 import HelpService from '../help/HelpService';  
-import { withHelpAttributes } from '../help/HelpAttributes';
 
 /**
  * At the moment, nothing interesting
