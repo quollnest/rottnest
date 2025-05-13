@@ -658,8 +658,10 @@ export class CallGraphSpace extends
 					shouldUpdate = true;
 				}
 					
-				   	
+				console.log(mdat, rkind); 	
 				if(rkind === "VisualResult") {
+					console.log("Got viz-result");
+					console.log(mdat, rkind); 	
 					container.state.visData = mdat;
 					container.state.tabData
 					.availableTabs[2]

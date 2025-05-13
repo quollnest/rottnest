@@ -44,7 +44,6 @@ export function DrawCellContents({rowidx, colidx, cell}: DrawCellProps):
     if("patch" in cellobj) {
       let x = colidx * CELL_SIZE;
       let y = rowidx * CELL_SIZE;
-			console.log(cellobj.skey);
 
 			const remote = cellobj.remote ? cellobj.remote : ''
 			
@@ -284,8 +283,8 @@ export function ConstructTickmarks(layerN: number) {
 	}
 
 	let tickmarks = [];
-	for(let i = 0; i < layerN + increment - 1; i += increment) {
-		tickmarks.push({ idx: i });
+	for(let i = 1; i <= layerN + increment - 1; i += increment) {
+		tickmarks.push({ idx: i-1 });
 		
 	}
 
@@ -300,7 +299,6 @@ export function DrawDataBackground(data: VisRunResult) {
 
 	let widgetFactories = [];
 	let widgetRegions = [];
-	console.log(data);
 	for(const reg of data['regions']) {
 		const [region, factory] = DrawWidgetRegion(reg);
 
@@ -337,7 +335,6 @@ export function DrawDataBackground(data: VisRunResult) {
 		{cells}
 		{contents}
 		</g>
-	console.log(contents);
 	return [svg_bg, cells, contents, widgetFactories, widgetRegions];
 }
 
@@ -346,11 +343,9 @@ export function DrawVisualInstance(data: VisRunResult, frameNum: number) {
 
 	// re-initialise the foreground element
 	let layer = DrawLayer(data.layers[frameNum]);
-	console.log(layer);
 	const svgfg = <g>{layer}</g>
 	return [svgfg, layer];
 }
-
 
 export type SchedulerVisData = {
 	data: any
@@ -454,7 +449,15 @@ export function SchedulerFrameSlider(props: SchedulerFrameSliderProps) {
 	const crfrm = props.crfrm;
 	const tickmarks = props.tickmarks;
 	const vis = props.parent;
-	const renOpt = tickmarks.map((o) => <option value={o.idx} label={`${o.idx}`} key={`tm_option_${o.idx}`} /> );
+	const renOpt = tickmarks.map((o) => {
+		if(o.idx === 0) {	
+			return <option value={o.idx} label={`${o.idx+1}`} key={`tm_option_${o.idx}`} />
+		} else if(o.idx === max) {
+			return <option value={o.idx-1} label={`${o.idx}`} key={`tm_option_${o.idx}`} />
+		} else {
+			return <option value={o.idx} label={`${o.idx}`} key={`tm_option_${o.idx}`} />
+		}
+	});
 	
 	return (<>
 		<div className={style.frameContainer}>
@@ -573,7 +576,8 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 	nextFrame() {
 		const nframes = this.getMax();
 		const fmidx = this.state.crfrm;
-		this.state.crfrm = fmidx < nframes ? fmidx + 1 : fmidx;
+
+		this.state.crfrm = fmidx < (nframes-1) ? fmidx + 1 : fmidx;
 		if(this.state.interval) {
 			clearInterval(this.state.interval);
 		}
@@ -755,7 +759,6 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 
 
 	render() {
-
 		const data = this.state.data;
 		const defs = this.genDefs();
 		const vwidth = (data.width * 100) + 200;
@@ -764,6 +767,7 @@ export class SchedulerVisualiser extends React.Component<SchedulerVisProps,
 		const [sfg, _layer] = DrawVisualInstance(data, this.state.crfrm);
 		const tickmarks = ConstructTickmarks(data.layers.length);
 		const self = this;
+
 
 		const mouseDownHandler = (e: MouseEvent<SVGElement>) => {
 

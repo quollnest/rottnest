@@ -56,8 +56,7 @@ type ComponentMonitor = {
  * components rendered underneath it
  *
  */
-class RottnestContainer extends React.Component<RottnestProperties, 
-	RottnestState> {
+class RottnestContainer extends React.Component<RottnestProperties, RottnestState> {
 
 	rtcCommsActions: CommsActions<RottnestContainer>
 		= RTCCommActions;
@@ -65,7 +64,7 @@ class RottnestContainer extends React.Component<RottnestProperties,
 		= RTCOpenOperations;
 	
 	schemaData: RottnestContainerSchema
-		= new RottnestContainerSchema()
+		= new RottnestContainerSchema();
 	
 	commData: AppCommData = this.schemaData
 		.getData()
@@ -117,7 +116,6 @@ class RottnestContainer extends React.Component<RottnestProperties,
 		visData: {},
 		rrBuffer: new RunResultBuffer()
 	};
-||||||| 91fa41d
 		},*/
 
 
@@ -163,13 +161,14 @@ class RottnestContainer extends React.Component<RottnestProperties,
 	}
 
 	getVisData() {
-		return this.state.visData;
+		return this.state.visData.vis_obj;
 	}
 
 	gotoVizWithData(data: any) {
+		console.log(data);
 		this.state.tabData.selectedTabIndex = 2;
 		this.state.tabData.availableTabs[2] = true;
-		this.state.visData = data;
+		//this.state.visData = data; //Causing issues
 		this.triggerUpdate();
 	}
 
@@ -503,8 +502,6 @@ class RottnestContainer extends React.Component<RottnestProperties,
 		};
 		this.state.graphViewData = RottCallGraphDefault(),	
 		this.state.visData = VisData.empty();
-		console.log(this.state.visData);
-		debugger;
 		this.regionStack = new RegionsSnapshotStack();
 		this.currentRDBuffer = new RegionData();
 
