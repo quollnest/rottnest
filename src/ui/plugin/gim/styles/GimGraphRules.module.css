@@ -1,0 +1,9 @@
+
+.toolContainer {
+	min-width: 160px;
+	background-color: #25231f;
+	display: flex;
+	flex: 1;
+	border-right: 1px #35332f solid;
+	flex-direction: column;
+}
