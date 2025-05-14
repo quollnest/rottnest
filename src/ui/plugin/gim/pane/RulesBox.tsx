@@ -17,7 +17,7 @@ export type GimRulesState = {
 export class GimRulesBox extends React.Component<GimRulesProps, GimRulesState> {
 
   state: GimRulesState = {
-    
+    graph: 
   }
 
 
