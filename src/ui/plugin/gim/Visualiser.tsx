@@ -1,11 +1,11 @@
 import React, { MouseEvent } from "react";
 
 import { Workspace, WorkspaceData } from "../../workspace/Workspace.ts";
-
 import { DownloadFile } from "../../../util/FileDownload.ts";
 import { OnRangeChange, OnVisualiserExportJSON, OnVisualiserFrameNext, OnVisualiserFramePrev, OnVisualiserPlay, OnVisualiserReset, OnVisualiserSaveAnimation, OnVisualiserSaveFrame } from "./VisualiserEvents.ts";
 
-import style from "../styles/gim/Visualiser.module.css"
+import style from "./styles/GimSchedulerVisualiser.module.css"
+import { VisualiserFrame } from "./VisualiserFrame.tsx";
 
 export const FRAMERATE: number = 60;
 
@@ -28,9 +28,7 @@ export function ConstructTickmarks(layerN: number) {
 	let tickmarks = [];
 	for(let i = 1; i <= layerN + increment - 1; i += increment) {
 		tickmarks.push({ idx: i-1 });
-		
 	}
-
 	return tickmarks;
 }
 
@@ -45,6 +43,9 @@ export type GimFCSchedulerVisData = {
 	interval: ReturnType<typeof setInterval> | null
 }
 
+//
+// Visual Props for the Fully Connected graph props
+// 
 export type GimFCSchedulerVisProps = {
 	workspaceData: WorkspaceData
 }
@@ -122,7 +123,9 @@ export type GimFCSchedulerControlsProps = {
 	tickmarks: Array<{idx: number}>
 }
 
-
+//
+// Slider Props for the visualiser, could generalise this
+// 
 export type GimFCSchedulerFrameSliderProps = {
 	min: number
 	max: number
@@ -131,6 +134,9 @@ export type GimFCSchedulerFrameSliderProps = {
 	parent: GimFCVisualiser
 }
 
+//
+// Renderer for the slider
+// 
 export function GimFCSchedulerFrameSlider(props: GimFCSchedulerFrameSliderProps) {
 
 	const min = props.min;
@@ -220,7 +226,24 @@ export class GimFCSchedulerControls
 	}
 }
 
+//
+// This is a test class just to show that the visualiser is able to work and fix things
+// as they come rather than supplying a full implementation
+// 
+export class GimTestVisualiser extends React.Component<GimFCSchedulerVisProps,
+	GimFCSchedulerVisData> implements Workspace {
+	render() {
+		const frame = <VisualiserFrame frameNo={0} />
 
+		return (
+			<>
+				{frame}
+			</>
+		)
+	}
+
+
+}
 export class GimFCVisualiser extends React.Component<GimFCSchedulerVisProps,
 	GimFCSchedulerVisData> implements Workspace {
 		

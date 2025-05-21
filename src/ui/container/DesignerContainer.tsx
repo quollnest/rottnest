@@ -4,11 +4,12 @@ import styles from '../styles/WorkspaceContainer.module.css';
 import {WorkspaceContainerProps, WorkspaceGroup, WorkspaceProps} 
 	from "../workspace/Workspace";
 import {ArchGroup} from "../workspace/ArchGroup";
-import {VisualiserGroup} from "../workspace/VisualiserGroup";
+//import {VisualiserGroup} from "../workspace/VisualiserGroup";
 import {CallGraphGroup} from "../workspace/CallGraphGroup";
 import {BufferMapTrigger, WorkspaceBufferMap} 
 	from "../workspace/WorkspaceBufferMap";
 import {RunChartGroup} from "../workspace/ChartGroup";
+import { GimVisualiserGroup } from "../workspace/GimVisualiserGroup";
 
 
 type WorkspaceContainerState = {
@@ -32,7 +33,7 @@ class WorkspaceContainer
 	workspaceGroups: Array<WorkspaceGroup> = [
 		new ArchGroup(),
 		new CallGraphGroup(),
-		new VisualiserGroup(),
+		new GimVisualiserGroup(),
 		new RunChartGroup(),
 	]
 	
