@@ -125,22 +125,22 @@ const EventToTag: EVTagMap = {
   "Idle" : (_event, _data): EVTag => {
     return { kind: 'Factory', idx: 0 } },
   "FactoryGeneration" : (e, _d): EVTag => {
-    return { kind: 'Factory', idx: e.kind.data.factory_id ? e.kind.data.factory_id : -1 } },
+    return { kind: 'Factory', idx: e.kind.data.factory_id !== undefined ? e.kind.data.factory_id : -1 } },
   "AncillaIdle" : (e, _d): EVTag => {
-    return { kind: 'Ancilla', idx: e.kind.data.ancilla_id ? e.kind.data.ancilla_id : -1 } },
+    return { kind: 'Ancilla', idx: e.kind.data.ancilla_id !== undefined ? e.kind.data.ancilla_id : -1 } },
   "AncillaStateReset" : (e, _d): EVTag => {
-    return { kind: 'Ancilla', idx: e.kind.data.ancilla_id ? e.kind.data.ancilla_id : -1 } }, 
+    return { kind: 'Ancilla', idx: e.kind.data.ancilla_id !== undefined ? e.kind.data.ancilla_id : -1 } }, 
   "RegisterConsume" : (e, _d): EVTag => {
-    return { kind: 'Register', idx: e.kind.data.register_id ? e.kind.data.register_id : -1 } },
+    return { kind: 'Register', idx: e.kind.data.register_id !== undefined ? e.kind.data.register_id : -1 } },
   "RegisterIdle" : (e, _d): EVTag => {
-    return { kind: 'Register', idx: e.kind.data.register_id ? e.kind.data.register_id : -1 } },
+    return { kind: 'Register', idx: e.kind.data.register_id !== undefined ? e.kind.data.register_id : -1 } },
   "RegisterReset" : (e, _d): EVTag => {
-    return { kind: 'Register', idx: e.kind.data.register_id ? e.kind.data.register_id : -1 } },
+    return { kind: 'Register', idx: e.kind.data.register_id !== undefined ? e.kind.data.register_id : -1 } },
   "FactoryStatesMove" : (e, _d): EVTag => {
-    return { kind: 'Factory', idx: e.kind.data.factory_id ? e.kind.data.factory_id : -1,
+    return { kind: 'Factory', idx: e.kind.data.factory_id !== undefined ? e.kind.data.factory_id : -1,
     cnt: e.kind.data.n_states } },
   "AncillaStateMove" : (e, _d): EVTag => {
-    return { kind: 'Ancilla', idx: e.kind.data.ancilla_id || -1,
+    return { kind: 'Ancilla', idx: e.kind.data.ancilla_id !== undefined || -1,
     cnt: e.kind.data.register_id } },  
 }
 
@@ -164,6 +164,7 @@ function EdgeTagToPosition(tag: EVTag, data: VisualiserData): VisLine {
 }
 export type GimVisEvent = {
   kind: EVKey,
+  evtag: EVTag,
   event: GimEvent,
   nodevis?: VisUsedNode
   edgevis?: VisUsedEdge
@@ -178,6 +179,7 @@ export function FrameEventBuilder(event: GimEvent, data: VisualiserData): GimVis
 
   let fev: GimVisEvent = {
     kind: ekind,
+    evtag,
     event
   };
   
@@ -186,6 +188,7 @@ export function FrameEventBuilder(event: GimEvent, data: VisualiserData): GimVis
     fev = {
       kind: ekind,
       event,
+      evtag,
       nodevis: {
         position: NodeTagToPosition(evtag, data),
         text: '' //TODO: Just empty for now
@@ -197,6 +200,7 @@ export function FrameEventBuilder(event: GimEvent, data: VisualiserData): GimVis
     fev = {
       kind: ekind,
       event,
+      evtag,
       edgevis: {
         edge: EdgeTagToPosition(evtag, data),
         colour: 'orange'
@@ -487,13 +491,15 @@ export class VisualiserFrame extends React.Component<GimVisualProps, VisualiserD
     let nodes = [];
     if(animdata.usedNodes.length > 0) {
       for(let i = 0; i < animdata.usedNodes[step].length; i++) {
-        const vis = animdata.usedNodes[step][i].nodevis;
+        
+        const ele = animdata.usedNodes[step][i];
+        const vis = ele.nodevis;
         if(vis) {
           if(vis.position) {
             nodes.push(DrawActiveNode(vis));
           } else {
             
-            console.warn("undefined node, ", vis);
+            console.warn("undefined node, ", ele);
           }
         }
       }
@@ -508,14 +514,17 @@ export class VisualiserFrame extends React.Component<GimVisualProps, VisualiserD
     let lines = [];
     if(animdata.usedEdges.length > 0) {
       for(let i = 0; i < animdata.usedEdges[step].length; i++) {
-        const vis = animdata.usedEdges[step][i].edgevis;
+        const ele = animdata.usedEdges[step][i];
+        const vis = ele.edgevis;
+        //const cnvis = ele.edgevis
         if(vis) {
           if(vis.edge) {
             lines.push(DrawLine(vis.edge, "orange"));
             
           } else {
-            console.warn("undefined edge, ", vis);
+            console.warn("undefined edge, ", ele);
           }
+          
         }
       }
     } else {

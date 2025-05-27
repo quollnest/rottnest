@@ -10,6 +10,9 @@ import { VisualiserFrame } from "./VisualiserFrame.tsx";
 export const FRAMERATE: number = 60;
 
 
+//
+// Utilising the tickmarks from previous visualiser
+// 
 export function ConstructTickmarks(layerN: number) {
 	
 	let increment = 1000;
@@ -244,6 +247,8 @@ export class GimTestVisualiser extends React.Component<GimFCSchedulerVisProps,
 
 
 }
+
+
 export class GimFCVisualiser extends React.Component<GimFCSchedulerVisProps,
 	GimFCSchedulerVisData> implements Workspace {
 		
