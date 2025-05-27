@@ -1,10 +1,9 @@
 import React from "react";
-import testdata from './assets/test.json';
 
 
 export type GimVisualProps = {
   frameNo: number
-  //obj: VisualObj
+  visData: VisualObj
 }
 
 //
@@ -140,8 +139,7 @@ const EventToTag: EVTagMap = {
     return { kind: 'Factory', idx: e.kind.data.factory_id !== undefined ? e.kind.data.factory_id : -1,
     cnt: e.kind.data.n_states } },
   "AncillaStateMove" : (e, _d): EVTag => {
-    return { kind: 'Ancilla', idx: e.kind.data.ancilla_id !== undefined || -1,
-    cnt: e.kind.data.register_id } },  
+    return { kind: 'Ancilla', idx: e.kind.data.ancilla_id !== undefined ? e.kind.data.ancilla_id : -1, cnt: e.kind.data.register_id } },  
 }
 
 function NodeTagToPosition(tag: EVTag, data: VisualiserData): VisPosition {
@@ -155,13 +153,40 @@ function NodeTagToPosition(tag: EVTag, data: VisualiserData): VisPosition {
   }
 }
 
-function EdgeTagToPosition(tag: EVTag, data: VisualiserData): VisLine {
+function EdgeTagToPosition(tag: EVTag, data: VisualiserData):
+  [Array<{ edge: VisLine, color: string }>,
+  Array<{ kind: EVKey, position: VisPosition}>] {
+    
+
+  let ns: Array<{ kind: EVKey, position: VisPosition}> = [];
+
   if(tag.kind === "Factory") {
-    return data.factory_edges[tag.idx];
+    let s: Array<{ edge: VisLine, color: string}> = [];
+    for(let i = 0; i < data.ancilla.length; i++) {
+      let v = {
+        edge: data.factory_edges[tag.idx * data.ancilla.length + i],
+        color: 'red'
+      };
+      let n = { kind: 'Ancilla' as EVKey, position: data.ancilla[i] };
+      s.push(v);
+      ns.push(n);
+    }
+
+    return [s, ns];
+    //TODO: Offset is total number of connections to ancilla
+    //BUG: We need to fix this for other kinds of graphs
   } else {
-    return data.ancilla_edges[tag.idx];
+    let target = 0;
+    if(tag.cnt) {
+      target = tag.cnt;
+    }
+    return [[{
+      edge: data.ancilla_edges[(tag.idx * data.registers.length) + target],
+      color: 'orange'
+    }], ns]
   }
 }
+
 export type GimVisEvent = {
   kind: EVKey,
   evtag: EVTag,
@@ -171,21 +196,19 @@ export type GimVisEvent = {
 }
 
 
-export function FrameEventBuilder(event: GimEvent, data: VisualiserData): GimVisEvent {
+export function FrameEventBuilder(event: GimEvent, data: VisualiserData):
+  { edges: Array<GimVisEvent>, nodes: Array<GimVisEvent> }  {
   const mkey = event.kind.kind;
   const ekind = EventToVisMap[mkey];
 
   const evtag = EventToTag[mkey](event, data);
-
-  let fev: GimVisEvent = {
-    kind: ekind,
-    evtag,
-    event
-  };
+  let edges: Array<GimVisEvent> = [];
+  let nodes: Array<GimVisEvent> = [];
+  
   
   if(ekind === "Node") {
     
-    fev = {
+    nodes.push({
       kind: ekind,
       event,
       evtag,
@@ -194,21 +217,40 @@ export function FrameEventBuilder(event: GimEvent, data: VisualiserData): GimVis
         text: '' //TODO: Just empty for now
 
       }
-    }
+    });
+    
   } else if(ekind === "Edge") {
     
-    fev = {
-      kind: ekind,
-      event,
-      evtag,
-      edgevis: {
-        edge: EdgeTagToPosition(evtag, data),
-        colour: 'orange'
-      }
+    let [edgm, nodm] = EdgeTagToPosition(evtag, data);
+    for(let i = 0; i < edgm.length; i++) {
+      let d  = edgm[i];
+      let fev: GimVisEvent = {
+        kind: ekind,
+        event,
+        evtag,
+        edgevis: {
+          edge: d.edge,
+          colour: d.color
+        }
+      };
+      edges.push(fev);
+    }
+    for(let i = 0; i < nodm.length; i++) {
+      let d  = nodm[i];
+      let fev: GimVisEvent = {
+        kind: d.kind,
+        event,
+        evtag,
+        nodevis: {
+          position: d.position,
+          text: '',
+        }
+      };
+      nodes.push(fev);
     }
   }
 
-  return fev;
+  return { edges, nodes };
 }
 
 export type CyclesAggr = {
@@ -247,18 +289,21 @@ export function AttachFrameActivities(data: VisualiserData, obj: VisualObj, fram
           
         }
         
-        const fev = FrameEventBuilder(e, data);
-        if(fev.kind === "Node") {
+        const { edges, nodes } = FrameEventBuilder(e, data);
+        for(let i = 0; i < nodes.length; i++) {
+          let fev = nodes[i];
           frameNodeEvents.push(fev);
-        } else if(fev.kind === "Edge") {
-          frameEdgeEvents.push(fev);
-          
+        }
+        for(let i = 0; i < edges.length; i++) {
+          let fev = edges[i];
+          frameEdgeEvents.push(fev);          
         }
       } else if(e.step > frameNo) {
         //We should break here
         isFinished = true;
         break;
       }
+      
     
     }
 
@@ -442,14 +487,14 @@ export class VisualiserFrame extends React.Component<GimVisualProps, VisualiserD
   state = VisualiserDataEmpty();
 
   genData(frameNo: number) {
-    const vobj = testdata;
+    const vobj = this.props.visData
     const animdata = ConstructAnimData(vobj, frameNo);
     return animdata;
   }
 
   updateState(frameNo: number) {
     
-    const vobj = testdata;
+    const vobj = this.props.visData;
     const animdata = ConstructAnimData(vobj, frameNo);
     this.setState(animdata);
   }
@@ -519,7 +564,7 @@ export class VisualiserFrame extends React.Component<GimVisualProps, VisualiserD
         //const cnvis = ele.edgevis
         if(vis) {
           if(vis.edge) {
-            lines.push(DrawLine(vis.edge, "orange"));
+            lines.push(DrawLine(vis.edge, vis.colour));
             
           } else {
             console.warn("undefined edge, ", ele);

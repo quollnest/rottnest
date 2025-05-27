@@ -9,6 +9,7 @@ import { VisualiserFrame } from "./VisualiserFrame.tsx";
 
 export const FRAMERATE: number = 60;
 
+import testdata from './assets/test.json';
 
 //
 // Utilising the tickmarks from previous visualiser
@@ -60,8 +61,8 @@ export type GimFCSchedulerVisProps = {
  */
 export type GimFCSchedulerButtonProps = {
 	title: [string, string | null]
-	visParent: GimFCVisualiser
-	onClickOp: (viz: GimFCVisualiser) => void
+	visParent: GimTestVisualiser
+	onClickOp: (viz: GimTestVisualiser) => void
 	style: string
 }
 
@@ -122,8 +123,7 @@ extends React.Component<GimFCSchedulerButtonProps, GimFCSchedulerButtonData>{
 export type GimFCSchedulerControlsProps = {
 	isPlaying: boolean
 	frameIdx: number
-	parent: GimFCVisualiser
-	tickmarks: Array<{idx: number}>
+	parent: GimTestVisualiser
 }
 
 //
@@ -193,18 +193,13 @@ export class GimFCSchedulerControls
 	];
 
 	saveRow: Array<GimFCSchedulerButtonProps> = [
-		{ title: ["Save", null], visParent: this.props.parent, onClickOp: OnVisualiserSaveFrame, style: "ctrlbtn_gim_save" },
+	/*{ title: ["Save", null], visParent: this.props.parent, onClickOp: OnVisualiserSaveFrame, style: "ctrlbtn_gim_save" },
 		{ title: ["Save Animated", null], visParent: this.props.parent, onClickOp: OnVisualiserSaveAnimation, style: "ctrlbtn_gim_save" },
-		{ title: ["Export", null], visParent: this.props.parent, onClickOp: OnVisualiserExportJSON, style: "ctrlbtn_gim_save" },
+		{ title: ["Export", null], visParent: this.props.parent, onClickOp: OnVisualiserExportJSON, style: "ctrlbtn_gim_save" },*/
 	];
 
 
 	render() {
-		const parent = this.props.parent;
-		const fmin = parent.getMin();
-		const fmax = parent.getMax();
-		const crfrm = this.props.frameIdx;
-		const tickmarks: Array<{idx: number}> = this.props.tickmarks;
 		const renPlayBtns = this.playRow
 			.map((b, i) => <GimFCSchedulerControlButton key={`sch_gim_play_${i}`} {...b} />)	
 		const renSaveBtns = this.saveRow
@@ -216,8 +211,6 @@ export class GimFCSchedulerControls
 				<div className={style.frameLabelContainer}>
 					<label className={style.frameLabel}>Cycle Snapshot</label>
 				</div>
-				<GimFCSchedulerFrameSlider parent={parent}
-					min={fmin} max={fmax} crfrm={crfrm} tickmarks={tickmarks}/>
 				<div className={style.vizControlRow}>
 				{renPlayBtns}
 				</div>
@@ -235,12 +228,85 @@ export class GimFCSchedulerControls
 // 
 export class GimTestVisualiser extends React.Component<GimFCSchedulerVisProps,
 	GimFCSchedulerVisData> implements Workspace {
+
+	state: GimFCSchedulerVisData = {
+		crfrm: 0,
+		initd: true,
+		isPlaying: false,
+		interval: null,
+		data: this.props.workspaceData.container.getVisData(),
+		offsets: [0, 0],
+		midDown: false,
+	}
+
+	tick() {
+		const nframes = this.getMax();
+		const fmidx = this.state.crfrm;
+		this.state.crfrm = (fmidx+1) < nframes ? fmidx + 1 : fmidx;
+		this.setState({...this.state})
+	}
+
+	changeFrame(frame: number) {
+		
+		const nstate = {...this.state};
+		nstate.crfrm = frame;
+		this.setState(nstate);
+	}
+
+	togglePlay() {
+		this.state.isPlaying = !this.state.isPlaying;
+		if(this.state.isPlaying) {
+			let self = this;
+			this.state.interval = setInterval(() => self.tick(), 1000);
+			this.setState({...this.state});
+		} else {
+			if(this.state.interval) {
+				clearInterval(this.state.interval);
+				this.setState({...this.state})
+			}
+		}
+	}
+	
+	getMin() {
+		return 0;
+	}
+
+	getMax() {
+		console.log(testdata.events.length)
+		return testdata.events.length;
+	}
+
+	nextFrame() {
+		const nframes = this.getMax();
+		const fmidx = this.state.crfrm;
+
+		this.state.crfrm = fmidx < (nframes-1) ? fmidx + 1 : fmidx;
+		if(this.state.interval) {
+			clearInterval(this.state.interval);
+		}
+		this.setState({...this.state})
+	}
+
+	prevFrame() {
+		
+		const fmidx = this.state.crfrm;
+		this.state.crfrm = fmidx > 0 ? fmidx - 1 : fmidx;
+		if(this.state.interval) {
+			clearInterval(this.state.interval);
+		}
+		this.setState({...this.state})
+	}
+
 	render() {
-		const frame = <VisualiserFrame frameNo={0} />
+		const self = this;
+		const frameNo = this.state.crfrm;
+		const isPlaying = this.state.isPlaying;
+		const frame = <VisualiserFrame frameNo={frameNo} visData={testdata} />
 
 		return (
 			<>
 				{frame}
+				<GimFCSchedulerControls frameIdx={frameNo} isPlaying={isPlaying} parent={self} />
 			</>
 		)
 	}
@@ -365,7 +431,6 @@ export class GimFCVisualiser extends React.Component<GimFCSchedulerVisProps,
 		const data = this.state.data;
 		const vwidth = (data.width * 100) + 200;
 		const vheight = (data.height * 100) + 200;
-		const tickmarks = ConstructTickmarks(data.layers.length);
 		const self = this;
 
 
@@ -433,15 +498,12 @@ export class GimFCVisualiser extends React.Component<GimFCSchedulerVisProps,
 		//const svginst = this.state.svgd;
 		//ratio: 1:100
 		//TODO: Make it moveable and make it playable
-		const frameIdx = this.state.crfrm;
-		const isPlaying = this.state.isPlaying;
 		return (
 			<>
 				<svg viewBox={`${-100-ox} ${-100-oy} ${vwidth} ${vheight}`} width={'100%'} height={720} style={{backgroundColor: 'grey'}}
 					onMouseDown={mouseDownHandler} onMouseUp={mouseUpHandler}
 					onMouseMove={mouseMove}>
 				</svg>
-				<GimFCSchedulerControls frameIdx={frameIdx} isPlaying={isPlaying} parent={self} tickmarks={tickmarks}/>
 			</>
 		);
 		
